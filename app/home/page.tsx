@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { getActiveChild } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
+import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
 
 export default async function HomePage() {
@@ -21,9 +22,12 @@ export default async function HomePage() {
 
   if (!unit) {
     return (
-      <div className="p-8 text-center">
-        <h1 className="font-fredoka text-2xl font-bold text-ink">Sin contenido</h1>
-        <p className="text-ink-soft mt-2">Corré <code>npm run db:seed</code>.</p>
+      <div className="min-h-[100dvh] flex flex-col bg-cream">
+        <TopNav/>
+        <div className="p-8 text-center">
+          <h1 className="font-fredoka text-2xl font-bold text-ink">Sin contenido</h1>
+          <p className="text-ink-soft mt-2">Corré <code>npm run db:seed</code>.</p>
+        </div>
       </div>
     );
   }
@@ -41,10 +45,12 @@ export default async function HomePage() {
   const progressPct = unit.lessons.length ? totalDone / unit.lessons.length : 0;
 
   return (
-    <HomeClient
-      child={{ hearts: child.hearts, gems: child.gems, streak: child.streak }}
-      unit={{ title: unit.title, order: unit.order, progressPct }}
-      nodes={nodes}
-    />
+    <div className="min-h-[100dvh] flex flex-col bg-cream">
+      <TopNav/>
+      <HomeClient
+        unit={{ title: unit.title, order: unit.order, progressPct }}
+        nodes={nodes}
+      />
+    </div>
   );
 }

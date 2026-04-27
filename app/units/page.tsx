@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getActiveChild, getUnitsWithProgress } from "@/lib/queries";
-import { BottomNav } from "@/components/BottomNav";
+import { TopNav } from "@/components/TopNav";
 
 const bgByColor: Record<string, string> = {
   peach: "from-peach-soft to-peach",
@@ -21,19 +21,15 @@ export default async function UnitsPage() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-cream md:bg-white">
-      {/* TOP BAR */}
-      <header className="sticky top-0 z-20 bg-white border-b border-ink/5">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 h-14 md:h-16 flex items-center gap-4">
-          <Link href="/home" className="w-9 h-9 flex items-center justify-center text-xl text-ink-soft hover:text-ink">←</Link>
-          <div>
-            <div className="text-[10px] font-extrabold text-ink-mute tracking-widest">APRENDER MATEMÁTICAS</div>
-            <h1 className="font-fredoka text-lg md:text-2xl font-bold text-ink leading-none">Unidades</h1>
-          </div>
-        </div>
-      </header>
+      <TopNav/>
 
       <main className="flex-1">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 md:py-8 pb-28 md:pb-12 grid gap-3 md:gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-10">
+          <div className="mb-4 md:mb-6">
+            <div className="text-[10px] font-extrabold text-ink-mute tracking-widest">APRENDER MATEMÁTICAS</div>
+            <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink leading-tight">Unidades</h1>
+          </div>
+          <div className="grid gap-3 md:gap-5 md:grid-cols-2 lg:grid-cols-3">
           {units.map((u, i) => {
             const locked = u.isPremium && u.progress === 0;
             const done = u.progress >= 1;
@@ -69,10 +65,9 @@ export default async function UnitsPage() {
               </Link>
             );
           })}
+          </div>
         </div>
       </main>
-
-      <div className="md:hidden"><BottomNav/></div>
     </div>
   );
 }
