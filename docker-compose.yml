@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: learnmath-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: learnmath
+    ports:
+      - "5432:5432"
+    volumes:
+      - learnmath_pg:/var/lib/postgresql/data
+
+volumes:
+  learnmath_pg:

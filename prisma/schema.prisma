@@ -1,0 +1,254 @@
+// =========================================================================
+// LearnMath · Schema Prisma
+// =========================================================================
+// Modelos pensados para portabilidad total:
+// - User = cuenta de padre/madre (sincronizada con Supabase Auth)
+// - Child = perfil del niño que usa la app
+// - Unit / Lesson / Exercise = contenido pedagógico
+// - Attempt = cada intento individual (para analytics y spaced repetition)
+// - Progress = estado actual del niño en cada lección
+// =========================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Supabase usa un pooler en prod — agregá DIRECT_URL para migrations
+  directUrl = env("DIRECT_URL")
+}
+
+// -------------------------------------------------------------------------
+// USER (padre/madre) — synced con supabase.auth.users via el id (UUID)
+// -------------------------------------------------------------------------
+model User {
+  id           String   @id @db.Uuid // == auth.users.id de Supabase
+  email        String   @unique
+  name         String?
+  parentalPin  String?  // hash bcrypt del PIN de 4 dígitos (zona padres)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  children Child[]
+
+  @@map("users")
+}
+
+// -------------------------------------------------------------------------
+// CHILD (perfil del niño)
+// -------------------------------------------------------------------------
+model Child {
+  id        String   @id @default(cuid())
+  parentId  String   @db.Uuid
+  name      String
+  age       Int
+  avatar    String   // emoji o clave de sprite
+  hearts    Int      @default(5)
+  gems      Int      @default(0)
+  xp        Int      @default(0)
+  level     Int      @default(1)
+  streak    Int      @default(0)
+  lastPlay  DateTime?
+  createdAt DateTime @default(now())
+
+  parent       User       @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  progress     Progress[]
+  attempts     Attempt[]
+  inventory    Inventory[]
+  achievements ChildAchievement[]
+  weeklyXP     WeeklyXP[]
+
+  @@index([parentId])
+  @@map("children")
+}
+
+// -------------------------------------------------------------------------
+// CONTENIDO: Unit → Lesson → Exercise
+// -------------------------------------------------------------------------
+model Unit {
+  id          String   @id @default(cuid())
+  slug        String   @unique  // "numeros-1-10"
+  title       String
+  description String?
+  order       Int
+  color       String   // token de color (ej "peach")
+  icon        String   // emoji
+  isPremium   Boolean  @default(false)
+
+  lessons     Lesson[]
+
+  @@map("units")
+}
+
+model Lesson {
+  id       String   @id @default(cuid())
+  unitId   String
+  slug     String
+  title    String
+  order    Int
+  xpReward Int      @default(20)
+
+  unit      Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  exercises Exercise[]
+  progress  Progress[]
+
+  @@unique([unitId, slug])
+  @@index([unitId])
+  @@map("lessons")
+}
+
+enum ExerciseKind {
+  DRAG         // arrastrar
+  SUBTRACT     // resta visual
+  COUNT        // contar
+  MATCH        // unir con líneas
+  FILL         // llenar hueco
+  TRACE        // trazar número
+  ORDER        // ordenar menor→mayor
+  SPEED        // speed round
+}
+
+model Exercise {
+  id        String       @id @default(cuid())
+  lessonId  String
+  kind      ExerciseKind
+  order     Int
+  prompt    String       // "¿Cuántas hay?"
+  payload   Json         // data específica del tipo
+  solution  Json         // respuesta correcta
+
+  lesson   Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts Attempt[]
+
+  @@index([lessonId])
+  @@map("exercises")
+}
+
+// -------------------------------------------------------------------------
+// PROGRESO y ATTEMPTS
+// -------------------------------------------------------------------------
+model Progress {
+  id          String    @id @default(cuid())
+  childId     String
+  lessonId    String
+  completed   Boolean   @default(false)
+  stars       Int       @default(0) // 0–3
+  bestScore   Int       @default(0)
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  child  Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, lessonId])
+  @@index([childId])
+  @@map("progress")
+}
+
+model Attempt {
+  id         String   @id @default(cuid())
+  childId    String
+  exerciseId String
+  correct    Boolean
+  response   Json     // qué respondió el niño
+  timeMs     Int      // cuánto tardó
+  createdAt  DateTime @default(now())
+
+  child    Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([childId, createdAt])
+  @@index([exerciseId])
+  @@map("attempts")
+}
+
+// -------------------------------------------------------------------------
+// SHOP · ACHIEVEMENTS · LEAGUE
+// -------------------------------------------------------------------------
+enum ShopItemKind {
+  ACCESSORY     // sombrero, anteojos…
+  GEMS_PACK     // paquete de gemas (IAP)
+  HEARTS_REFILL // recarga corazones
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model ShopItem {
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  kind      ShopItemKind
+  name      String
+  icon      String       // emoji o sprite key
+  price     Int          // gemas (o centavos USD si es GEMS_PACK)
+  rarity    Rarity       @default(COMMON)
+  isActive  Boolean      @default(true)
+
+  inventory Inventory[]
+
+  @@map("shop_items")
+}
+
+model Inventory {
+  id         String   @id @default(cuid())
+  childId    String
+  itemId     String
+  acquiredAt DateTime @default(now())
+  equipped   Boolean  @default(false)
+
+  child Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  item  ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, itemId])
+  @@index([childId])
+  @@map("inventory")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  icon        String
+  target      Int      // valor a alcanzar (ej: 100 aciertos)
+  metric      String   // "lessons_completed" | "correct_answers" | "streak" | …
+
+  unlocks ChildAchievement[]
+
+  @@map("achievements")
+}
+
+model ChildAchievement {
+  id            String   @id @default(cuid())
+  childId       String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  child       Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, achievementId])
+  @@index([childId])
+  @@map("child_achievements")
+}
+
+// XP semanal — se resetea los lunes. Usado para liga/leaderboard.
+model WeeklyXP {
+  id        String   @id @default(cuid())
+  childId   String
+  weekStart DateTime @db.Date  // lunes 00:00 UTC de la semana
+  xp        Int      @default(0)
+  league    String   @default("BRONZE") // BRONZE/SILVER/GOLD/DIAMOND…
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, weekStart])
+  @@index([weekStart, league, xp])
+  @@map("weekly_xp")
+}

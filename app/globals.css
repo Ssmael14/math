@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Colores base */
+  --color-cream: #FFF9F0;
+  --color-ink: #3D2E4F;
+  --color-ink-soft: #6B5A7D;
+  --color-ink-mute: #9688A8;
+
+  /* Primarios (pasteles) */
+  --color-peach: #FFB199;
+  --color-peach-soft: #FFC9D9;
+  --color-pink: #FF8FB1;
+  --color-lilac: #B088DB;
+  --color-lilac-soft: #DDC9F0;
+  --color-sky: #6FBEE8;
+  --color-sky-soft: #B8E0F5;
+  --color-mint: #68C886;
+  --color-mint-soft: #C5EED0;
+  --color-sun: #FFC94A;
+  --color-sun-soft: #FFE5A3;
+  --color-sun-deep: #E8A500;
+
+  /* Fuentes */
+  --font-fredoka: 'Fredoka', system-ui, sans-serif;
+  --font-nunito: 'Nunito', system-ui, sans-serif;
+
+  /* Radios */
+  --radius-chunky: 22px;
+  --radius-button: 18px;
+
+  /* Sombras 3D chunky */
+  --shadow-chunky: 0 4px 0 rgba(61, 46, 79, 0.12);
+  --shadow-chunky-lg: 0 5px 0 #3D2E4F;
+  --shadow-chunky-sm: 0 2px 0 rgba(61, 46, 79, 0.12);
+}
+
+html, body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-nunito);
+  -webkit-font-smoothing: antialiased;
+  /* Evitar scroll horizontal accidental y rebote iOS feo */
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+/* Safe area helpers — usar en status bar top y nav bottom para respetar notch/home indicator */
+.safe-top { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
+
+/* Desactivar highlight azul en tap sobre mobile */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Scrollbar hidden en los feed scrollables */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Animaciones reutilizables */
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-bob { animation: bob 2.5s ease-in-out infinite; }
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+}
+
+/* Botón "chunky" con press-in */
+.btn-chunky {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.btn-chunky:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(61, 46, 79, 0.12) !important;
+}

@@ -1,0 +1,88 @@
+// app/profile/page.tsx — perfil con selector multi-niño
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getActiveChild } from "@/lib/queries";
+import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { BottomNav } from "@/components/BottomNav";
+import { ChildSwitcher } from "./ChildSwitcher";
+
+export default async function ProfilePage() {
+  const user = await requireUser();
+  const child = await getActiveChild();
+  if (!child) redirect("/profile/create");
+
+  const lessonsCompleted = await prisma.progress.count({
+    where: { childId: child.id, completed: true },
+  });
+  const totalAttempts = await prisma.attempt.count({ where: { childId: child.id } });
+  const correctAttempts = await prisma.attempt.count({ where: { childId: child.id, correct: true } });
+  const accuracy = totalAttempts ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
+
+  return (
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-cream md:bg-cream md:bg-none">
+      <header className="sticky top-0 z-20 md:bg-white md:border-b md:border-ink/5">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 h-14 md:h-16 flex items-center justify-between">
+          <Link href="/parental" className="w-9 h-9 rounded-xl bg-white md:bg-cream flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>👨‍👩‍👧</Link>
+          <div className="text-[10px] md:text-xs font-black text-pink tracking-widest">MI PERFIL</div>
+          <Link href="/settings" className="w-9 h-9 rounded-xl bg-white md:bg-cream flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>⚙️</Link>
+        </div>
+      </header>
+
+      <main className="flex-1 w-full">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-12 pb-28 md:pb-12 md:grid md:grid-cols-[320px_1fr] md:gap-12">
+          <aside className="text-center md:text-left">
+            <div className="inline-flex w-28 h-28 md:w-32 md:h-32 rounded-full bg-white items-center justify-center text-6xl md:text-7xl border-4 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
+              {child.avatar}
+            </div>
+            <h1 className="font-fredoka text-3xl md:text-4xl font-bold text-ink mt-3">{child.name}</h1>
+            <div className="text-sm font-bold text-ink-soft">{child.age} años · Nivel {child.level}</div>
+            <Link href={`/profile/edit/${child.id}`} className="inline-block mt-2 text-xs font-bold text-sky underline">✏️ Editar perfil</Link>
+
+            {user.children.length > 1 && (
+              <div className="mt-5">
+                <div className="text-[10px] font-black text-ink-soft tracking-widest mb-2">CAMBIAR DE PERFIL</div>
+                <ChildSwitcher children={user.children} activeId={child.id}/>
+              </div>
+            )}
+            <div className="mt-3 flex flex-col items-center md:items-start gap-2">
+              <Link href="/profile/create" className="text-xs font-bold text-ink-soft underline">+ Agregar hijo</Link>
+              <Link href="/settings" className="text-xs font-bold text-pink underline">🚪 Cerrar sesión</Link>
+            </div>
+          </aside>
+
+          <section className="mt-6 md:mt-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { icon: "🔥", value: child.streak, label: "DÍAS RACHA" },
+                { icon: "⭐", value: child.xp, label: "XP GANADO" },
+                { icon: "📚", value: lessonsCompleted, label: "LECCIONES" },
+                { icon: "🎯", value: `${accuracy}%`, label: "ACIERTOS" },
+              ].map((s) => (
+                <div key={s.label} className="bg-white rounded-2xl p-4" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
+                  <div className="text-3xl">{s.icon}</div>
+                  <div className="font-fredoka text-2xl font-bold text-ink mt-1">{s.value}</div>
+                  <div className="text-[10px] font-bold text-ink-soft">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 grid md:grid-cols-3 gap-3">
+              <Link href="/achievements" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
+                <span>🏆 Medallas</span><span className="text-ink-mute">›</span>
+              </Link>
+              <Link href="/shop" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
+                <span>🛍️ Tienda de Lumi</span><span className="text-ink-mute">›</span>
+              </Link>
+              <Link href="/league" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
+                <span>🏅 Liga</span><span className="text-ink-mute">›</span>
+              </Link>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <div className="md:hidden"><BottomNav/></div>
+    </div>
+  );
+}
