@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getActiveChild } from "@/lib/queries";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { BottomNav } from "@/components/BottomNav";
+import { TopNav } from "@/components/TopNav";
 import { ChildSwitcher } from "./ChildSwitcher";
 
 export default async function ProfilePage() {
@@ -21,16 +21,17 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-cream md:bg-cream md:bg-none">
-      <header className="sticky top-0 z-20 md:bg-white md:border-b md:border-ink/5">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 h-14 md:h-16 flex items-center justify-between">
-          <Link href="/parental" className="w-9 h-9 rounded-xl bg-white md:bg-cream flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>👨‍👩‍👧</Link>
-          <div className="text-[10px] md:text-xs font-black text-pink tracking-widest">MI PERFIL</div>
-          <Link href="/settings" className="w-9 h-9 rounded-xl bg-white md:bg-cream flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>⚙️</Link>
-        </div>
-      </header>
+      <TopNav/>
 
       <main className="flex-1 w-full">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-12 pb-28 md:pb-12 md:grid md:grid-cols-[320px_1fr] md:gap-12">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 pt-6 md:pt-10 flex items-center justify-between">
+          <div className="text-[10px] md:text-xs font-black text-pink tracking-widest">MI PERFIL</div>
+          <div className="flex items-center gap-2">
+            <Link href="/parental" className="w-9 h-9 rounded-xl bg-white flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }} aria-label="Modo padres">👨‍👩‍👧</Link>
+            <Link href="/settings" className="w-9 h-9 rounded-xl bg-white flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }} aria-label="Ajustes">⚙️</Link>
+          </div>
+        </div>
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 md:py-6 pb-12 md:grid md:grid-cols-[320px_1fr] md:gap-12">
           <aside className="text-center md:text-left">
             <div className="inline-flex w-28 h-28 md:w-32 md:h-32 rounded-full bg-white items-center justify-center text-6xl md:text-7xl border-4 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
               {child.avatar}
@@ -82,7 +83,6 @@ export default async function ProfilePage() {
         </div>
       </main>
 
-      <div className="md:hidden"><BottomNav/></div>
     </div>
   );
 }

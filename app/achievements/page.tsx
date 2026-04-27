@@ -1,8 +1,7 @@
 // app/achievements/page.tsx — datos reales
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getActiveChild, getAchievementsWithProgress } from "@/lib/queries";
-import { BottomNav } from "@/components/BottomNav";
+import { TopNav } from "@/components/TopNav";
 
 export default async function AchievementsPage() {
   const child = await getActiveChild();
@@ -13,18 +12,15 @@ export default async function AchievementsPage() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-sun-soft to-cream md:bg-cream">
-      <header className="sticky top-0 z-20 bg-white border-b border-ink/5">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 h-14 md:h-16 flex items-center gap-3">
-          <Link href="/profile" className="w-9 h-9 rounded-xl bg-cream flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>←</Link>
-          <div>
-            <div className="text-[10px] font-black text-sun-deep tracking-widest">🏆 MEDALLAS</div>
-            <h1 className="font-fredoka text-lg md:text-2xl font-bold text-ink leading-none">{got} / {medals.length}</h1>
-          </div>
-        </div>
-      </header>
+      <TopNav/>
 
       <main className="flex-1 w-full">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 md:py-8 pb-28 md:pb-12 grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10">
+          <div className="mb-4 md:mb-6">
+            <div className="text-[10px] font-black text-sun-deep tracking-widest">🏆 MEDALLAS</div>
+            <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink leading-tight">{got} / {medals.length}</h1>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {medals.map((m) => (
             <div key={m.id} className={`rounded-2xl p-4 text-center ${m.unlocked ? "bg-white" : "bg-white/50"}`} style={{ boxShadow: "var(--shadow-chunky-sm)", filter: m.unlocked ? "none" : "grayscale(.6)", opacity: m.unlocked ? 1 : 0.7 }}>
               <div className="text-5xl">{m.unlocked ? m.icon : "🔒"}</div>
@@ -36,10 +32,9 @@ export default async function AchievementsPage() {
               <div className="text-[10px] font-bold text-ink-mute mt-1">{m.current}/{m.target}</div>
             </div>
           ))}
+          </div>
         </div>
       </main>
-
-      <div className="md:hidden"><BottomNav/></div>
     </div>
   );
 }
