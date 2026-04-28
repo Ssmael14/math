@@ -3,6 +3,7 @@
 // la representación gráfica. Si querés agregar un nuevo tipo de ejercicio,
 // agregás un case acá y todo el resto (LessonRunner, hints, scoring) ya funciona.
 import type { ExerciseDTO } from "./types";
+import { countCols, countSizeCls } from "@/lib/visual-layout";
 
 const ITEM_CLS = "text-5xl md:text-7xl";
 
@@ -10,10 +11,19 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
   switch (ex.kind) {
     case "COUNT": {
       const { item, count } = ex.payload as { item: string; count: number };
+      // Grilla con cantidad de columnas según el count, así los ítems
+      // quedan ordenados (filas parejas) en lugar del flex-wrap-de-suerte.
+      // El tamaño del emoji baja para counts altos para que entren en
+      // pantallas chicas (375px).
+      const cols = countCols(count);
+      const sizeCls = countSizeCls(count);
       return (
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-lg">
+        <div
+          className="grid justify-center gap-2 md:gap-3 max-w-lg mx-auto"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, auto))` }}
+        >
           {Array.from({ length: count }).map((_, idx) => (
-            <span key={idx} className={ITEM_CLS}>{item}</span>
+            <span key={idx} className={`${sizeCls} leading-none`}>{item}</span>
           ))}
         </div>
       );
@@ -87,3 +97,4 @@ function Group({ n, item }: { n: number; item: string }) {
     </div>
   );
 }
+

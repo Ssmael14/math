@@ -202,6 +202,7 @@ export function ExerciseRunner({
             options={options}
             disabled={state !== "idle"}
             resetSignal={resetSignal}
+            showSolution={hintLevel === "solution"}
             onPickNumeric={(n) => submit(n)}
             onTraceStroke={onTraceStroke}
             onMatchComplete={(pairs) => submit(pairs)}
@@ -235,7 +236,7 @@ export function ExerciseRunner({
 }
 
 function KindBody({
-  ex, answer, options, disabled, resetSignal,
+  ex, answer, options, disabled, resetSignal, showSolution,
   onPickNumeric, onTraceStroke, onMatchComplete, onOrderComplete,
 }: {
   ex: ExerciseDTO;
@@ -243,6 +244,7 @@ function KindBody({
   options: number[];
   disabled: boolean;
   resetSignal: number;
+  showSolution: boolean;
   onPickNumeric: (n: number) => void;
   onTraceStroke: (stroke: Point[]) => void;
   onMatchComplete: (pairs: number[][]) => void;
@@ -260,6 +262,7 @@ function KindBody({
           digit={ex.solution.digit ?? 0}
           onStroke={onTraceStroke}
           disabled={disabled}
+          showSolution={showSolution}
           size={typeof window !== "undefined" && window.innerWidth < 380 ? 240 : 280}
         />
       </div>
