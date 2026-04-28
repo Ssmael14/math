@@ -20,12 +20,14 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
       childId={child.id}
       hearts={child.hearts}
       lesson={{ id: lesson.id, title: lesson.title, xpReward: lesson.xpReward }}
-      exercises={exercises.map(e => ({
+      exercises={exercises.map((e) => ({
         id: e.id,
         kind: e.kind,
         prompt: e.prompt,
-        payload: e.payload as any,
-        solution: e.solution as any,
+        payload: (e.payload ?? {}) as Record<string, unknown>,
+        solution: (e.solution ?? {}) as { answer?: number; digit?: number; order?: number[]; pairs?: number[][] },
+        hints: Array.isArray(e.hints) ? (e.hints as string[]) : null,
+        explanation: e.explanation,
       }))}
     />
   );
