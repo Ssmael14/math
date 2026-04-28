@@ -95,6 +95,39 @@ describe("generateSubtract", () => {
   });
 });
 
+describe("concordancia gramatical (género)", () => {
+  it("COUNT usa 'Cuántos' o 'Cuántas' según género del item", () => {
+    // Generamos varios y validamos que ningún caso emita 'Cuántas peces' o
+    // 'Cuántos manzanas'. La forma correcta (Cuántos peces / Cuántas manzanas)
+    // se verifica mirando la presencia del item en el prompt.
+    const rng = makeRng(31);
+    for (let i = 0; i < 60; i++) {
+      const ex = generateCount(rng, 10);
+      const p = ex.prompt;
+      // Mismatch obvio: "Cuántas peces / cupcakes / pingüinos" (m).
+      expect(p).not.toMatch(/Cuántas (peces|cupcakes|pingüinos)/);
+      // Mismatch obvio: "Cuántos estrellas / manzanas / flores / abejas / mariposas / frutillas / tortugas" (f).
+      expect(p).not.toMatch(/Cuántos (estrellas|manzanas|flores|abejas|mariposas|frutillas|tortugas)/);
+    }
+  });
+
+  it("SUBTRACT no genera frases violentas con animales no comestibles", () => {
+    const rng = makeRng(77);
+    for (let i = 0; i < 60; i++) {
+      const ex = generateSubtract(rng, 10);
+      // Nunca debería decir "te comiste 3 mariposas" o similar.
+      expect(ex.prompt).not.toMatch(/comiste \d+ (mariposas|abejas|tortugas|pingüinos|peces)/);
+      // Y la pregunta final debe tener la concordancia correcta.
+      const isMasculine = /\b(peces|cupcakes|pingüinos)\b/.test(ex.prompt);
+      if (isMasculine) {
+        expect(ex.prompt).toMatch(/¿Cuántos quedan\?/);
+      } else {
+        expect(ex.prompt).toMatch(/¿Cuántas quedan\?/);
+      }
+    }
+  });
+});
+
 describe("generateBatch", () => {
   it("genera el count exacto pedido", () => {
     expect(generateBatch({ seed: 1, count: 30, max: 10 })).toHaveLength(30);

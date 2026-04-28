@@ -14,14 +14,12 @@ export type TraceCanvasHandle = {
 export function TraceCanvas({
   digit,
   onStroke,
-  onClear,
   size = 280,
   disabled = false,
 }: {
   /** Sólo para mostrar como guía/contorno por debajo del trazo. */
   digit: number;
   onStroke: (stroke: Point[]) => void;
-  onClear?: () => void;
   size?: number;
   disabled?: boolean;
 }) {
@@ -43,7 +41,6 @@ export function TraceCanvas({
     pointsRef.current = [];
     setHasInk(false);
     drawGuide(g, c.width, c.height, digit);
-    onClear?.();
   }
 
   // Render inicial + cada vez que cambia el dígito objetivo.

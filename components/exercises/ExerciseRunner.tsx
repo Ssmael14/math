@@ -3,9 +3,13 @@
 // Loop genérico de "una secuencia de ejercicios" — alimenta tanto la lección
 // normal (LessonRunner) como el modo Repaso del día (ReviewRunner).
 //
-// El componente NO sabe qué pasa al terminar — el wrapper recibe el callback
-// onComplete({ correctCount, total }) y decide (redirigir a /victory, mostrar
-// pantalla de repaso, etc.).
+// El runner es agnóstico al kind: maneja el flujo (idle → correct/wrong →
+// continue), pero la INPUT (cómo elige el niño la respuesta) y la EVALUACIÓN
+// (si la respuesta está bien) están separadas por kind.
+//
+// Cada subcomponente de input dispara onAnswer({ value, correct }) cuando
+// el niño termina de responder. evaluateAttempt() en lib/evaluate.ts decide
+// la corrección.
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,17 +18,20 @@ import { ExerciseVisual } from "@/components/exercises/ExerciseVisual";
 import { OptionsGrid } from "@/components/exercises/OptionsGrid";
 import { HintPanel } from "@/components/exercises/HintPanel";
 import { TraceCanvas } from "@/components/exercises/TraceCanvas";
+import { MatchInput } from "@/components/exercises/inputs/MatchInput";
+import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { matchesDigit, type Point } from "@/lib/gesture";
+import { evaluateAttempt } from "@/lib/evaluate";
 
 export type RunnerLabels = {
-  /** Texto chico arriba del prompt: "EJERCICIO" / "REPASO" / etc. */
   step: string;
-  /** Mensaje del Lumi en estado idle. */
   idle: string;
 };
+
+type Answer = { value: unknown; correct: boolean };
 
 export function ExerciseRunner({
   childId,
@@ -41,37 +48,43 @@ export function ExerciseRunner({
   exercises: ExerciseDTO[];
   closeHref?: string;
   xpPerExercise?: number;
-  /** Si true, se manda al server reviewMode=true (no descuenta corazones). */
   reviewMode?: boolean;
   labels?: RunnerLabels;
   onComplete: (result: { correctCount: number; total: number }) => void | Promise<void>;
 }) {
   const router = useRouter();
   const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
+  const [answer, setAnswer] = useState<Answer | null>(null);
   const [wrongCount, setWrongCount] = useState(0);
   const [exerciseStartedAt, setExerciseStartedAt] = useState(Date.now());
   const [correctCount, setCorrectCount] = useState(0);
+  // resetSignal cambia cada vez que volvemos a idle desde wrong, para que
+  // los inputs internos (canvas, match, order) limpien su estado local.
+  const [resetSignal, setResetSignal] = useState(0);
 
   const ex = exercises[i];
-  const answer = ex.solution.answer ?? ex.solution.digit ?? 0;
-  const state = picked === null ? "idle" : picked === answer ? "correct" : "wrong";
+  const state = answer === null ? "idle" : answer.correct ? "correct" : "wrong";
   const hintLevel = nextHintLevel(wrongCount);
   const mustAdvance = shouldAdvanceAfterWrong(wrongCount);
-  const isTrace = ex.kind === "TRACE";
 
-  const options = useMemo(() => genOptions(answer), [ex.id, answer]);
+  // Texto/valor de "respuesta" para el HintPanel.
+  const solutionAnswer = ex.solution.answer ?? ex.solution.digit ?? null;
 
-  // Cuando el niño termina un trazo, lo comparamos contra el template del
-  // dígito objetivo. Si el score es bueno, "picked = answer" (correcto);
-  // si no, "picked = -1" para disparar el estado wrong sin sugerir un valor.
+  // Opciones aleatorias sólo para los kinds que las usan.
+  const numericAnswer = ex.solution.answer ?? ex.solution.digit ?? 0;
+  const options = useMemo(() => genOptions(numericAnswer), [ex.id, numericAnswer]);
+
+  function submit(value: unknown) {
+    const correct = evaluateAttempt(ex.kind, ex.solution, value);
+    setAnswer({ value, correct });
+  }
+
+  // Adapter para TRACE: el canvas devuelve un stroke, evaluamos con
+  // matchesDigit y luego mandamos `true` o `false` a evaluate.
   function onTraceStroke(stroke: Point[]) {
     const digit = ex.solution.digit ?? 0;
-    const result = matchesDigit(stroke, digit);
-    setPicked(result.ok ? digit : -1);
-  }
-  function onTraceClear() {
-    setPicked(null);
+    const ok = matchesDigit(stroke, digit).ok;
+    submit(ok); // evaluate("TRACE", ..., true|false)
   }
 
   async function recordAttempt(
@@ -79,8 +92,6 @@ export function ExerciseRunner({
     response: unknown,
     srs: { final: boolean; priorWrongs: number; solutionShown: boolean },
   ) {
-    // postOrQueue: si no hay red, se guarda en localStorage y se reintenta
-    // cuando vuelve la conexión (PwaProvider escucha el evento 'online').
     await postOrQueue("/api/attempts", {
       childId, exerciseId: ex.id, correct, response,
       timeMs: Date.now() - exerciseStartedAt,
@@ -99,14 +110,15 @@ export function ExerciseRunner({
     }
 
     setI(i + 1);
-    setPicked(null);
+    setAnswer(null);
     setWrongCount(0);
     setExerciseStartedAt(Date.now());
+    setResetSignal((s) => s + 1);
   }
 
   async function onContinue() {
     if (state === "correct") {
-      await recordAttempt(true, { picked }, {
+      await recordAttempt(true, answer?.value, {
         final: true, priorWrongs: wrongCount, solutionShown: false,
       });
       await advance(true);
@@ -117,16 +129,21 @@ export function ExerciseRunner({
     setWrongCount(next);
 
     if (shouldAdvanceAfterWrong(next)) {
-      await recordAttempt(false, { picked }, {
+      // Cierre del ejercicio con solución revelada — único intento que
+      // descuenta corazón en el server (ver /api/attempts).
+      await recordAttempt(false, answer?.value, {
         final: true, priorWrongs: wrongCount, solutionShown: true,
       });
       return;
     }
 
-    await recordAttempt(false, { picked }, {
+    // Wrong intermedio: NO es final, server lo registra para analytics
+    // pero no descuenta corazón.
+    await recordAttempt(false, answer?.value, {
       final: false, priorWrongs: wrongCount, solutionShown: false,
     });
-    setPicked(null);
+    setAnswer(null);
+    setResetSignal((s) => s + 1);
   }
 
   async function onAcknowledgeSolution() {
@@ -170,26 +187,17 @@ export function ExerciseRunner({
             {ex.prompt}
           </h2>
 
-          {/* Para TRACE el canvas reemplaza al visual estático y a las opciones.
-              Para los demás kinds mostramos visual + opciones como hasta ahora. */}
-          {isTrace ? (
-            <div className="w-full flex justify-center mb-4 md:mb-8">
-              <TraceCanvas
-                digit={ex.solution.digit ?? 0}
-                onStroke={onTraceStroke}
-                onClear={onTraceClear}
-                disabled={state !== "idle"}
-                size={typeof window !== "undefined" && window.innerWidth < 380 ? 240 : 280}
-              />
-            </div>
-          ) : (
-            <>
-              <div className="w-full flex justify-center mb-8 md:mb-12">
-                <ExerciseVisual ex={ex}/>
-              </div>
-              <OptionsGrid options={options} picked={picked} state={state} onPick={setPicked}/>
-            </>
-          )}
+          <KindBody
+            ex={ex}
+            answer={answer}
+            options={options}
+            disabled={state !== "idle"}
+            resetSignal={resetSignal}
+            onPickNumeric={(n) => submit(n)}
+            onTraceStroke={onTraceStroke}
+            onMatchComplete={(pairs) => submit(pairs)}
+            onOrderComplete={(seq) => submit(seq)}
+          />
 
           {hintLevel !== "none" && (
             <div className="w-full mt-6 flex justify-center">
@@ -197,7 +205,7 @@ export function ExerciseRunner({
                 level={hintLevel}
                 hint={pickHint(hintLevel, ex.hints ?? null)}
                 explanation={ex.explanation ?? null}
-                answer={answer}
+                answer={solutionAnswer}
               />
             </div>
           )}
@@ -213,6 +221,81 @@ export function ExerciseRunner({
         onAcknowledgeSolution={onAcknowledgeSolution}
       />
     </div>
+  );
+}
+
+function KindBody({
+  ex, answer, options, disabled, resetSignal,
+  onPickNumeric, onTraceStroke, onMatchComplete, onOrderComplete,
+}: {
+  ex: ExerciseDTO;
+  answer: Answer | null;
+  options: number[];
+  disabled: boolean;
+  resetSignal: number;
+  onPickNumeric: (n: number) => void;
+  onTraceStroke: (stroke: Point[]) => void;
+  onMatchComplete: (pairs: number[][]) => void;
+  onOrderComplete: (seq: number[]) => void;
+}) {
+  const state: "idle" | "correct" | "wrong" =
+    answer === null ? "idle" : answer.correct ? "correct" : "wrong";
+  const numericPicked = typeof answer?.value === "number" ? (answer.value as number) : null;
+
+  if (ex.kind === "TRACE") {
+    return (
+      <div className="w-full flex justify-center mb-4 md:mb-8">
+        <TraceCanvas
+          key={resetSignal}
+          digit={ex.solution.digit ?? 0}
+          onStroke={onTraceStroke}
+          disabled={disabled}
+          size={typeof window !== "undefined" && window.innerWidth < 380 ? 240 : 280}
+        />
+      </div>
+    );
+  }
+
+  if (ex.kind === "MATCH") {
+    const payload = ex.payload as { groups?: { item: string; count: number }[]; options?: number[] };
+    const groups = Array.isArray(payload.groups) ? payload.groups : [];
+    const opts = Array.isArray(payload.options) ? payload.options : [];
+    return (
+      <div className="w-full flex justify-center mb-4 md:mb-8">
+        <MatchInput
+          key={resetSignal}
+          groups={groups}
+          options={opts}
+          disabled={disabled}
+          onComplete={onMatchComplete}
+        />
+      </div>
+    );
+  }
+
+  if (ex.kind === "ORDER") {
+    const payload = ex.payload as { numbers?: number[] };
+    const numbers = Array.isArray(payload.numbers) ? payload.numbers : [];
+    return (
+      <div className="w-full flex justify-center mb-4 md:mb-8">
+        <OrderInput
+          key={resetSignal}
+          numbers={numbers}
+          disabled={disabled}
+          onComplete={onOrderComplete}
+        />
+      </div>
+    );
+  }
+
+  // Numeric: COUNT/DRAG/SUBTRACT/FILL
+  return (
+    <>
+      <div className="w-full flex justify-center mb-8 md:mb-12">
+        <ExerciseVisual ex={ex}/>
+      </div>
+      <OptionsGrid options={options} picked={numericPicked} state={state} onPick={onPickNumeric}/>
+    </>
   );
 }
 

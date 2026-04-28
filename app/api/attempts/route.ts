@@ -57,7 +57,11 @@ export async function POST(req: Request) {
     data: { childId, exerciseId, correct, response: body.response ?? {}, timeMs },
   });
 
-  if (!correct && !reviewMode && child.hearts > 0) {
+  // Sólo descontamos un corazón cuando el ejercicio se cierra mal — es decir,
+  // intento `final: true` con `correct: false` (el niño llegó al límite de
+  // errores y se le mostró la solución). Los wrong intermedios sólo van a
+  // analytics. Esto evita perder 2 corazones por un solo ejercicio mal.
+  if (!correct && final && !reviewMode && child.hearts > 0) {
     await prisma.child.update({
       where: { id: childId },
       data: { hearts: { decrement: 1 } },

@@ -41,18 +41,35 @@ function intBetween(rng: () => number, lo: number, hi: number): number {
   return Math.floor(rng() * (hi - lo + 1)) + lo;
 }
 
-const ITEMS: ReadonlyArray<{ emoji: string; sing: string; plural: string }> = [
-  { emoji: "⭐", sing: "estrella", plural: "estrellas" },
-  { emoji: "🍎", sing: "manzana", plural: "manzanas" },
-  { emoji: "🐟", sing: "pez", plural: "peces" },
-  { emoji: "🌸", sing: "flor", plural: "flores" },
-  { emoji: "🧁", sing: "cupcake", plural: "cupcakes" },
-  { emoji: "🐝", sing: "abeja", plural: "abejas" },
-  { emoji: "🦋", sing: "mariposa", plural: "mariposas" },
-  { emoji: "🍓", sing: "frutilla", plural: "frutillas" },
-  { emoji: "🐢", sing: "tortuga", plural: "tortugas" },
-  { emoji: "🐧", sing: "pingüino", plural: "pingüinos" },
+type Item = {
+  emoji: string;
+  sing: string;
+  plural: string;
+  /** Concordancia gramatical: "f" → "cuántas / quedan", "m" → "cuántos / quedan". */
+  gender: "m" | "f";
+  /** Verbo en pasado para contextualizar la resta sin que suene violento.
+   *  Algunos items se pueden comer ("comiste"), otros se vuelan ("se volaron"),
+   *  otros se sacan a una caja ("guardaste"). */
+  removalVerb: string;
+};
+
+const ITEMS: ReadonlyArray<Item> = [
+  { emoji: "⭐", sing: "estrella",  plural: "estrellas",  gender: "f", removalVerb: "se apagaron" },
+  { emoji: "🍎", sing: "manzana",   plural: "manzanas",   gender: "f", removalVerb: "comiste" },
+  { emoji: "🐟", sing: "pez",       plural: "peces",      gender: "m", removalVerb: "se nadaron" },
+  { emoji: "🌸", sing: "flor",      plural: "flores",     gender: "f", removalVerb: "regalaste" },
+  { emoji: "🧁", sing: "cupcake",   plural: "cupcakes",   gender: "m", removalVerb: "comiste" },
+  { emoji: "🐝", sing: "abeja",     plural: "abejas",     gender: "f", removalVerb: "se volaron" },
+  { emoji: "🦋", sing: "mariposa",  plural: "mariposas",  gender: "f", removalVerb: "se volaron" },
+  { emoji: "🍓", sing: "frutilla",  plural: "frutillas",  gender: "f", removalVerb: "comiste" },
+  { emoji: "🐢", sing: "tortuga",   plural: "tortugas",   gender: "f", removalVerb: "se escondieron" },
+  { emoji: "🐧", sing: "pingüino",  plural: "pingüinos",  gender: "m", removalVerb: "se zambulleron" },
 ];
+
+/** "Cuántas" o "Cuántos" según el género gramatical. */
+function howMany(item: Item): string {
+  return item.gender === "f" ? "Cuántas" : "Cuántos";
+}
 
 // =========================================================================
 // COUNT: ¿cuántos hay?
@@ -62,7 +79,7 @@ export function generateCount(rng: () => number, max: number): GeneratedExercise
   const count = intBetween(rng, 1, max);
   return {
     kind: "COUNT",
-    prompt: `¿Cuántas ${item.plural} hay?`,
+    prompt: `¿${howMany(item)} ${item.plural} hay?`,
     payload: { item: item.emoji, count },
     solution: { answer: count },
     hints: [
@@ -105,9 +122,14 @@ export function generateSubtract(rng: () => number, max: number): GeneratedExerc
   const total = intBetween(rng, 2, max);
   const removed = intBetween(rng, 1, total - 1);
   const remaining = total - removed;
+  // Si el verbo es reflexivo ("se volaron") no anteponemos "te". Si es
+  // transitivo ("comiste", "regalaste") sí.
+  const reflexive = item.removalVerb.startsWith("se ");
+  const verbPhrase = reflexive ? item.removalVerb : `te ${item.removalVerb}`;
+  const howManyQ = item.gender === "f" ? "Cuántas" : "Cuántos";
   return {
     kind: "SUBTRACT",
-    prompt: `Tenías ${total} ${item.plural}, te ${removed === 1 ? "comiste" : "sacaste"} ${removed}. ¿Cuántas quedan?`,
+    prompt: `Tenías ${total} ${item.plural} y ${verbPhrase} ${removed}. ¿${howManyQ} quedan?`,
     payload: { total, removed, item: item.emoji },
     solution: { answer: remaining },
     hints: [
