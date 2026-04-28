@@ -31,10 +31,29 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
     case "SUBTRACT": {
       const { total, removed, item } = ex.payload as { total: number; removed: number; item: string };
       return (
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-lg">
-          {Array.from({ length: total }).map((_, i) => (
-            <span key={i} className={`${ITEM_CLS} ${i < removed ? "opacity-20 line-through" : ""}`}>{item}</span>
-          ))}
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-lg">
+            {Array.from({ length: total }).map((_, i) => {
+              const isRemoved = i < removed;
+              return (
+                <span
+                  key={i}
+                  className={`${ITEM_CLS} relative inline-block ${isRemoved ? "subtract-removed" : ""}`}
+                  // delay escalonado: el primer item desaparece primero, así
+                  // se ve la "salida" en cascada en lugar de todo a la vez.
+                  style={isRemoved ? { animationDelay: `${i * 120}ms` } : undefined}
+                  aria-hidden={isRemoved}
+                >
+                  {item}
+                </span>
+              );
+            })}
+          </div>
+          <div className="text-xs md:text-sm font-bold text-ink-soft">
+            <span className="text-pink">−{removed}</span>{" "}
+            <span aria-hidden>{item.repeat(Math.min(removed, 3))}</span>
+            {removed > 3 ? "…" : ""}
+          </div>
         </div>
       );
     }

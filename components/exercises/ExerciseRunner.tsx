@@ -20,6 +20,8 @@ import { HintPanel } from "@/components/exercises/HintPanel";
 import { TraceCanvas } from "@/components/exercises/TraceCanvas";
 import { MatchInput } from "@/components/exercises/inputs/MatchInput";
 import { OrderInput } from "@/components/exercises/inputs/OrderInput";
+import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
+import { DragInput } from "@/components/exercises/inputs/DragInput";
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
@@ -31,7 +33,12 @@ export type RunnerLabels = {
   idle: string;
 };
 
-type Answer = { value: unknown; correct: boolean };
+type Answer = {
+  value: unknown;
+  correct: boolean;
+  /** Sólo para kinds con score parcial (hoy: TRACE). 0-3. */
+  stars?: 0 | 1 | 2 | 3;
+};
 
 export function ExerciseRunner({
   childId,
@@ -81,10 +88,12 @@ export function ExerciseRunner({
 
   // Adapter para TRACE: el canvas devuelve un stroke, evaluamos con
   // matchesDigit y luego mandamos `true` o `false` a evaluate.
+  // Guardamos las estrellas (0-3) en el answer para mostrar feedback granular.
   function onTraceStroke(stroke: Point[]) {
     const digit = ex.solution.digit ?? 0;
-    const ok = matchesDigit(stroke, digit).ok;
-    submit(ok); // evaluate("TRACE", ..., true|false)
+    const { ok, stars } = matchesDigit(stroke, digit);
+    const correct = evaluateAttempt(ex.kind, ex.solution, ok);
+    setAnswer({ value: ok, correct, stars });
   }
 
   async function recordAttempt(
@@ -217,6 +226,7 @@ export function ExerciseRunner({
         mustAdvance={mustAdvance}
         xpPerExercise={xpPerExercise}
         idleMessage={labels.idle}
+        traceStars={answer?.stars}
         onContinue={onContinue}
         onAcknowledgeSolution={onAcknowledgeSolution}
       />
@@ -288,7 +298,46 @@ function KindBody({
     );
   }
 
-  // Numeric: COUNT/DRAG/SUBTRACT/FILL
+  if (ex.kind === "DRAG") {
+    // Drag real con canasto. El ExerciseVisual estático ya no se muestra:
+    // los ítems en sí mismos son el visual.
+    const payload = ex.payload as { a?: number; b?: number; item?: string };
+    return (
+      <div className="w-full flex justify-center mb-4 md:mb-6">
+        <DragInput
+          key={resetSignal}
+          a={payload.a ?? 0}
+          b={payload.b ?? 0}
+          item={payload.item ?? "⭐"}
+          disabled={disabled}
+          onSubmit={onPickNumeric}
+        />
+      </div>
+    );
+  }
+
+  if (ex.kind === "FILL") {
+    // FILL pasa de "elegir entre 4 opciones cercanas" (predecible) a tipear
+    // el número en un teclado. Se evita que el niño "adivine" tomando el
+    // valor del medio.
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <div className="w-full flex justify-center">
+          <NumericKeypadInput
+            key={resetSignal}
+            max={20}
+            disabled={disabled}
+            onSubmit={onPickNumeric}
+          />
+        </div>
+      </>
+    );
+  }
+
+  // Numeric con opciones múltiple-choice: COUNT/SUBTRACT
   return (
     <>
       <div className="w-full flex justify-center mb-8 md:mb-12">
@@ -300,12 +349,14 @@ function KindBody({
 }
 
 function Footer({
-  state, mustAdvance, xpPerExercise, idleMessage, onContinue, onAcknowledgeSolution,
+  state, mustAdvance, xpPerExercise, idleMessage, traceStars, onContinue, onAcknowledgeSolution,
 }: {
   state: "idle" | "correct" | "wrong";
   mustAdvance: boolean;
   xpPerExercise: number;
   idleMessage: string;
+  /** Estrellas (0-3) para feedback granular de TRACE. */
+  traceStars?: 0 | 1 | 2 | 3;
   onContinue: () => void;
   onAcknowledgeSolution: () => void;
 }) {
@@ -337,8 +388,17 @@ function Footer({
             <div className="flex items-center gap-2 md:gap-3 flex-1">
               <span className="text-3xl md:text-4xl" aria-hidden>🎉</span>
               <div>
-                <div className="font-fredoka text-base md:text-xl font-bold text-mint">¡Correcto!</div>
-                {xpPerExercise > 0 && (
+                <div className="font-fredoka text-base md:text-xl font-bold text-mint">
+                  {traceStars === 3 ? "¡Excelente trazo!" :
+                   traceStars === 2 ? "¡Muy bien!" :
+                   traceStars === 1 ? "¡Casi perfecto!" :
+                   "¡Correcto!"}
+                </div>
+                {traceStars !== undefined ? (
+                  <div className="text-base" aria-label={`${traceStars} de 3 estrellas`}>
+                    {"⭐".repeat(traceStars)}<span className="opacity-25">{"⭐".repeat(3 - traceStars)}</span>
+                  </div>
+                ) : xpPerExercise > 0 && (
                   <div className="text-xs md:text-sm font-bold text-ink-soft">+{xpPerExercise} XP</div>
                 )}
               </div>

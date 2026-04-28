@@ -3,6 +3,7 @@ import {
   normalizeStroke,
   similarity,
   matchesDigit,
+  scoreToStars,
   DIGIT_TEMPLATES,
   type Point,
 } from "@/lib/gesture";
@@ -70,6 +71,26 @@ describe("DIGIT_TEMPLATES", () => {
       expect(DIGIT_TEMPLATES[i]).toBeDefined();
       expect(DIGIT_TEMPLATES[i].length).toBe(64);
     }
+  });
+});
+
+describe("scoreToStars", () => {
+  it("≥ 0.75 → 3 estrellas", () => {
+    expect(scoreToStars(0.75)).toBe(3);
+    expect(scoreToStars(0.95)).toBe(3);
+    expect(scoreToStars(1)).toBe(3);
+  });
+  it("0.6 a 0.74 → 2 estrellas", () => {
+    expect(scoreToStars(0.6)).toBe(2);
+    expect(scoreToStars(0.74)).toBe(2);
+  });
+  it("0.5 a 0.59 → 1 estrella", () => {
+    expect(scoreToStars(0.5)).toBe(1);
+    expect(scoreToStars(0.59)).toBe(1);
+  });
+  it("< 0.5 → 0 estrellas", () => {
+    expect(scoreToStars(0.49)).toBe(0);
+    expect(scoreToStars(0)).toBe(0);
   });
 });
 

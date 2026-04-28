@@ -39,16 +39,38 @@ export function similarity(candidate: Stroke, template: Stroke): number {
 }
 
 /**
- * Decide si el trazo dibujado se parece "lo suficiente" al dígito objetivo.
- * El threshold default (0.55) es generoso a propósito.
+ * Devuelve cuántas estrellas (0-3) se merece un score de trazado:
+ *   ≥ 0.75 → 3 ⭐ (excelente)
+ *   ≥ 0.60 → 2 ⭐ (muy bien)
+ *   ≥ 0.50 → 1 ⭐ (casi, lo aceptamos)
+ *   <  0.50 → 0 ⭐ (no se parece)
+ *
+ * Los thresholds están calibrados para que una línea horizontal NO matchee
+ * como "1" (score ~0.49) pero una vertical decente sí (score >= 0.7).
  */
-export function matchesDigit(raw: Stroke, digit: number, threshold = 0.55): { ok: boolean; score: number } {
+export function scoreToStars(score: number): 0 | 1 | 2 | 3 {
+  if (score >= 0.75) return 3;
+  if (score >= 0.6) return 2;
+  if (score >= 0.5) return 1;
+  return 0;
+}
+
+/**
+ * Decide si el trazo dibujado se parece "lo suficiente" al dígito objetivo.
+ * El threshold default (0.5) es generoso pero no permisivo — coincide con
+ * el primer bracket de scoreToStars.
+ */
+export function matchesDigit(
+  raw: Stroke,
+  digit: number,
+  threshold = 0.5,
+): { ok: boolean; score: number; stars: 0 | 1 | 2 | 3 } {
   const tpl = DIGIT_TEMPLATES[digit];
-  if (!tpl) return { ok: false, score: 0 };
-  if (raw.length < 8) return { ok: false, score: 0 }; // trazo muy corto
+  if (!tpl) return { ok: false, score: 0, stars: 0 };
+  if (raw.length < 8) return { ok: false, score: 0, stars: 0 };
   const candidate = normalizeStroke(raw);
   const score = similarity(candidate, tpl);
-  return { ok: score >= threshold, score };
+  return { ok: score >= threshold, score, stars: scoreToStars(score) };
 }
 
 // =========================================================================
