@@ -33,13 +33,18 @@ export function LessonRunner({
   // baile entre re-renders (mejor para usabilidad y a11y).
   const options = useMemo(() => genOptions(answer), [ex.id, answer]);
 
-  async function recordAttempt(correct: boolean, response: unknown) {
+  async function recordAttempt(
+    correct: boolean,
+    response: unknown,
+    srs: { final: boolean; priorWrongs: number; solutionShown: boolean },
+  ) {
     await fetch("/api/attempts", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         childId, exerciseId: ex.id, correct, response,
         timeMs: Date.now() - startedAt,
+        ...srs,
       }),
     }).catch(() => {});
   }
@@ -65,29 +70,36 @@ export function LessonRunner({
 
   async function onContinue() {
     if (state === "correct") {
-      await recordAttempt(true, { picked });
+      // Intento final correcto: priorWrongs = errores acumulados ANTES de este click.
+      await recordAttempt(true, { picked }, {
+        final: true, priorWrongs: wrongCount, solutionShown: false,
+      });
       await advance(true);
       return;
     }
 
-    // wrong: registramos el intento, sumamos al wrongCount.
-    await recordAttempt(false, { picked });
+    // wrong
     const next = wrongCount + 1;
     setWrongCount(next);
 
     if (shouldAdvanceAfterWrong(next)) {
-      // 2 errores → mostramos solución; el próximo click avanza.
-      // Mantenemos picked para que la UI siga mostrando lo último elegido,
-      // pero el botón pasa a "Entendido".
+      // Última oportunidad: lo cerramos como final + solutionShown.
+      await recordAttempt(false, { picked }, {
+        final: true, priorWrongs: wrongCount, solutionShown: true,
+      });
       return;
     }
 
-    // 1 error → permitimos reintentar.
+    // Wrong intermedio: queda abierto, el niño puede reintentar.
+    await recordAttempt(false, { picked }, {
+      final: false, priorWrongs: wrongCount, solutionShown: false,
+    });
     setPicked(null);
   }
 
   async function onAcknowledgeSolution() {
-    // Después de mostrarle la solución avanzamos sin sumar a correctCount.
+    // Ya registramos el intento final cuando entró el segundo error;
+    // acá sólo avanzamos.
     await advance(false);
   }
 
