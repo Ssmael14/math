@@ -1,8 +1,9 @@
 // prisma/seed.ts
 // Corre con: npm run db:seed
-// Crea 1 unidad ("Números 1-10") con 3 lecciones y 10 ejercicios reales.
+// Crea contenido curado + un set grande de ejercicios procedurales.
 
-import { PrismaClient, ExerciseKind } from "@prisma/client";
+import { PrismaClient, ExerciseKind, Prisma } from "@prisma/client";
+import { generateBatch, type GeneratedExercise } from "../lib/generators";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -141,19 +142,36 @@ async function main() {
   });
 
   // ============================================================
-  // UNIDAD 2: Sumas hasta 10 (premium)
+  // UNIDAD 2: Práctica generada (no premium — muestra el motor procedural)
   // ============================================================
-  await prisma.unit.create({
+  const u2 = await prisma.unit.create({
     data: {
-      slug: "sumas-hasta-10",
-      title: "Sumas hasta 10",
-      description: "Sumar como un campeón",
+      slug: "practica-1-5",
+      title: "Práctica · números 1 al 5",
+      description: "Lecciones autogeneradas para reforzar lo básico",
       order: 2,
       color: "mint",
-      icon: "➕",
+      icon: "♻️",
+      isPremium: false,
+    },
+  });
+  await seedProceduralUnit({ unitId: u2.id, max: 5, lessonsCount: 4, perLesson: 12, baseSeed: 1000 });
+
+  // ============================================================
+  // UNIDAD 3: Práctica hasta 10 (premium para mostrar paywall)
+  // ============================================================
+  const u3 = await prisma.unit.create({
+    data: {
+      slug: "practica-1-10",
+      title: "Práctica · sumas y restas hasta 10",
+      description: "Más fluidez con números más grandes",
+      order: 3,
+      color: "lilac",
+      icon: "🎲",
       isPremium: true,
     },
   });
+  await seedProceduralUnit({ unitId: u3.id, max: 10, lessonsCount: 6, perLesson: 15, baseSeed: 2000 });
 
   // ============================================================
   // SHOP · accesorios para Lumi + packs de gemas
@@ -195,6 +213,51 @@ async function main() {
     achievements: await prisma.achievement.count(),
   };
   console.log("✅ Seed listo:", counts);
+}
+
+// =========================================================================
+// Helper: crea N lecciones con M ejercicios procedurales c/u dentro de
+// una unidad. Usa `baseSeed` + offset por lección para que sea reproducible
+// pero cada lección tenga ejercicios distintos.
+// =========================================================================
+async function seedProceduralUnit({
+  unitId, max, lessonsCount, perLesson, baseSeed,
+}: {
+  unitId: string;
+  max: number;
+  lessonsCount: number;
+  perLesson: number;
+  baseSeed: number;
+}) {
+  for (let li = 0; li < lessonsCount; li++) {
+    const lesson = await prisma.lesson.create({
+      data: {
+        unitId,
+        slug: `practica-${max}-l${li + 1}`,
+        title: `Práctica ${li + 1}`,
+        order: li + 1,
+        xpReward: 20 + li * 5,
+      },
+    });
+
+    const batch: GeneratedExercise[] = generateBatch({
+      seed: baseSeed + li * 31,
+      count: perLesson,
+      max,
+    });
+
+    const data: Prisma.ExerciseCreateManyInput[] = batch.map((g, idx) => ({
+      lessonId: lesson.id,
+      kind: g.kind,
+      order: idx + 1,
+      prompt: g.prompt,
+      payload: g.payload as Prisma.InputJsonValue,
+      solution: g.solution as unknown as Prisma.InputJsonValue,
+      hints: g.hints as unknown as Prisma.InputJsonValue,
+      explanation: g.explanation,
+    }));
+    await prisma.exercise.createMany({ data });
+  }
 }
 
 main()

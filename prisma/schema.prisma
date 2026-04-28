@@ -59,6 +59,7 @@ model Child {
   inventory    Inventory[]
   achievements ChildAchievement[]
   weeklyXP     WeeklyXP[]
+  masteries    Mastery[]
 
   @@index([parentId])
   @@map("children")
@@ -123,6 +124,7 @@ model Exercise {
 
   lesson   Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   attempts Attempt[]
+  masteries Mastery[]
 
   @@index([lessonId])
   @@map("exercises")
@@ -253,4 +255,30 @@ model WeeklyXP {
   @@unique([childId, weekStart])
   @@index([weekStart, league, xp])
   @@map("weekly_xp")
+}
+
+// -------------------------------------------------------------------------
+// SRS · Mastery (un row por niño/ejercicio)
+// Implementa SM-2: easeFactor + interval + repetitions + nextReviewAt.
+// `masteryLevel` (0-1) es una métrica derivada para mostrar en UI ("dominado"
+// cuando >= 0.8). El algoritmo y el cálculo viven en lib/srs.ts.
+// -------------------------------------------------------------------------
+model Mastery {
+  id            String   @id @default(cuid())
+  childId       String
+  exerciseId    String
+  easeFactor    Float    @default(2.5)
+  interval      Int      @default(0)        // días hasta el próximo repaso
+  repetitions   Int      @default(0)        // aciertos consecutivos
+  masteryLevel  Float    @default(0)        // 0-1, para UI
+  nextReviewAt  DateTime @default(now())    // cuándo toca repasar
+  lastSeenAt    DateTime?
+  updatedAt     DateTime @updatedAt
+
+  child    Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, exerciseId])
+  @@index([childId, nextReviewAt])
+  @@map("mastery")
 }

@@ -38,11 +38,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 export async function requireUser(): Promise<AuthUser> {
   const user = await getCurrentUser();
   if (!user) {
-    // Lo tirás al login
+    // redirect() lanza una excepción y nunca retorna; el cast informa a TS.
     const { redirect } = await import("next/navigation");
     redirect("/auth/login");
   }
-  return user;
+  return user as AuthUser;
 }
 
 /** Helpers para Server Actions / API routes */

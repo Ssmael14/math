@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
+import { PwaProvider } from "@/components/pwa/PwaProvider";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -17,6 +18,7 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "LearnMath — Aventura con Lumi",
   description: "Matemáticas gamificadas para niños de 4–6 años",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -42,7 +44,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className={`${fredoka.variable} ${nunito.variable}`}>
-      <body className="bg-cream text-ink">{children}</body>
+      <body className="bg-cream text-ink">
+        <PwaProvider/>
+        {children}
+      </body>
     </html>
   );
 }

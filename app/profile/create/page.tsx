@@ -43,7 +43,7 @@ export default function CreateProfilePage() {
           {/* Lumi saluda */}
           <div className="flex flex-col items-center -mt-16 md:-mt-20 mb-2">
             <div className="bg-sun-soft rounded-full p-3 border-4 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
-              <Lumi size={80} mood="wave"/>
+              <Lumi size={80} mood="happy"/>
             </div>
           </div>
 

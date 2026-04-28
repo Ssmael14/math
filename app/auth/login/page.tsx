@@ -36,7 +36,7 @@ export default function LoginPage() {
 
       <main className="flex-1 md:flex-none w-full max-w-md mx-auto px-6 pt-16 pb-6 md:py-12 flex flex-col">
         <div className="text-center mb-6">
-          <div className="inline-block"><Lumi size={90} variant="default"/></div>
+          <div className="inline-block"><Lumi size={90}/></div>
           <h1 className="font-fredoka text-3xl font-bold text-ink mt-2">¡Hola de nuevo!</h1>
           <p className="text-ink-soft text-sm font-bold">Lumi te estaba esperando 🦙</p>
         </div>

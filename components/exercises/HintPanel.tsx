@@ -47,7 +47,7 @@ export function HintPanel({
       <span className="text-3xl shrink-0" aria-hidden>📖</span>
       <div className="flex-1">
         <div className="font-fredoka font-bold text-ink text-sm md:text-base">
-          La respuesta es {answer}
+          {answer !== null ? `La respuesta es ${answer}` : "Mirá la explicación"}
         </div>
         <p className="text-ink-soft text-sm md:text-base mt-0.5">
           {explanation ?? "No te preocupes — vas a ir mejorando con la práctica. ¡Seguimos!"}

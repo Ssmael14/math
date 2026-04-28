@@ -4,6 +4,7 @@
 
 import { prisma } from "./prisma";
 import { getCurrentUser, getActiveChildId } from "./auth";
+import { MASTERY_THRESHOLD } from "./srs";
 
 /** Devuelve el child activo del user (cookie o primero). */
 export async function getActiveChild() {
@@ -162,4 +163,37 @@ export async function getLeaderboard(childId: string, league = "DIAMOND") {
   }));
   const me = ranked.find((r) => r.isMe);
   return { weekStart, league, rows: ranked, myRank: me?.rank ?? null };
+}
+
+// =========================================================================
+// MASTERY · stats agregadas para perfil/home
+// =========================================================================
+export async function getMasteryStats(childId: string) {
+  const now = new Date();
+  const [mastered, learning, dueToday] = await Promise.all([
+    prisma.mastery.count({
+      where: { childId, masteryLevel: { gte: MASTERY_THRESHOLD } },
+    }),
+    prisma.mastery.count({
+      where: { childId, masteryLevel: { lt: MASTERY_THRESHOLD, gt: 0 } },
+    }),
+    prisma.mastery.count({
+      where: { childId, nextReviewAt: { lte: now }, masteryLevel: { lt: MASTERY_THRESHOLD } },
+    }),
+  ]);
+  return { mastered, learning, dueToday };
+}
+
+/**
+ * Próximos N ejercicios cuya review está vencida (nextReviewAt <= ahora).
+ * Pensado para alimentar un futuro modo "Repaso del día".
+ */
+export async function getReviewQueue(childId: string, limit = 10) {
+  const now = new Date();
+  return prisma.mastery.findMany({
+    where: { childId, nextReviewAt: { lte: now } },
+    orderBy: { nextReviewAt: "asc" },
+    take: limit,
+    include: { exercise: true },
+  });
 }

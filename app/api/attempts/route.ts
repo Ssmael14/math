@@ -1,16 +1,24 @@
 // app/api/attempts/route.ts
-// POST /api/attempts — registrar cada intento individual (para analytics)
+// POST /api/attempts — registrar cada intento individual.
+//
+// Si el intento es el "final" del ejercicio (`final: true`), también
+// actualizamos la Mastery vía SM-2. Esto deja todos los intentos en analytics
+// pero sólo cierra una review de SRS por ejercicio resuelto.
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import {
+  applyReview,
+  gradeQuality,
+  INITIAL_SRS,
+  nextReviewDate,
+} from "@/lib/srs";
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  // 120 intentos/min por usuario: cubre uso humano normal (un ejercicio cada
-  // ~0.5s mantenido por un minuto entero) y corta scripts.
   const limited = rateLimit(`attempts:${user.id}`, 120, 60_000);
   if (!limited.ok) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
@@ -30,10 +38,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
+  // Inputs opcionales para SRS (vienen sólo en el intento "final").
+  const final = body.final === true;
+  const priorWrongs = Number.isInteger(body.priorWrongs) ? Math.max(0, body.priorWrongs as number) : 0;
+  const solutionShown = body.solutionShown === true;
+
+  // En modo Repaso del día NO descontamos corazones — la idea es que el niño
+  // se sienta seguro repasando lo que ya vio, sin penalizarlo.
+  const reviewMode = body.reviewMode === true;
+
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  // Validar que el ejercicio existe (no aceptar ids inventados)
   const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
   if (!exercise) return NextResponse.json({ error: "exercise_not_found" }, { status: 404 });
 
@@ -41,12 +57,60 @@ export async function POST(req: Request) {
     data: { childId, exerciseId, correct, response: body.response ?? {}, timeMs },
   });
 
-  if (!correct && child.hearts > 0) {
+  // Sólo descontamos un corazón cuando el ejercicio se cierra mal — es decir,
+  // intento `final: true` con `correct: false` (el niño llegó al límite de
+  // errores y se le mostró la solución). Los wrong intermedios sólo van a
+  // analytics. Esto evita perder 2 corazones por un solo ejercicio mal.
+  if (!correct && final && !reviewMode && child.hearts > 0) {
     await prisma.child.update({
       where: { id: childId },
       data: { hearts: { decrement: 1 } },
     });
   }
 
-  return NextResponse.json({ attempt });
+  let mastery = null;
+  if (final) {
+    const quality = gradeQuality({ correct, priorWrongs, solutionShown });
+
+    const existing = await prisma.mastery.findUnique({
+      where: { childId_exerciseId: { childId, exerciseId } },
+    });
+
+    const prevState = existing
+      ? {
+          easeFactor: existing.easeFactor,
+          interval: existing.interval,
+          repetitions: existing.repetitions,
+          masteryLevel: existing.masteryLevel,
+        }
+      : INITIAL_SRS;
+
+    const nextState = applyReview(prevState, quality);
+    const now = new Date();
+    const nextAt = nextReviewDate(nextState, now);
+
+    mastery = await prisma.mastery.upsert({
+      where: { childId_exerciseId: { childId, exerciseId } },
+      update: {
+        easeFactor: nextState.easeFactor,
+        interval: nextState.interval,
+        repetitions: nextState.repetitions,
+        masteryLevel: nextState.masteryLevel,
+        nextReviewAt: nextAt,
+        lastSeenAt: now,
+      },
+      create: {
+        childId,
+        exerciseId,
+        easeFactor: nextState.easeFactor,
+        interval: nextState.interval,
+        repetitions: nextState.repetitions,
+        masteryLevel: nextState.masteryLevel,
+        nextReviewAt: nextAt,
+        lastSeenAt: now,
+      },
+    });
+  }
+
+  return NextResponse.json({ attempt, mastery });
 }

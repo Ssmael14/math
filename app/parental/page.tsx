@@ -2,10 +2,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getActiveChild } from "@/lib/queries";
+import { getActiveChild, getMasteryStats } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { PARENT_SESSION_COOKIE } from "./session";
+import {
+  findWeakSpots,
+  activeDays,
+  avgExerciseTimeMs,
+} from "@/lib/parent-insights";
 
 function startOfDay(d: Date) {
   const x = new Date(d); x.setHours(0, 0, 0, 0); return x;
@@ -26,11 +31,25 @@ export default async function ParentalPage() {
 
   const now = new Date();
   const weekStart = startOfDay(new Date(now.getTime() - 6 * 864e5));
+  const monthStart = startOfDay(new Date(now.getTime() - 29 * 864e5));
 
-  const attempts = await prisma.attempt.findMany({
-    where: { childId: child.id, createdAt: { gte: weekStart } },
-    orderBy: { createdAt: "asc" },
-  });
+  // Una sola query trae intentos de los últimos 30 días — la semana se filtra
+  // en memoria. Así evitamos N+1 sin sacrificar el chart semanal.
+  const [attemptsMonth, exercises, masteryStats] = await Promise.all([
+    prisma.attempt.findMany({
+      where: { childId: child.id, createdAt: { gte: monthStart } },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.exercise.findMany({
+      select: { id: true, prompt: true, kind: true },
+    }),
+    getMasteryStats(child.id),
+  ]);
+
+  const attempts = attemptsMonth.filter((a) => a.createdAt >= weekStart);
+  const weakSpots = findWeakSpots(attemptsMonth, exercises, { minAttempts: 3, minErrorRate: 0.3, limit: 5 });
+  const daysActive30 = activeDays(attemptsMonth, 30, now);
+  const avgMs = avgExerciseTimeMs(attemptsMonth);
 
   const days: { label: string; minutes: number; attempts: number; correct: number }[] = [];
   const dayLabels = ["D", "L", "M", "M", "J", "V", "S"];
@@ -116,6 +135,85 @@ export default async function ParentalPage() {
             </div>
           </div>
 
+          {/* SRS · estado de aprendizaje */}
+          <div className="bg-white rounded-2xl p-4 md:p-6" style={{ boxShadow: "var(--shadow-chunky)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-black text-ink-soft tracking-wider">APRENDIZAJE</div>
+              <div className="text-[10px] font-bold text-ink-mute">SM-2 · spaced repetition</div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
+              <div className="bg-mint-soft border-2 border-mint rounded-2xl p-3">
+                <div className="text-2xl">🏅</div>
+                <div className="font-fredoka text-2xl font-bold text-ink">{masteryStats.mastered}</div>
+                <div className="text-[10px] font-bold text-ink-soft uppercase">Dominados</div>
+              </div>
+              <div className="bg-sun-soft border-2 border-sun rounded-2xl p-3">
+                <div className="text-2xl">📖</div>
+                <div className="font-fredoka text-2xl font-bold text-ink">{masteryStats.learning}</div>
+                <div className="text-[10px] font-bold text-ink-soft uppercase">Aprendiendo</div>
+              </div>
+              <div className="bg-peach-soft border-2 border-pink rounded-2xl p-3">
+                <div className="text-2xl">🔁</div>
+                <div className="font-fredoka text-2xl font-bold text-ink">{masteryStats.dueToday}</div>
+                <div className="text-[10px] font-bold text-ink-soft uppercase">Para repasar</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Conceptos difíciles */}
+          <div className="bg-white rounded-2xl p-4 md:p-6" style={{ boxShadow: "var(--shadow-chunky)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-black text-ink-soft tracking-wider">PUNTOS DÉBILES</div>
+              <div className="text-[10px] font-bold text-ink-mute">últimos 30 días</div>
+            </div>
+            {weakSpots.length === 0 ? (
+              <div className="text-sm text-ink-soft py-4 text-center">
+                ¡No hay puntos débiles claros todavía!{" "}
+                <span className="text-ink-mute">Necesitamos más práctica para detectarlos.</span>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {weakSpots.map((w) => (
+                  <li
+                    key={w.exerciseId}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-cream border border-ink/5"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-peach-soft flex items-center justify-center text-lg flex-shrink-0">
+                      {kindIcon(w.kind)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-ink truncate">{w.prompt}</div>
+                      <div className="text-[11px] font-bold text-ink-soft">
+                        {w.wrongs} de {w.attempts} fallos · {Math.round(w.avgTimeMs / 1000)}s prom.
+                      </div>
+                    </div>
+                    <div className="text-pink font-fredoka font-bold text-lg flex-shrink-0">
+                      {Math.round(w.errorRate * 100)}%
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Uso 30 días */}
+          <div className="bg-white rounded-2xl p-4 md:p-6 grid grid-cols-2 gap-4 md:gap-6" style={{ boxShadow: "var(--shadow-chunky)" }}>
+            <div>
+              <div className="text-xs font-black text-ink-soft tracking-wider mb-1">DÍAS ACTIVOS</div>
+              <div className="font-fredoka text-3xl md:text-4xl font-bold text-ink">{daysActive30}<span className="text-ink-mute text-xl">/30</span></div>
+              <div className="text-[11px] font-bold text-ink-soft mt-0.5">
+                {Math.round((daysActive30 / 30) * 100)}% de los días
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-black text-ink-soft tracking-wider mb-1">TIEMPO PROM.</div>
+              <div className="font-fredoka text-3xl md:text-4xl font-bold text-ink">
+                {avgMs > 0 ? `${(avgMs / 1000).toFixed(1)}s` : "—"}
+              </div>
+              <div className="text-[11px] font-bold text-ink-soft mt-0.5">por ejercicio</div>
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="grid md:grid-cols-2 gap-3">
             <Link href="/settings" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
@@ -129,4 +227,18 @@ export default async function ParentalPage() {
       </main>
     </div>
   );
+}
+
+function kindIcon(kind: string): string {
+  switch (kind) {
+    case "COUNT": return "🔢";
+    case "DRAG": return "🐟";
+    case "SUBTRACT": return "🧁";
+    case "FILL": return "🧩";
+    case "MATCH": return "🔗";
+    case "TRACE": return "✍️";
+    case "ORDER": return "🪜";
+    case "SPEED": return "⚡";
+    default: return "🎯";
+  }
 }

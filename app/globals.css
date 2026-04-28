@@ -69,6 +69,38 @@ html, body {
 }
 .animate-bob { animation: bob 2.5s ease-in-out infinite; }
 
+/* DRAG: cuando un ítem entra al canasto, hace un pop suave (scale-in). */
+@keyframes drag-pop-in {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.drag-pop {
+  animation: drag-pop-in 280ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drag-pop { animation: none; }
+}
+
+/* SUBTRACT: ítems removidos se "van volando" hacia arriba y se desvanecen.
+   Forwards para que el estado final (invisible) se mantenga, y respeta
+   prefers-reduced-motion abajo. */
+@keyframes subtract-fly-out {
+  0%   { opacity: 1; transform: translateY(0)    scale(1)   rotate(0deg); }
+  60%  { opacity: 0.4; transform: translateY(-30px) scale(0.8) rotate(-10deg); }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.5) rotate(-15deg); }
+}
+.subtract-removed {
+  animation: subtract-fly-out 700ms ease-in 200ms forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .subtract-removed {
+    animation: none;
+    opacity: 0.2;
+    text-decoration: line-through;
+  }
+}
+
 @keyframes confetti-fall {
   0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
   100% { transform: translateY(600px) rotate(720deg); opacity: 0; }

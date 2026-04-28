@@ -1,7 +1,7 @@
 // app/profile/page.tsx — perfil con selector multi-niño
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getActiveChild } from "@/lib/queries";
+import { getActiveChild, getMasteryStats } from "@/lib/queries";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
@@ -12,11 +12,12 @@ export default async function ProfilePage() {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
 
-  const lessonsCompleted = await prisma.progress.count({
-    where: { childId: child.id, completed: true },
-  });
-  const totalAttempts = await prisma.attempt.count({ where: { childId: child.id } });
-  const correctAttempts = await prisma.attempt.count({ where: { childId: child.id, correct: true } });
+  const [lessonsCompleted, totalAttempts, correctAttempts, masteryStats] = await Promise.all([
+    prisma.progress.count({ where: { childId: child.id, completed: true } }),
+    prisma.attempt.count({ where: { childId: child.id } }),
+    prisma.attempt.count({ where: { childId: child.id, correct: true } }),
+    getMasteryStats(child.id),
+  ]);
   const accuracy = totalAttempts ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
 
   return (
@@ -62,6 +63,25 @@ export default async function ProfilePage() {
               ].map((s) => (
                 <div key={s.label} className="bg-white rounded-2xl p-4" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
                   <div className="text-3xl">{s.icon}</div>
+                  <div className="font-fredoka text-2xl font-bold text-ink mt-1">{s.value}</div>
+                  <div className="text-[10px] font-bold text-ink-soft">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* SRS · estado de cada concepto que ya vio */}
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {[
+                { icon: "🏅", value: masteryStats.mastered, label: "DOMINADOS", tone: "bg-mint-soft border-mint" },
+                { icon: "📖", value: masteryStats.learning, label: "APRENDIENDO", tone: "bg-sun-soft border-sun" },
+                { icon: "🔁", value: masteryStats.dueToday, label: "REPASAR HOY", tone: "bg-peach-soft border-pink" },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className={`${s.tone} rounded-2xl p-4 border-2`}
+                  style={{ boxShadow: "var(--shadow-chunky-sm)" }}
+                >
+                  <div className="text-2xl">{s.icon}</div>
                   <div className="font-fredoka text-2xl font-bold text-ink mt-1">{s.value}</div>
                   <div className="text-[10px] font-bold text-ink-soft">{s.label}</div>
                 </div>
