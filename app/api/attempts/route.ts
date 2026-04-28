@@ -43,6 +43,10 @@ export async function POST(req: Request) {
   const priorWrongs = Number.isInteger(body.priorWrongs) ? Math.max(0, body.priorWrongs as number) : 0;
   const solutionShown = body.solutionShown === true;
 
+  // En modo Repaso del día NO descontamos corazones — la idea es que el niño
+  // se sienta seguro repasando lo que ya vio, sin penalizarlo.
+  const reviewMode = body.reviewMode === true;
+
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
@@ -53,7 +57,7 @@ export async function POST(req: Request) {
     data: { childId, exerciseId, correct, response: body.response ?? {}, timeMs },
   });
 
-  if (!correct && child.hearts > 0) {
+  if (!correct && !reviewMode && child.hearts > 0) {
     await prisma.child.update({
       where: { id: childId },
       data: { hearts: { decrement: 1 } },

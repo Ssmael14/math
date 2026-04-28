@@ -1,6 +1,6 @@
 // app/home/page.tsx — Server Component con datos reales de la DB
 import { redirect } from "next/navigation";
-import { getActiveChild } from "@/lib/queries";
+import { getActiveChild, getMasteryStats } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
@@ -10,15 +10,18 @@ export default async function HomePage() {
   if (!child) redirect("/profile/create");
 
   // Unidad activa: la primera con lecciones no completadas
-  const unit = await prisma.unit.findFirst({
-    orderBy: { order: "asc" },
-    include: {
-      lessons: {
-        orderBy: { order: "asc" },
-        include: { progress: { where: { childId: child.id } } },
+  const [unit, masteryStats] = await Promise.all([
+    prisma.unit.findFirst({
+      orderBy: { order: "asc" },
+      include: {
+        lessons: {
+          orderBy: { order: "asc" },
+          include: { progress: { where: { childId: child.id } } },
+        },
       },
-    },
-  });
+    }),
+    getMasteryStats(child.id),
+  ]);
 
   if (!unit) {
     return (
@@ -50,6 +53,7 @@ export default async function HomePage() {
       <HomeClient
         unit={{ title: unit.title, order: unit.order, progressPct }}
         nodes={nodes}
+        reviewsDue={masteryStats.dueToday}
       />
     </div>
   );

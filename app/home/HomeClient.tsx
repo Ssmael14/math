@@ -6,10 +6,11 @@ import { useLumiVariant } from "@/lib/use-lumi-variant";
 type Node = { id: string; label: string; status: "done" | "current" | "locked" };
 
 export function HomeClient({
-  unit, nodes,
+  unit, nodes, reviewsDue,
 }: {
   unit: { title: string; order: number; progressPct: number };
   nodes: Node[];
+  reviewsDue: number;
 }) {
   const [variant] = useLumiVariant();
 
@@ -33,6 +34,38 @@ export function HomeClient({
               Ver todas las unidades →
             </Link>
           </div>
+
+          {/* SRS · Repaso del día */}
+          <Link
+            href="/review"
+            className={`btn-chunky mt-4 block rounded-2xl p-4 border-2 ${
+              reviewsDue > 0
+                ? "bg-lilac-soft border-lilac"
+                : "bg-white/60 border-white text-ink-soft"
+            }`}
+            style={{ boxShadow: "var(--shadow-chunky)" }}
+            aria-label={reviewsDue > 0 ? `Repasar ${reviewsDue} ejercicios` : "Repaso del día (sin pendientes)"}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-2xl flex-shrink-0">🔁</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-extrabold tracking-widest text-lilac">REPASO DEL DÍA</div>
+                <div className="font-fredoka font-bold text-base text-ink leading-tight">
+                  {reviewsDue > 0
+                    ? `${reviewsDue} ejercicio${reviewsDue === 1 ? "" : "s"} para repasar`
+                    : "Sin pendientes — ¡al día!"}
+                </div>
+              </div>
+              {reviewsDue > 0 && (
+                <div
+                  className="min-w-[28px] h-7 px-2 rounded-full bg-pink text-white text-xs font-black flex items-center justify-center"
+                  aria-hidden
+                >
+                  {reviewsDue}
+                </div>
+              )}
+            </div>
+          </Link>
         </aside>
 
         <section className="mt-6 md:mt-0">
