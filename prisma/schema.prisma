@@ -111,13 +111,15 @@ enum ExerciseKind {
 }
 
 model Exercise {
-  id        String       @id @default(cuid())
-  lessonId  String
-  kind      ExerciseKind
-  order     Int
-  prompt    String       // "¿Cuántas hay?"
-  payload   Json         // data específica del tipo
-  solution  Json         // respuesta correcta
+  id          String       @id @default(cuid())
+  lessonId    String
+  kind        ExerciseKind
+  order       Int
+  prompt      String       // "¿Cuántas hay?"
+  payload     Json         // data específica del tipo
+  solution    Json         // respuesta correcta
+  hints       Json?        // array<string> — pistas progresivas (1ra pista = índice 0)
+  explanation String?      // se muestra cuando el niño falla 2 veces
 
   lesson   Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   attempts Attempt[]

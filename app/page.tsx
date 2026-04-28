@@ -20,14 +20,8 @@ const screens = [
     { num: "08", label: "¡Subiste de nivel! ⬆️", href: "/level-up" },
     { num: "09", label: "Sin corazones 💔", href: "/game-over" },
   ]},
-  { group: "🎮 Ejercicios", items: [
-    { num: "10", label: "Arrastrar peces 🐟", href: "/exercise/drag" },
-    { num: "11", label: "Resta visual 🧁", href: "/exercise/subtract" },
-    { num: "12", label: "Contar ⭐", href: "/exercise/count" },
-    { num: "12a", label: "Unir con líneas 🔗", href: "/exercise/match" },
-    { num: "12b", label: "Llenar hueco 🧩", href: "/exercise/fill" },
-    { num: "12c", label: "Trazar número ✍️", href: "/exercise/trace" },
-  ]},
+  // Las pantallas de "Ejercicios" individuales se eliminaron — todos los tipos
+  // viven ahora dentro del LessonRunner unificado (components/exercises/*).
   { group: "👤 Social, perfil y logros", items: [
     { num: "13", label: "Liga · Ranking 🏅", href: "/league" },
     { num: "14", label: "Perfil de Sofía", href: "/profile" },
