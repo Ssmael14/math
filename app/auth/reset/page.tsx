@@ -32,7 +32,7 @@ export default function ResetPage() {
 
       <main className="flex-1 md:flex-none w-full max-w-md mx-auto px-6 pt-16 pb-6 md:py-12 flex flex-col">
         <div className="text-center mb-6">
-          <Lumi size={80} mood={done ? "happy" : "default"}/>
+          <Lumi size={80} mood={done ? "celebrate" : "happy"}/>
           <h1 className="font-fredoka text-3xl font-bold text-ink mt-2">
             {done ? "¡Lista!" : "Nueva contraseña"}
           </h1>

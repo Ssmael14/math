@@ -4,6 +4,7 @@
 import { useRouter } from "next/navigation";
 import { ExerciseRunner } from "@/components/exercises/ExerciseRunner";
 import type { ExerciseDTO } from "@/components/exercises/types";
+import { postOrQueue } from "@/lib/offline-queue";
 
 export function LessonRunner({
   childId, hearts, lesson, exercises,
@@ -24,11 +25,7 @@ export function LessonRunner({
       reviewMode={false}
       labels={{ step: "EJERCICIO", idle: "¡Tú puedes! Elegí tu respuesta." }}
       onComplete={async ({ correctCount }) => {
-        await fetch("/api/progress", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ childId, lessonId: lesson.id, correctCount }),
-        }).catch(() => {});
+        await postOrQueue("/api/progress", { childId, lessonId: lesson.id, correctCount });
         router.push(`/victory?lessonId=${lesson.id}`);
       }}
     />

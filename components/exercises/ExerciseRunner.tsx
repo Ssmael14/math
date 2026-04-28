@@ -15,6 +15,7 @@ import { OptionsGrid } from "@/components/exercises/OptionsGrid";
 import { HintPanel } from "@/components/exercises/HintPanel";
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
+import { postOrQueue } from "@/lib/offline-queue";
 
 export type RunnerLabels = {
   /** Texto chico arriba del prompt: "EJERCICIO" / "REPASO" / etc. */
@@ -63,16 +64,14 @@ export function ExerciseRunner({
     response: unknown,
     srs: { final: boolean; priorWrongs: number; solutionShown: boolean },
   ) {
-    await fetch("/api/attempts", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        childId, exerciseId: ex.id, correct, response,
-        timeMs: Date.now() - exerciseStartedAt,
-        reviewMode,
-        ...srs,
-      }),
-    }).catch(() => {});
+    // postOrQueue: si no hay red, se guarda en localStorage y se reintenta
+    // cuando vuelve la conexión (PwaProvider escucha el evento 'online').
+    await postOrQueue("/api/attempts", {
+      childId, exerciseId: ex.id, correct, response,
+      timeMs: Date.now() - exerciseStartedAt,
+      reviewMode,
+      ...srs,
+    });
   }
 
   async function advance(scoreCorrect: boolean) {

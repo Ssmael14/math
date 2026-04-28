@@ -7,8 +7,10 @@ import { cookies } from "next/headers";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+// Next 15 no permite re-exportar constantes desde un route.ts. La canonical
+// vive en app/parental/session.ts.
+import { PARENT_SESSION_COOKIE } from "@/app/parental/session";
 
-export const PARENT_SESSION_COOKIE = "lm_parent";
 const SESSION_MAX_AGE = 30 * 60; // 30 min
 
 export async function POST(req: Request) {
