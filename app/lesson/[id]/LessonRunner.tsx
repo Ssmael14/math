@@ -46,13 +46,13 @@ export function LessonRunner({
       const nextCount = correctCount + 1;
       setCorrectCount(nextCount);
       if (i + 1 >= exercises.length) {
-        const stars = Math.round((nextCount / exercises.length) * 3);
+        // El servidor calcula stars/XP a partir de correctCount.
         await fetch("/api/progress", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ childId, lessonId: lesson.id, stars, score: nextCount }),
+          body: JSON.stringify({ childId, lessonId: lesson.id, correctCount: nextCount }),
         }).catch(() => {});
-        router.push(`/victory?xp=${lesson.xpReward}&stars=${stars}`);
+        router.push(`/victory?lessonId=${lesson.id}`);
       } else {
         setI(i + 1);
         setPicked(null);

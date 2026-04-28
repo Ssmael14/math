@@ -1,16 +1,12 @@
 // app/api/progress/route.ts
 // POST /api/progress — el niño completó una lección.
+// El servidor calcula estrellas, XP y streak — el cliente NO los manda.
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-function mondayOfWeek(d = new Date()) {
-  const day = d.getUTCDay();
-  const diff = (day === 0 ? -6 : 1) - day;
-  const m = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  m.setUTCDate(m.getUTCDate() + diff);
-  return m;
-}
+import { computeStars, mondayOfWeek } from "@/lib/scoring";
+import { computeNextStreak } from "@/lib/streak";
+import { rateLimit } from "@/lib/rate-limit";
 
 async function checkAchievements(childId: string) {
   const [child, lessonsDone, correct, defs, already] = await Promise.all([
@@ -43,50 +39,96 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { childId, lessonId, stars, score } = await req.json();
+  // Máx 30 lecciones completadas por minuto por usuario — más que suficiente
+  // para uso humano normal, corta abuso obvio.
+  const limited = rateLimit(`progress:${user.id}`, 30, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+
+  const childId = typeof body.childId === "string" ? body.childId : null;
+  const lessonId = typeof body.lessonId === "string" ? body.lessonId : null;
+  const correctCount = Number.isInteger(body.correctCount) ? (body.correctCount as number) : null;
+
+  if (!childId || !lessonId || correctCount === null || correctCount < 0) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
 
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    include: { _count: { select: { exercises: true } } },
+  });
   if (!lesson) return NextResponse.json({ error: "lesson not found" }, { status: 404 });
 
-  const progress = await prisma.progress.upsert({
+  const totalExercises = lesson._count.exercises;
+  if (totalExercises === 0) {
+    return NextResponse.json({ error: "lesson_empty" }, { status: 400 });
+  }
+
+  // El servidor calcula. El cliente sólo informa cuántas acertó.
+  const safeCorrect = Math.min(Math.max(0, correctCount), totalExercises);
+  const stars = computeStars(safeCorrect, totalExercises);
+
+  const now = new Date();
+  const nextStreak = computeNextStreak(child.streak, child.lastPlay, now);
+  const weekStart = mondayOfWeek(now);
+
+  // Si ya existía progreso, no bajamos estrellas ni bestScore por un repaso peor.
+  const existing = await prisma.progress.findUnique({
     where: { childId_lessonId: { childId, lessonId } },
-    update: {
-      completed: true,
-      stars: Math.max(stars, 0),
-      bestScore: Math.max(score ?? 0, 0),
-      completedAt: new Date(),
-    },
-    create: {
-      childId, lessonId,
-      completed: true,
-      stars: Math.max(stars, 0),
-      bestScore: score ?? 0,
-      completedAt: new Date(),
-    },
   });
+  const finalStars = Math.max(existing?.stars ?? 0, stars);
+  const finalBestScore = Math.max(existing?.bestScore ?? 0, safeCorrect);
 
-  // Sumar XP al niño + lastPlay
-  await prisma.child.update({
-    where: { id: childId },
-    data: {
-      xp: { increment: lesson.xpReward },
-      lastPlay: new Date(),
-    },
-  });
+  await prisma.$transaction([
+    prisma.progress.upsert({
+      where: { childId_lessonId: { childId, lessonId } },
+      update: {
+        completed: true,
+        stars: finalStars,
+        bestScore: finalBestScore,
+        completedAt: now,
+      },
+      create: {
+        childId,
+        lessonId,
+        completed: true,
+        stars: finalStars,
+        bestScore: finalBestScore,
+        completedAt: now,
+      },
+    }),
+    prisma.child.update({
+      where: { id: childId },
+      data: {
+        xp: { increment: lesson.xpReward },
+        lastPlay: now,
+        streak: nextStreak,
+      },
+    }),
+    prisma.weeklyXP.upsert({
+      where: { childId_weekStart: { childId, weekStart } },
+      update: { xp: { increment: lesson.xpReward } },
+      create: { childId, weekStart, xp: lesson.xpReward, league: "DIAMOND" },
+    }),
+  ]);
 
-  // Sumar XP semanal (alimenta la liga)
-  const weekStart = mondayOfWeek();
-  await prisma.weeklyXP.upsert({
-    where: { childId_weekStart: { childId, weekStart } },
-    update: { xp: { increment: lesson.xpReward } },
-    create: { childId, weekStart, xp: lesson.xpReward, league: "DIAMOND" },
-  });
-
-  // Desbloquear achievements alcanzados
   const newAchievements = await checkAchievements(childId);
 
-  return NextResponse.json({ progress, newAchievements });
+  return NextResponse.json({
+    stars,
+    xp: lesson.xpReward,
+    correct: safeCorrect,
+    total: totalExercises,
+    streak: nextStreak,
+    newAchievements,
+  });
 }
