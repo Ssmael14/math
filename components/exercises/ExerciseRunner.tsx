@@ -13,9 +13,11 @@ import { Lumi } from "@/components/Lumi";
 import { ExerciseVisual } from "@/components/exercises/ExerciseVisual";
 import { OptionsGrid } from "@/components/exercises/OptionsGrid";
 import { HintPanel } from "@/components/exercises/HintPanel";
+import { TraceCanvas } from "@/components/exercises/TraceCanvas";
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
+import { matchesDigit, type Point } from "@/lib/gesture";
 
 export type RunnerLabels = {
   /** Texto chico arriba del prompt: "EJERCICIO" / "REPASO" / etc. */
@@ -56,8 +58,21 @@ export function ExerciseRunner({
   const state = picked === null ? "idle" : picked === answer ? "correct" : "wrong";
   const hintLevel = nextHintLevel(wrongCount);
   const mustAdvance = shouldAdvanceAfterWrong(wrongCount);
+  const isTrace = ex.kind === "TRACE";
 
   const options = useMemo(() => genOptions(answer), [ex.id, answer]);
+
+  // Cuando el niño termina un trazo, lo comparamos contra el template del
+  // dígito objetivo. Si el score es bueno, "picked = answer" (correcto);
+  // si no, "picked = -1" para disparar el estado wrong sin sugerir un valor.
+  function onTraceStroke(stroke: Point[]) {
+    const digit = ex.solution.digit ?? 0;
+    const result = matchesDigit(stroke, digit);
+    setPicked(result.ok ? digit : -1);
+  }
+  function onTraceClear() {
+    setPicked(null);
+  }
 
   async function recordAttempt(
     correct: boolean,
@@ -155,11 +170,26 @@ export function ExerciseRunner({
             {ex.prompt}
           </h2>
 
-          <div className="w-full flex justify-center mb-8 md:mb-12">
-            <ExerciseVisual ex={ex}/>
-          </div>
-
-          <OptionsGrid options={options} picked={picked} state={state} onPick={setPicked}/>
+          {/* Para TRACE el canvas reemplaza al visual estático y a las opciones.
+              Para los demás kinds mostramos visual + opciones como hasta ahora. */}
+          {isTrace ? (
+            <div className="w-full flex justify-center mb-4 md:mb-8">
+              <TraceCanvas
+                digit={ex.solution.digit ?? 0}
+                onStroke={onTraceStroke}
+                onClear={onTraceClear}
+                disabled={state !== "idle"}
+                size={typeof window !== "undefined" && window.innerWidth < 380 ? 240 : 280}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="w-full flex justify-center mb-8 md:mb-12">
+                <ExerciseVisual ex={ex}/>
+              </div>
+              <OptionsGrid options={options} picked={picked} state={state} onPick={setPicked}/>
+            </>
+          )}
 
           {hintLevel !== "none" && (
             <div className="w-full mt-6 flex justify-center">
