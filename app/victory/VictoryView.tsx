@@ -7,9 +7,13 @@ import { useLumiVariant } from "@/lib/use-lumi-variant";
 export function VictoryView({
   xp,
   stars,
+  continueHref = "/home",
 }: {
   xp: number;
   stars: number;
+  /** Adónde vuelve el niño al apretar Continuar (típicamente al mapa de la
+   *  unidad que estaba jugando). */
+  continueHref?: string;
 }) {
   const router = useRouter();
   const [variant] = useLumiVariant();
@@ -57,7 +61,7 @@ export function VictoryView({
         </div>
 
         <button
-          onClick={() => router.push("/home")}
+          onClick={() => router.push(continueHref)}
           className="btn-chunky w-full py-4 rounded-2xl bg-ink text-white font-black uppercase tracking-wide"
           style={{ boxShadow: "0 5px 0 rgba(0,0,0,0.25)" }}
         >

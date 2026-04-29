@@ -35,10 +35,14 @@ export default async function UnitsPage() {
             const done = u.progress >= 1;
             const current = !done && !locked;
             const bg = bgByColor[u.color] ?? "from-peach-soft to-peach";
+            // Cada tarjeta linkea a SU unidad. Antes todas iban a /home (que
+            // siempre cargaba la unidad 1) — los módulos 2 y 3 quedaban
+            // efectivamente inaccesibles.
+            const href = locked ? "#" : `/home?unit=${u.slug}`;
             return (
               <Link
                 key={u.id}
-                href={current ? "/home" : "#"}
+                href={href}
                 className={`btn-chunky flex md:flex-col md:items-start items-center gap-3 md:gap-4 p-4 md:p-6 rounded-3xl border-4 border-white bg-gradient-to-br ${locked ? "from-[#F0EBF5] to-[#F0EBF5] opacity-70" : bg}`}
                 style={{ boxShadow: "var(--shadow-chunky)" }}
               >
