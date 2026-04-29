@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
+import { TutorialOverlay } from "@/components/TutorialOverlay";
 
 type Node = { id: string; label: string; status: "done" | "current" | "locked" };
 
@@ -18,7 +19,7 @@ export function HomeClient({
     <main className="flex-1 w-full flex flex-col md:justify-center">
       <div className="w-full max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-16 md:grid md:grid-cols-[360px_1fr] md:gap-16">
         <aside>
-          <div className="bg-white rounded-2xl p-4 md:p-6 border-2 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
+          <div data-tour="unit-card" className="bg-white rounded-2xl p-4 md:p-6 border-2 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
             <div className="flex items-start gap-3">
               <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-sun-soft flex items-center justify-center text-3xl flex-shrink-0">🧮</div>
               <div className="flex-1 min-w-0">
@@ -37,6 +38,7 @@ export function HomeClient({
 
           {/* SRS · Repaso del día */}
           <Link
+            data-tour="review-card"
             href="/review"
             className={`btn-chunky mt-4 block rounded-2xl p-4 border-2 ${
               reviewsDue > 0
@@ -77,6 +79,7 @@ export function HomeClient({
               return (
                 <div key={n.id} className={`flex items-center gap-4 w-full md:max-w-md ${isOdd ? "ml-16 md:ml-0" : ""}`}>
                   <Link
+                    data-tour={isCurrent ? "current-lesson" : undefined}
                     href={isCurrent ? `/lesson/${n.id}` : "#"}
                     className={`btn-chunky relative w-20 h-20 rounded-full flex items-center justify-center border-4 border-white flex-shrink-0 ${isCurrent ? "animate-pulse-soft" : ""}`}
                     style={{
@@ -99,6 +102,7 @@ export function HomeClient({
           </div>
         </section>
       </div>
+      <TutorialOverlay/>
     </main>
   );
 }
