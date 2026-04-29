@@ -11,7 +11,7 @@
 // el niño termina de responder. evaluateAttempt() en lib/evaluate.ts decide
 // la corrección.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
 import { ExerciseVisual } from "@/components/exercises/ExerciseVisual";
@@ -27,6 +27,7 @@ import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { matchesDigit, type Point } from "@/lib/gesture";
 import { evaluateAttempt } from "@/lib/evaluate";
+import { playCorrect, playWrong } from "@/lib/audio";
 
 export type RunnerLabels = {
   step: string;
@@ -73,6 +74,17 @@ export function ExerciseRunner({
   const state = answer === null ? "idle" : answer.correct ? "correct" : "wrong";
   const hintLevel = nextHintLevel(wrongCount);
   const mustAdvance = shouldAdvanceAfterWrong(wrongCount);
+
+  // Sonido + haptic cuando el state cambia desde idle hacia correct/wrong.
+  // El ref guarda el último estado para detectar la transición y no
+  // disparar el sonido en cada re-render.
+  const prevStateRef = useRef(state);
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    if (prev === "idle" && state === "correct") playCorrect();
+    if (prev === "idle" && state === "wrong") playWrong();
+    prevStateRef.current = state;
+  }, [state]);
 
   // Texto/valor de "respuesta" para el HintPanel.
   const solutionAnswer = ex.solution.answer ?? ex.solution.digit ?? null;

@@ -1,15 +1,38 @@
 // app/settings/page.tsx
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import {
+  isSoundsEnabled,
+  isHapticsEnabled,
+  setSoundsEnabled,
+  setHapticsEnabled,
+  playCorrect,
+} from "@/lib/audio";
 
 export default function SettingsPage() {
   const router = useRouter();
+  // Inicializamos en `true` por SSR; sincronizamos con localStorage en mount.
   const [sound, setSound] = useState(true);
-  const [music, setMusic] = useState(true);
+  const [haptic, setHaptic] = useState(true);
   const [notif, setNotif] = useState(true);
+
+  useEffect(() => {
+    setSound(isSoundsEnabled());
+    setHaptic(isHapticsEnabled());
+  }, []);
+
+  function toggleSound(next: boolean) {
+    setSound(next);
+    setSoundsEnabled(next);
+    if (next) playCorrect(); // preview al prender
+  }
+  function toggleHaptic(next: boolean) {
+    setHaptic(next);
+    setHapticsEnabled(next);
+  }
 
   async function handleLogout() {
     const supabase = createSupabaseBrowserClient();
@@ -29,9 +52,9 @@ export default function SettingsPage() {
 
       <main className="flex-1 w-full">
         <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-6">
-          <Section title="Sonido">
-            <Toggle label="🔊 Efectos de sonido" value={sound} onChange={setSound}/>
-            <Toggle label="🎵 Música de fondo" value={music} onChange={setMusic}/>
+          <Section title="Sonido y vibración">
+            <Toggle label="🔊 Efectos de sonido" value={sound} onChange={toggleSound}/>
+            <Toggle label="📳 Vibración" value={haptic} onChange={toggleHaptic}/>
           </Section>
 
           <Section title="Notificaciones">

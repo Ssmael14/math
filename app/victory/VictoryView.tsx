@@ -1,8 +1,10 @@
 "use client";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Confetti } from "@/components/Confetti";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
+import { playVictory } from "@/lib/audio";
 
 export function VictoryView({
   xp,
@@ -16,6 +18,12 @@ export function VictoryView({
   continueHref?: string;
 }) {
   const router = useRouter();
+
+  // Pequeño delay para que el sonido entre justo cuando aparece la animación.
+  useEffect(() => {
+    const t = setTimeout(() => playVictory(), 120);
+    return () => clearTimeout(t);
+  }, []);
   const [variant] = useLumiVariant();
   const accuracyPct = Math.round((stars / 3) * 100);
 
