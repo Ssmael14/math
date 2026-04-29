@@ -5,6 +5,7 @@ import { Confetti } from "@/components/Confetti";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
 import { playVictory } from "@/lib/audio";
+import { useCountUp } from "@/lib/use-count-up";
 
 export function VictoryView({
   xp,
@@ -18,6 +19,8 @@ export function VictoryView({
   continueHref?: string;
 }) {
   const router = useRouter();
+  // Anima el XP de 0 al valor real durante ~900ms.
+  const animatedXp = useCountUp(xp, 900);
 
   // Pequeño delay para que el sonido entre justo cuando aparece la animación.
   useEffect(() => {
@@ -56,7 +59,7 @@ export function VictoryView({
 
         <div className="w-full grid grid-cols-3 gap-2">
           {[
-            { icon: "⭐", value: `+${xp}`, label: "XP" },
+            { icon: "⭐", value: `+${animatedXp}`, label: "XP" },
             { icon: "🌟", value: `${stars}/3`, label: "Estrellas" },
             { icon: "🎯", value: `${accuracyPct}%`, label: "Precisión" },
           ].map((s) => (
