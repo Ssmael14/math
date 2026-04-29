@@ -4,6 +4,10 @@ import {
   generateCount,
   generateFill,
   generateSubtract,
+  generateCompare,
+  generateParity,
+  generatePattern,
+  generateNeighbor,
   generateBatch,
 } from "@/lib/generators";
 
@@ -63,7 +67,7 @@ describe("generateFill", () => {
       const ex = generateFill(rng, 10);
       const a = ex.payload.a as number;
       const result = ex.payload.result as number;
-      const missing = ex.solution.answer;
+      const missing = ex.solution.answer as number;
       expect(a + missing).toBe(result);
       expect(a).toBeGreaterThanOrEqual(1);
       expect(result).toBeLessThanOrEqual(10);
@@ -128,6 +132,81 @@ describe("concordancia gramatical (género)", () => {
   });
 });
 
+describe("generateCompare", () => {
+  it("answer correcto según los valores", () => {
+    const rng = makeRng(7);
+    for (let i = 0; i < 50; i++) {
+      const ex = generateCompare(rng, 10);
+      const { left, right } = ex.payload as { left: number; right: number };
+      const expected = left > right ? ">" : left < right ? "<" : "=";
+      expect(ex.solution.answer).toBe(expected);
+    }
+  });
+  it("topic refleja el rango", () => {
+    expect(generateCompare(makeRng(1), 5).topic).toBe("comparar-hasta-5");
+    expect(generateCompare(makeRng(1), 10).topic).toBe("comparar-hasta-10");
+  });
+});
+
+describe("generateParity", () => {
+  it("answer es 'par' o 'impar' según el valor", () => {
+    const rng = makeRng(33);
+    for (let i = 0; i < 50; i++) {
+      const ex = generateParity(rng, 10);
+      const { value } = ex.payload as { value: number };
+      const expected = value % 2 === 0 ? "par" : "impar";
+      expect(ex.solution.answer).toBe(expected);
+    }
+  });
+});
+
+describe("generatePattern", () => {
+  it("answer extiende la serie con paso constante", () => {
+    const rng = makeRng(55);
+    for (let i = 0; i < 50; i++) {
+      const ex = generatePattern(rng, 10);
+      const { visible, step } = ex.payload as { visible: number[]; step: number };
+      const expected = visible[visible.length - 1] + step;
+      expect(ex.solution.answer).toBe(expected);
+    }
+  });
+  it("paso siempre 1 ó 2", () => {
+    const rng = makeRng(2);
+    for (let i = 0; i < 30; i++) {
+      const ex = generatePattern(rng, 10);
+      const step = (ex.payload as { step: number }).step;
+      expect([1, 2]).toContain(step);
+    }
+  });
+  it("la secuencia completa nunca excede max", () => {
+    const rng = makeRng(99);
+    for (let i = 0; i < 30; i++) {
+      const ex = generatePattern(rng, 10);
+      const ans = ex.solution.answer as number;
+      expect(ans).toBeLessThanOrEqual(10);
+    }
+  });
+});
+
+describe("generateNeighbor", () => {
+  it("antes/después coincide con la dirección", () => {
+    const rng = makeRng(17);
+    for (let i = 0; i < 50; i++) {
+      const ex = generateNeighbor(rng, 10);
+      const { value, direction } = ex.payload as { value: number; direction: "before" | "after" };
+      const expected = direction === "before" ? value - 1 : value + 1;
+      expect(ex.solution.answer).toBe(expected);
+    }
+  });
+  it("nunca produce answer = 0 (no tiene sentido pedagógico)", () => {
+    const rng = makeRng(101);
+    for (let i = 0; i < 50; i++) {
+      const ex = generateNeighbor(rng, 10);
+      expect(ex.solution.answer as number).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
 describe("generateBatch", () => {
   it("genera el count exacto pedido", () => {
     expect(generateBatch({ seed: 1, count: 30, max: 10 })).toHaveLength(30);
@@ -142,8 +221,23 @@ describe("generateBatch", () => {
   it("respeta el mix (sólo COUNT cuando mix lo dice)", () => {
     const out = generateBatch({
       seed: 1, count: 20, max: 10,
-      mix: { count: 1, fill: 0, subtract: 0 },
+      mix: { count: 1, fill: 0, subtract: 0, compare: 0, parity: 0, pattern: 0, neighbor: 0 },
     });
     expect(out.every((e) => e.kind === "COUNT")).toBe(true);
+  });
+
+  it("genera todos los kinds cuando todos los pesos están activos", () => {
+    const out = generateBatch({ seed: 7, count: 200, max: 10 });
+    const kinds = new Set(out.map((e) => e.kind));
+    // No exigimos los 7 (puede haber sesgos por seed) pero sí varios.
+    expect(kinds.size).toBeGreaterThanOrEqual(5);
+  });
+
+  it("mix vacío devuelve []", () => {
+    const out = generateBatch({
+      seed: 1, count: 10, max: 5,
+      mix: { count: 0, fill: 0, subtract: 0, compare: 0, parity: 0, pattern: 0, neighbor: 0 },
+    });
+    expect(out).toEqual([]);
   });
 });

@@ -109,6 +109,10 @@ enum ExerciseKind {
   TRACE        // trazar número
   ORDER        // ordenar menor→mayor
   SPEED        // speed round
+  COMPARE      // ¿qué es mayor / menor / igual?
+  PARITY       // par o impar
+  PATTERN      // completar la serie
+  NEIGHBOR     // antecesor o sucesor
 }
 
 model Exercise {

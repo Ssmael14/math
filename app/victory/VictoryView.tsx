@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Confetti } from "@/components/Confetti";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
-import { playVictory } from "@/lib/audio";
+import { playVictory, playTap } from "@/lib/audio";
 import { useCountUp } from "@/lib/use-count-up";
 
 export function VictoryView({
@@ -72,7 +72,7 @@ export function VictoryView({
         </div>
 
         <button
-          onClick={() => router.push(continueHref)}
+          onClick={() => { playTap(); router.push(continueHref); }}
           className="btn-chunky w-full py-4 rounded-2xl bg-ink text-white font-black uppercase tracking-wide"
           style={{ boxShadow: "0 5px 0 rgba(0,0,0,0.25)" }}
         >

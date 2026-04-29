@@ -1,0 +1,42 @@
+"use client";
+// components/exercises/inputs/ChoiceButtonsInput.tsx
+// Grilla de 2-3 botones grandes con label + value para los kinds que tienen
+// respuesta categórica corta (COMPARE: <, >, =;  PARITY: par/impar).
+
+export type Choice<V> = { value: V; label: string; sub?: string };
+
+export function ChoiceButtonsInput<V extends string>({
+  choices,
+  disabled = false,
+  onPick,
+}: {
+  choices: Choice<V>[];
+  disabled?: boolean;
+  onPick: (value: V) => void;
+}) {
+  return (
+    <div
+      className="w-full max-w-xl grid gap-3"
+      style={{ gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))` }}
+    >
+      {choices.map((c) => (
+        <button
+          key={c.value}
+          type="button"
+          disabled={disabled}
+          onClick={() => onPick(c.value)}
+          aria-label={c.label + (c.sub ? ` (${c.sub})` : "")}
+          className="btn-chunky py-5 md:py-6 rounded-2xl bg-white border-2 border-ink/10 hover:border-ink/30 transition-colors disabled:opacity-50"
+          style={{ boxShadow: "var(--shadow-chunky)" }}
+        >
+          <div className="font-fredoka text-3xl md:text-5xl font-bold text-ink leading-none">
+            {c.label}
+          </div>
+          {c.sub && (
+            <div className="text-[11px] md:text-sm font-bold text-ink-soft mt-1">{c.sub}</div>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}

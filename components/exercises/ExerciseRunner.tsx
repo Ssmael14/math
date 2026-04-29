@@ -22,12 +22,13 @@ import { MatchInput } from "@/components/exercises/inputs/MatchInput";
 import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
 import { DragInput } from "@/components/exercises/inputs/DragInput";
+import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { matchesDigit, type Point } from "@/lib/gesture";
 import { evaluateAttempt } from "@/lib/evaluate";
-import { playCorrect, playWrong } from "@/lib/audio";
+import { playCorrect, playWrong, playTap } from "@/lib/audio";
 
 export type RunnerLabels = {
   step: string;
@@ -97,8 +98,13 @@ export function ExerciseRunner({
   // Texto/valor de "respuesta" para el HintPanel.
   const solutionAnswer = ex.solution.answer ?? ex.solution.digit ?? null;
 
-  // Opciones aleatorias sólo para los kinds que las usan.
-  const numericAnswer = ex.solution.answer ?? ex.solution.digit ?? 0;
+  // Opciones aleatorias sólo para los kinds que las usan (COUNT/SUBTRACT).
+  // Si el solution.answer no es numérico (COMPARE/PARITY) usamos 0 — esos
+  // kinds no muestran OptionsGrid igual.
+  const numericAnswer =
+    typeof ex.solution.answer === "number" ? ex.solution.answer
+    : typeof ex.solution.digit === "number" ? ex.solution.digit
+    : 0;
   const options = useMemo(() => genOptions(numericAnswer), [ex.id, numericAnswer]);
 
   function submit(value: unknown) {
@@ -207,8 +213,11 @@ export function ExerciseRunner({
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-8 md:py-16">
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+      {/* my-auto en el child centra verticalmente cuando hay espacio sobrante,
+          y permite scroll del body cuando el contenido excede el viewport
+          (clave para mobile chico + DragInput / teclado numérico). */}
+      <main className="flex-1 flex flex-col items-center px-4 md:px-6 py-6 md:py-12">
+        <div className="w-full max-w-2xl mx-auto flex flex-col items-center my-auto">
           <div className="text-[10px] md:text-xs font-black text-ink-mute tracking-widest mb-2">
             {labels.step} {i + 1} / {exercises.length}
           </div>
@@ -228,6 +237,7 @@ export function ExerciseRunner({
               resetSignal={resetSignal}
               showSolution={hintLevel === "solution"}
               onPickNumeric={(n) => submit(n)}
+              onPickString={(s) => submit(s)}
               onTraceStroke={onTraceStroke}
               onMatchComplete={(pairs) => submit(pairs)}
               onOrderComplete={(seq) => submit(seq)}
@@ -262,7 +272,7 @@ export function ExerciseRunner({
 
 function KindBody({
   ex, answer, options, disabled, resetSignal, showSolution,
-  onPickNumeric, onTraceStroke, onMatchComplete, onOrderComplete,
+  onPickNumeric, onPickString, onTraceStroke, onMatchComplete, onOrderComplete,
 }: {
   ex: ExerciseDTO;
   answer: Answer | null;
@@ -271,6 +281,7 @@ function KindBody({
   resetSignal: number;
   showSolution: boolean;
   onPickNumeric: (n: number) => void;
+  onPickString: (s: string) => void;
   onTraceStroke: (stroke: Point[]) => void;
   onMatchComplete: (pairs: number[][]) => void;
   onOrderComplete: (seq: number[]) => void;
@@ -341,6 +352,62 @@ function KindBody({
           onSubmit={onPickNumeric}
         />
       </div>
+    );
+  }
+
+  if (ex.kind === "COMPARE") {
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <ChoiceButtonsInput
+          choices={[
+            { value: "<", label: "<", sub: "menor" },
+            { value: "=", label: "=", sub: "igual" },
+            { value: ">", label: ">", sub: "mayor" },
+          ]}
+          disabled={disabled}
+          onPick={onPickString}
+        />
+      </>
+    );
+  }
+
+  if (ex.kind === "PARITY") {
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <ChoiceButtonsInput
+          choices={[
+            { value: "par", label: "Par", sub: "se reparte de a 2" },
+            { value: "impar", label: "Impar", sub: "queda uno solo" },
+          ]}
+          disabled={disabled}
+          onPick={onPickString}
+        />
+      </>
+    );
+  }
+
+  if (ex.kind === "PATTERN" || ex.kind === "NEIGHBOR") {
+    // Ambos se resuelven tipeando un número en el keypad.
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <div className="w-full flex justify-center">
+          <NumericKeypadInput
+            key={resetSignal}
+            max={20}
+            disabled={disabled}
+            onSubmit={onPickNumeric}
+          />
+        </div>
+      </>
     );
   }
 
@@ -431,7 +498,7 @@ function Footer({
                 )}
               </div>
             </div>
-            <button onClick={onContinue}
+            <button onClick={() => { playTap(); onContinue(); }}
               className="btn-chunky py-3 px-8 md:px-10 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm"
               style={{ boxShadow: "0 4px 0 #4DA86A" }}>
               Continuar
@@ -453,7 +520,7 @@ function Footer({
               </div>
             </div>
             <button
-              onClick={mustAdvance ? onAcknowledgeSolution : onContinue}
+              onClick={() => { playTap(); (mustAdvance ? onAcknowledgeSolution : onContinue)(); }}
               className="btn-chunky py-3 px-8 md:px-10 rounded-full bg-pink text-white font-black uppercase tracking-wide text-sm"
               style={{ boxShadow: "0 4px 0 #D14A6A" }}
             >

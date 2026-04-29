@@ -66,6 +66,46 @@ describe("evaluateAttempt · MATCH", () => {
   });
 });
 
+describe("evaluateAttempt · COMPARE", () => {
+  it("acepta el símbolo correcto", () => {
+    expect(evaluateAttempt("COMPARE", { answer: ">" }, ">")).toBe(true);
+    expect(evaluateAttempt("COMPARE", { answer: "<" }, "<")).toBe(true);
+    expect(evaluateAttempt("COMPARE", { answer: "=" }, "=")).toBe(true);
+  });
+  it("rechaza el símbolo incorrecto", () => {
+    expect(evaluateAttempt("COMPARE", { answer: ">" }, "<")).toBe(false);
+  });
+  it("rechaza response que no sea un símbolo válido", () => {
+    expect(evaluateAttempt("COMPARE", { answer: ">" }, "mayor")).toBe(false);
+    expect(evaluateAttempt("COMPARE", { answer: ">" }, 1)).toBe(false);
+  });
+});
+
+describe("evaluateAttempt · PARITY", () => {
+  it("acepta par/impar correcto", () => {
+    expect(evaluateAttempt("PARITY", { answer: "par" }, "par")).toBe(true);
+    expect(evaluateAttempt("PARITY", { answer: "impar" }, "impar")).toBe(true);
+  });
+  it("rechaza el opuesto", () => {
+    expect(evaluateAttempt("PARITY", { answer: "par" }, "impar")).toBe(false);
+  });
+  it("rechaza valores fuera del enum", () => {
+    expect(evaluateAttempt("PARITY", { answer: "par" }, "pares")).toBe(false);
+    expect(evaluateAttempt("PARITY", { answer: "par" }, true)).toBe(false);
+  });
+});
+
+describe("evaluateAttempt · PATTERN y NEIGHBOR", () => {
+  it("PATTERN compara number === answer", () => {
+    expect(evaluateAttempt("PATTERN", { answer: 7 }, 7)).toBe(true);
+    expect(evaluateAttempt("PATTERN", { answer: 7 }, 6)).toBe(false);
+  });
+  it("NEIGHBOR compara number === answer", () => {
+    expect(evaluateAttempt("NEIGHBOR", { answer: 4 }, 4)).toBe(true);
+    expect(evaluateAttempt("NEIGHBOR", { answer: 4 }, "4")).toBe(false);
+  });
+});
+
 describe("evaluateAttempt · SPEED y kinds desconocidos", () => {
   it("SPEED siempre falso (no implementado)", () => {
     expect(evaluateAttempt("SPEED", { answer: 1 }, 1)).toBe(false);

@@ -83,9 +83,93 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
+    case "COMPARE": {
+      const { left, right } = ex.payload as { left: number; right: number };
+      return (
+        <div className="flex items-center justify-center gap-4 md:gap-8">
+          <NumberCard n={left}/>
+          <span className="font-fredoka text-3xl md:text-5xl font-bold text-ink-mute">?</span>
+          <NumberCard n={right}/>
+        </div>
+      );
+    }
+    case "PARITY": {
+      const { value } = ex.payload as { value: number };
+      // Mostramos el número grande y, si caben, los puntitos en filas de a dos
+      // para sugerir visualmente el concepto de paridad.
+      const dots = Math.min(value, 10);
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <div className="font-fredoka text-[120px] md:text-[180px] font-bold text-sky leading-none">
+            {value}
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+            {Array.from({ length: dots }).map((_, i) => (
+              <span key={i} className="text-2xl" aria-hidden>•</span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "PATTERN": {
+      const { visible, step } = ex.payload as { visible: number[]; step: number };
+      return (
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center justify-center flex-wrap gap-2 md:gap-3">
+            {visible.map((n, i) => (
+              <div key={i} className="flex items-center gap-2 md:gap-3">
+                <NumberCard n={n}/>
+                <span className="font-fredoka text-2xl md:text-3xl font-bold text-ink-mute" aria-hidden>→</span>
+              </div>
+            ))}
+            <NumberCard placeholder/>
+          </div>
+          <div className="text-[10px] font-bold text-ink-mute tracking-widest mt-1">
+            VAN DE A {step}
+          </div>
+        </div>
+      );
+    }
+    case "NEIGHBOR": {
+      const { value, direction } = ex.payload as { value: number; direction: "before" | "after" };
+      return (
+        <div className="flex items-center justify-center gap-3 md:gap-4">
+          {direction === "before" ? (
+            <>
+              <NumberCard placeholder/>
+              <span className="font-fredoka text-2xl md:text-3xl font-bold text-ink-mute" aria-hidden>→</span>
+              <NumberCard n={value}/>
+            </>
+          ) : (
+            <>
+              <NumberCard n={value}/>
+              <span className="font-fredoka text-2xl md:text-3xl font-bold text-ink-mute" aria-hidden>→</span>
+              <NumberCard placeholder/>
+            </>
+          )}
+        </div>
+      );
+    }
     default:
       return <div className="text-center text-ink-soft italic">Ejercicio en construcción</div>;
   }
+}
+
+/** Cuadradito chunky con un número o un slot vacío para los kinds que muestran
+ *  números individuales (COMPARE / PATTERN / NEIGHBOR). */
+function NumberCard({ n, placeholder = false }: { n?: number; placeholder?: boolean }) {
+  return (
+    <div
+      className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl border-4 flex items-center justify-center font-fredoka text-3xl md:text-4xl font-bold ${
+        placeholder
+          ? "border-dashed border-ink/20 bg-cream text-ink-mute"
+          : "border-white bg-sun-soft text-ink"
+      }`}
+      style={{ boxShadow: placeholder ? "none" : "var(--shadow-chunky-sm)" }}
+    >
+      {placeholder ? "?" : n}
+    </div>
+  );
 }
 
 function Group({ n, item }: { n: number; item: string }) {

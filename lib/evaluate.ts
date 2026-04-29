@@ -2,10 +2,12 @@
 // Función pura que dado un ejercicio + la respuesta del niño dice si está
 // bien. Cada kind tiene su propio formato de respuesta:
 //
-//   COUNT/DRAG/SUBTRACT/FILL → number  (la opción elegida)
-//   ORDER → number[]                    (los números en el orden elegido)
-//   MATCH → [number, number][]         (pares groupIdx ↔ optionIdx)
-//   TRACE → boolean                     (matchesDigit lo evalúa antes)
+//   COUNT/DRAG/SUBTRACT/FILL/PATTERN/NEIGHBOR → number  (la opción elegida)
+//   COMPARE  → "<" | ">" | "="
+//   PARITY   → "par" | "impar"
+//   ORDER    → number[]
+//   MATCH    → [number, number][]
+//   TRACE    → boolean (matchesDigit lo evalúa antes)
 //
 // Aislar acá la lógica permite testear sin React y sin DB, y deja al
 // ExerciseRunner agnóstico del tipo de ejercicio.
@@ -13,7 +15,9 @@
 import type { ExerciseKind } from "@prisma/client";
 
 export type ExerciseSolution = {
-  answer?: number;
+  /** Para los kinds numéricos y los que tienen una respuesta string corta
+   *  (COMPARE: "<"/">"/"=", PARITY: "par"/"impar"). */
+  answer?: number | string;
   digit?: number;
   order?: number[];
   pairs?: number[][];
@@ -29,7 +33,17 @@ export function evaluateAttempt(
     case "DRAG":
     case "SUBTRACT":
     case "FILL":
+    case "PATTERN":
+    case "NEIGHBOR":
       return typeof response === "number" && response === solution.answer;
+
+    case "COMPARE":
+      return (response === "<" || response === ">" || response === "=")
+        && response === solution.answer;
+
+    case "PARITY":
+      return (response === "par" || response === "impar")
+        && response === solution.answer;
 
     case "TRACE":
       // El componente de trazo evalúa con matchesDigit y manda el bool.
