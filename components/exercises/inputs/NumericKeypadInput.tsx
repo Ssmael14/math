@@ -6,6 +6,7 @@
 // de FILL (donde 4 botones cercanos a la respuesta hacen que se adivine).
 
 import { useState } from "react";
+import { playTap } from "@/lib/audio";
 
 export function NumericKeypadInput({
   max = 20,
@@ -23,6 +24,7 @@ export function NumericKeypadInput({
   function press(d: string) {
     if (disabled) return;
     if (text.length >= maxLen) return;
+    playTap();
     // No permitir leading zero salvo que sea el único dígito
     if (text === "" && d === "0") {
       setText("0");
@@ -33,12 +35,15 @@ export function NumericKeypadInput({
 
   function backspace() {
     if (disabled) return;
+    playTap();
     setText(text.slice(0, -1));
   }
 
   function confirm() {
     if (disabled) return;
     if (text === "") return;
+    // El sonido de "correct/wrong" lo dispara el runner cuando evalúa,
+    // así que acá no agregamos un tap extra para evitar doble feedback.
     onSubmit(parseInt(text, 10));
   }
 

@@ -27,7 +27,7 @@ import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { matchesDigit, type Point } from "@/lib/gesture";
 import { evaluateAttempt } from "@/lib/evaluate";
-import { playCorrect, playWrong } from "@/lib/audio";
+import { playCorrect, playWrong, playTap } from "@/lib/audio";
 
 export type RunnerLabels = {
   step: string;
@@ -207,8 +207,11 @@ export function ExerciseRunner({
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-8 md:py-16">
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+      {/* my-auto en el child centra verticalmente cuando hay espacio sobrante,
+          y permite scroll del body cuando el contenido excede el viewport
+          (clave para mobile chico + DragInput / teclado numérico). */}
+      <main className="flex-1 flex flex-col items-center px-4 md:px-6 py-6 md:py-12">
+        <div className="w-full max-w-2xl mx-auto flex flex-col items-center my-auto">
           <div className="text-[10px] md:text-xs font-black text-ink-mute tracking-widest mb-2">
             {labels.step} {i + 1} / {exercises.length}
           </div>
@@ -431,7 +434,7 @@ function Footer({
                 )}
               </div>
             </div>
-            <button onClick={onContinue}
+            <button onClick={() => { playTap(); onContinue(); }}
               className="btn-chunky py-3 px-8 md:px-10 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm"
               style={{ boxShadow: "0 4px 0 #4DA86A" }}>
               Continuar
@@ -453,7 +456,7 @@ function Footer({
               </div>
             </div>
             <button
-              onClick={mustAdvance ? onAcknowledgeSolution : onContinue}
+              onClick={() => { playTap(); (mustAdvance ? onAcknowledgeSolution : onContinue)(); }}
               className="btn-chunky py-3 px-8 md:px-10 rounded-full bg-pink text-white font-black uppercase tracking-wide text-sm"
               style={{ boxShadow: "0 4px 0 #D14A6A" }}
             >

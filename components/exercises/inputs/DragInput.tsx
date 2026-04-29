@@ -9,6 +9,7 @@
 // de vuelta a su posición original (clearing del transform).
 
 import { useRef, useState } from "react";
+import { playTap } from "@/lib/audio";
 
 type Item = { id: string; emoji: string; group: "a" | "b" };
 
@@ -69,6 +70,7 @@ export function DragInput({
     if (overBasket) {
       const moved = pool.find((p) => p.id === id);
       if (moved) {
+        playTap();
         setPool((cur) => cur.filter((p) => p.id !== id));
         setBasket((cur) => [...cur, moved]);
       }

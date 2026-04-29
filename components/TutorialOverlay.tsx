@@ -9,6 +9,7 @@
 // está oculto), saltamos ese paso silenciosamente para no trabar al niño.
 
 import { useEffect, useState } from "react";
+import { playTap } from "@/lib/audio";
 
 const STORAGE_KEY = "lm_tutorial_done_v1";
 const PADDING = 8;
@@ -84,6 +85,7 @@ export function TutorialOverlay() {
   }, [step]);
 
   function advance() {
+    playTap();
     setRect(null);
     setStep((s) => {
       if (s === null) return null;
@@ -99,6 +101,10 @@ export function TutorialOverlay() {
     setRect(null);
     setStep(null);
     try { window.localStorage.setItem(STORAGE_KEY, "1"); } catch { /* noop */ }
+  }
+  function skip() {
+    playTap();
+    finish();
   }
 
   if (step === null || rect === null) return null;
@@ -170,7 +176,7 @@ export function TutorialOverlay() {
           <div className="flex items-center justify-between gap-3 mt-3">
             <button
               type="button"
-              onClick={finish}
+              onClick={skip}
               className="text-xs font-bold text-ink-mute underline"
             >
               Saltar

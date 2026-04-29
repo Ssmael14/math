@@ -2,10 +2,11 @@
 // Wrapper de "Repaso del día" sobre el ExerciseRunner compartido. No registra
 // progreso de lección ni descuenta corazones — sólo deja que el SRS actualice
 // la mastery y al terminar manda al niño a una pantalla corta de cierre.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Confetti } from "@/components/Confetti";
+import { playTap, playVictory } from "@/lib/audio";
 import { Lumi } from "@/components/Lumi";
 import { ExerciseRunner } from "@/components/exercises/ExerciseRunner";
 import type { ExerciseDTO } from "@/components/exercises/types";
@@ -23,7 +24,7 @@ export function ReviewRunner({
   const [done, setDone] = useState<{ correctCount: number; total: number } | null>(null);
 
   if (done) {
-    return <ReviewDoneScreen correct={done.correctCount} total={done.total} onContinue={() => router.push("/home")}/>;
+    return <ReviewDoneScreen correct={done.correctCount} total={done.total} onContinue={() => { playTap(); router.push("/home"); }}/>;
   }
 
   return (
@@ -44,6 +45,10 @@ function ReviewDoneScreen({
   correct, total, onContinue,
 }: { correct: number; total: number; onContinue: () => void }) {
   const pct = Math.round((correct / Math.max(1, total)) * 100);
+  useEffect(() => {
+    const t = setTimeout(() => playVictory(), 120);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <div
       className="relative min-h-[100dvh] flex flex-col items-center justify-center px-6 py-8 overflow-hidden"
