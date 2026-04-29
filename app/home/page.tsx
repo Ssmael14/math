@@ -1,27 +1,64 @@
-// app/home/page.tsx — Server Component con datos reales de la DB
+// app/home/page.tsx — Server Component con datos reales de la DB.
+//
+// Selección de unidad activa:
+//  1. Si vino `?unit=<slug>` y existe (y no está bloqueada por premium),
+//     mostramos esa.
+//  2. Si no, buscamos la primera unidad accesible con lecciones incompletas.
+//  3. Si todas están completas, mostramos la primera (o la última que tenga).
 import { redirect } from "next/navigation";
 import { getActiveChild, getMasteryStats } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
 
-export default async function HomePage() {
+type UnitWithLessons = NonNullable<Awaited<ReturnType<typeof loadUnits>>>[number];
+
+async function loadUnits(childId: string) {
+  return prisma.unit.findMany({
+    orderBy: { order: "asc" },
+    include: {
+      lessons: {
+        orderBy: { order: "asc" },
+        include: { progress: { where: { childId } } },
+      },
+    },
+  });
+}
+
+function pickActiveUnit(units: UnitWithLessons[], requestedSlug: string | undefined): UnitWithLessons | null {
+  if (units.length === 0) return null;
+
+  if (requestedSlug) {
+    const found = units.find((u) => u.slug === requestedSlug);
+    if (found) return found;
+  }
+
+  // Primera con alguna lección incompleta.
+  const incomplete = units.find((u) =>
+    u.lessons.length === 0 || u.lessons.some((l) => !l.progress[0]?.completed),
+  );
+  if (incomplete) return incomplete;
+
+  // Todo completo: caemos a la primera.
+  return units[0];
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ unit?: string }>;
+}) {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
 
-  // Unidad activa: la primera con lecciones no completadas
-  const [unit, masteryStats] = await Promise.all([
-    prisma.unit.findFirst({
-      orderBy: { order: "asc" },
-      include: {
-        lessons: {
-          orderBy: { order: "asc" },
-          include: { progress: { where: { childId: child.id } } },
-        },
-      },
-    }),
+  const { unit: requestedSlug } = await searchParams;
+
+  const [units, masteryStats] = await Promise.all([
+    loadUnits(child.id),
     getMasteryStats(child.id),
   ]);
+
+  const unit = pickActiveUnit(units, requestedSlug);
 
   if (!unit) {
     return (

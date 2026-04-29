@@ -19,10 +19,29 @@ export default async function VictoryPage({
 
   const progress = await prisma.progress.findUnique({
     where: { childId_lessonId: { childId: child.id, lessonId } },
-    include: { lesson: { select: { xpReward: true, title: true } } },
+    include: {
+      lesson: {
+        select: {
+          xpReward: true,
+          title: true,
+          unit: { select: { slug: true } },
+        },
+      },
+    },
   });
 
   if (!progress || !progress.completed) notFound();
 
-  return <VictoryView xp={progress.lesson.xpReward} stars={progress.stars}/>;
+  // Volvemos al mapa de la MISMA unidad (no al home genérico) para que el
+  // niño no salga rebotado a la unidad 1 después de terminar una lección
+  // en otra unidad.
+  const continueHref = `/home?unit=${progress.lesson.unit.slug}`;
+
+  return (
+    <VictoryView
+      xp={progress.lesson.xpReward}
+      stars={progress.stars}
+      continueHref={continueHref}
+    />
+  );
 }
