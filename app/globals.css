@@ -69,6 +69,29 @@ html, body {
 }
 .animate-bob { animation: bob 2.5s ease-in-out infinite; }
 
+/* Feedback al fallar: shake horizontal corto. Lo aplicamos al wrapper de la
+   zona de input para que el "no, intentá de nuevo" tenga peso físico. */
+@keyframes wrong-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+.animate-wrong-shake { animation: wrong-shake 360ms ease-in-out; }
+
+/* Feedback al acertar: pop expansivo con un overshoot. */
+@keyframes correct-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.08); }
+  70%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.animate-correct-pop { animation: correct-pop 380ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wrong-shake,
+  .animate-correct-pop { animation: none; }
+}
+
 /* DRAG: cuando un ítem entra al canasto, hace un pop suave (scale-in). */
 @keyframes drag-pop-in {
   0%   { transform: scale(0.4); opacity: 0; }

@@ -11,7 +11,7 @@
 // el niño termina de responder. evaluateAttempt() en lib/evaluate.ts decide
 // la corrección.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
 import { ExerciseVisual } from "@/components/exercises/ExerciseVisual";
@@ -27,6 +27,7 @@ import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { matchesDigit, type Point } from "@/lib/gesture";
 import { evaluateAttempt } from "@/lib/evaluate";
+import { playCorrect, playWrong } from "@/lib/audio";
 
 export type RunnerLabels = {
   step: string;
@@ -73,6 +74,25 @@ export function ExerciseRunner({
   const state = answer === null ? "idle" : answer.correct ? "correct" : "wrong";
   const hintLevel = nextHintLevel(wrongCount);
   const mustAdvance = shouldAdvanceAfterWrong(wrongCount);
+
+  // Sonido + haptic + animación cuando el state cambia desde idle hacia
+  // correct/wrong. Ref guarda el último estado para detectar la transición
+  // y no disparar en cada re-render. animClass se limpia en onAnimationEnd
+  // para que la próxima transición pueda re-disparar la misma animación.
+  const prevStateRef = useRef(state);
+  const [animClass, setAnimClass] = useState("");
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    if (prev === "idle" && state === "correct") {
+      playCorrect();
+      setAnimClass("animate-correct-pop");
+    }
+    if (prev === "idle" && state === "wrong") {
+      playWrong();
+      setAnimClass("animate-wrong-shake");
+    }
+    prevStateRef.current = state;
+  }, [state]);
 
   // Texto/valor de "respuesta" para el HintPanel.
   const solutionAnswer = ex.solution.answer ?? ex.solution.digit ?? null;
@@ -196,18 +216,23 @@ export function ExerciseRunner({
             {ex.prompt}
           </h2>
 
-          <KindBody
-            ex={ex}
-            answer={answer}
-            options={options}
-            disabled={state !== "idle"}
-            resetSignal={resetSignal}
-            showSolution={hintLevel === "solution"}
-            onPickNumeric={(n) => submit(n)}
-            onTraceStroke={onTraceStroke}
-            onMatchComplete={(pairs) => submit(pairs)}
-            onOrderComplete={(seq) => submit(seq)}
-          />
+          <div
+            className={`w-full flex flex-col items-center ${animClass}`}
+            onAnimationEnd={() => setAnimClass("")}
+          >
+            <KindBody
+              ex={ex}
+              answer={answer}
+              options={options}
+              disabled={state !== "idle"}
+              resetSignal={resetSignal}
+              showSolution={hintLevel === "solution"}
+              onPickNumeric={(n) => submit(n)}
+              onTraceStroke={onTraceStroke}
+              onMatchComplete={(pairs) => submit(pairs)}
+              onOrderComplete={(seq) => submit(seq)}
+            />
+          </div>
 
           {hintLevel !== "none" && (
             <div className="w-full mt-6 flex justify-center">
