@@ -22,6 +22,7 @@ import { MatchInput } from "@/components/exercises/inputs/MatchInput";
 import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
 import { DragInput } from "@/components/exercises/inputs/DragInput";
+import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
 import { postOrQueue } from "@/lib/offline-queue";
@@ -97,8 +98,13 @@ export function ExerciseRunner({
   // Texto/valor de "respuesta" para el HintPanel.
   const solutionAnswer = ex.solution.answer ?? ex.solution.digit ?? null;
 
-  // Opciones aleatorias sólo para los kinds que las usan.
-  const numericAnswer = ex.solution.answer ?? ex.solution.digit ?? 0;
+  // Opciones aleatorias sólo para los kinds que las usan (COUNT/SUBTRACT).
+  // Si el solution.answer no es numérico (COMPARE/PARITY) usamos 0 — esos
+  // kinds no muestran OptionsGrid igual.
+  const numericAnswer =
+    typeof ex.solution.answer === "number" ? ex.solution.answer
+    : typeof ex.solution.digit === "number" ? ex.solution.digit
+    : 0;
   const options = useMemo(() => genOptions(numericAnswer), [ex.id, numericAnswer]);
 
   function submit(value: unknown) {
@@ -231,6 +237,7 @@ export function ExerciseRunner({
               resetSignal={resetSignal}
               showSolution={hintLevel === "solution"}
               onPickNumeric={(n) => submit(n)}
+              onPickString={(s) => submit(s)}
               onTraceStroke={onTraceStroke}
               onMatchComplete={(pairs) => submit(pairs)}
               onOrderComplete={(seq) => submit(seq)}
@@ -265,7 +272,7 @@ export function ExerciseRunner({
 
 function KindBody({
   ex, answer, options, disabled, resetSignal, showSolution,
-  onPickNumeric, onTraceStroke, onMatchComplete, onOrderComplete,
+  onPickNumeric, onPickString, onTraceStroke, onMatchComplete, onOrderComplete,
 }: {
   ex: ExerciseDTO;
   answer: Answer | null;
@@ -274,6 +281,7 @@ function KindBody({
   resetSignal: number;
   showSolution: boolean;
   onPickNumeric: (n: number) => void;
+  onPickString: (s: string) => void;
   onTraceStroke: (stroke: Point[]) => void;
   onMatchComplete: (pairs: number[][]) => void;
   onOrderComplete: (seq: number[]) => void;
@@ -344,6 +352,62 @@ function KindBody({
           onSubmit={onPickNumeric}
         />
       </div>
+    );
+  }
+
+  if (ex.kind === "COMPARE") {
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <ChoiceButtonsInput
+          choices={[
+            { value: "<", label: "<", sub: "menor" },
+            { value: "=", label: "=", sub: "igual" },
+            { value: ">", label: ">", sub: "mayor" },
+          ]}
+          disabled={disabled}
+          onPick={onPickString}
+        />
+      </>
+    );
+  }
+
+  if (ex.kind === "PARITY") {
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <ChoiceButtonsInput
+          choices={[
+            { value: "par", label: "Par", sub: "se reparte de a 2" },
+            { value: "impar", label: "Impar", sub: "queda uno solo" },
+          ]}
+          disabled={disabled}
+          onPick={onPickString}
+        />
+      </>
+    );
+  }
+
+  if (ex.kind === "PATTERN" || ex.kind === "NEIGHBOR") {
+    // Ambos se resuelven tipeando un número en el keypad.
+    return (
+      <>
+        <div className="w-full flex justify-center mb-6 md:mb-8">
+          <ExerciseVisual ex={ex}/>
+        </div>
+        <div className="w-full flex justify-center">
+          <NumericKeypadInput
+            key={resetSignal}
+            max={20}
+            disabled={disabled}
+            onSubmit={onPickNumeric}
+          />
+        </div>
+      </>
     );
   }
 

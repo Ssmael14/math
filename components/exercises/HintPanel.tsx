@@ -13,7 +13,7 @@ export function HintPanel({
   level: HintLevel;
   hint: string | null;
   explanation: string | null;
-  answer: number | null;
+  answer: number | string | null;
 }) {
   if (level === "none") return null;
 

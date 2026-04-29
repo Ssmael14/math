@@ -3,7 +3,7 @@
 // Crea contenido curado + un set grande de ejercicios procedurales.
 
 import { PrismaClient, ExerciseKind, Prisma } from "@prisma/client";
-import { generateBatch, type GeneratedExercise } from "../lib/generators";
+import { generateBatch, type GeneratedExercise, type BatchMix } from "../lib/generators";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -155,7 +155,12 @@ async function main() {
       isPremium: false,
     },
   });
-  await seedProceduralUnit({ unitId: u2.id, max: 5, lessonsCount: 4, perLesson: 12, baseSeed: 1000 });
+  // Mix sólo numérico: las unidades 2 y 3 son de números/sumas/restas.
+  const NUMERIC_MIX = { count: 0.4, fill: 0.3, subtract: 0.3 } as const;
+  await seedProceduralUnit({
+    unitId: u2.id, max: 5, lessonsCount: 4, perLesson: 12, baseSeed: 1000,
+    mix: NUMERIC_MIX, slugPrefix: "p1-5",
+  });
 
   // ============================================================
   // UNIDAD 3: Práctica hasta 10 (premium para mostrar paywall)
@@ -171,7 +176,31 @@ async function main() {
       isPremium: true,
     },
   });
-  await seedProceduralUnit({ unitId: u3.id, max: 10, lessonsCount: 6, perLesson: 15, baseSeed: 2000 });
+  await seedProceduralUnit({
+    unitId: u3.id, max: 10, lessonsCount: 6, perLesson: 15, baseSeed: 2000,
+    mix: NUMERIC_MIX, slugPrefix: "p1-10",
+  });
+
+  // ============================================================
+  // UNIDAD 4: Variedad — comparación, par/impar, series, vecinos
+  // (no premium; muestra los kinds nuevos)
+  // ============================================================
+  const u4 = await prisma.unit.create({
+    data: {
+      slug: "variedad-1-10",
+      title: "Variedad · comparar, ordenar y descubrir",
+      description: "Mayor/menor, par/impar, series y vecinos",
+      order: 4,
+      color: "sky",
+      icon: "🧠",
+      isPremium: false,
+    },
+  });
+  // Sin override de mix → usa el default que ya incluye los 7 kinds procedurales.
+  await seedProceduralUnit({
+    unitId: u4.id, max: 10, lessonsCount: 4, perLesson: 12, baseSeed: 3000,
+    slugPrefix: "var-10",
+  });
 
   // ============================================================
   // SHOP · accesorios para Lumi + packs de gemas
@@ -221,19 +250,24 @@ async function main() {
 // pero cada lección tenga ejercicios distintos.
 // =========================================================================
 async function seedProceduralUnit({
-  unitId, max, lessonsCount, perLesson, baseSeed,
+  unitId, max, lessonsCount, perLesson, baseSeed, mix, slugPrefix = "practica",
 }: {
   unitId: string;
   max: number;
   lessonsCount: number;
   perLesson: number;
   baseSeed: number;
+  /** Override del mix; si no se pasa usa el default de generateBatch. */
+  mix?: Partial<BatchMix>;
+  /** Prefijo para los slugs de las lecciones (evitar colisiones entre unidades
+   *  cuando usamos el mismo `max`). */
+  slugPrefix?: string;
 }) {
   for (let li = 0; li < lessonsCount; li++) {
     const lesson = await prisma.lesson.create({
       data: {
         unitId,
-        slug: `practica-${max}-l${li + 1}`,
+        slug: `${slugPrefix}-${max}-l${li + 1}`,
         title: `Práctica ${li + 1}`,
         order: li + 1,
         xpReward: 20 + li * 5,
@@ -244,6 +278,7 @@ async function seedProceduralUnit({
       seed: baseSeed + li * 31,
       count: perLesson,
       max,
+      mix,
     });
 
     const data: Prisma.ExerciseCreateManyInput[] = batch.map((g, idx) => ({

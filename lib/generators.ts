@@ -12,7 +12,9 @@ export type GeneratedExercise = {
   kind: ExerciseKind;
   prompt: string;
   payload: Record<string, unknown>;
-  solution: { answer: number };
+  /** answer puede ser number (mayoría) o string corto (COMPARE: "<"/">"/"=",
+   *  PARITY: "par"/"impar"). */
+  solution: { answer: number | string };
   hints: string[];
   explanation: string;
   /** "tag" pedagógico para agrupar — útil para crear lecciones temáticas. */
@@ -142,26 +144,185 @@ export function generateSubtract(rng: () => number, max: number): GeneratedExerc
   };
 }
 
+// =========================================================================
+// COMPARE: ¿qué número es mayor / menor / igual?
+// =========================================================================
+export function generateCompare(rng: () => number, max: number): GeneratedExercise {
+  // Cada tanto elegimos `=` para asegurar que el niño vea casos de igualdad.
+  const wantEqual = rng() < 0.2;
+  const left = intBetween(rng, 1, max);
+  const right = wantEqual ? left : intBetween(rng, 1, max);
+  let answer: ">" | "<" | "=";
+  if (left === right) answer = "=";
+  else if (left > right) answer = ">";
+  else answer = "<";
+  return {
+    kind: "COMPARE",
+    prompt: "¿Qué signo va entre los números?",
+    payload: { left, right },
+    solution: { answer },
+    hints: [
+      "El boquita del cocodrilo apunta al número más grande 🐊.",
+      `Pensá: ¿${left} es más, menos, o igual a ${right}?`,
+    ],
+    explanation:
+      answer === "=" ? `${left} y ${right} son iguales.`
+      : answer === ">" ? `${left} es mayor que ${right}.`
+      : `${left} es menor que ${right}.`,
+    topic: max <= 5 ? "comparar-hasta-5" : "comparar-hasta-10",
+    difficulty: max <= 5 ? 1 : 2,
+  };
+}
+
+// =========================================================================
+// PARITY: ¿es par o impar?
+// =========================================================================
+export function generateParity(rng: () => number, max: number): GeneratedExercise {
+  const value = intBetween(rng, 1, max);
+  const answer: "par" | "impar" = value % 2 === 0 ? "par" : "impar";
+  return {
+    kind: "PARITY",
+    prompt: `¿El número ${value} es par o impar?`,
+    payload: { value },
+    solution: { answer },
+    hints: [
+      "Si podés agruparlos de a dos sin que sobre uno, es par.",
+      "Los pares terminan en 0, 2, 4, 6 u 8.",
+    ],
+    explanation:
+      answer === "par"
+        ? `${value} es par: se puede repartir en parejas exactas.`
+        : `${value} es impar: si lo repartís en parejas, queda uno sin par.`,
+    topic: "par-impar",
+    difficulty: 2,
+  };
+}
+
+// =========================================================================
+// PATTERN: completá la serie. La regla es paso constante (de 1, 2, o 3).
+// El hueco siempre va en la última posición — más simple visualmente para
+// kids de 4-6 años.
+// =========================================================================
+export function generatePattern(rng: () => number, max: number): GeneratedExercise {
+  const step = pick(rng, [1, 2] as const);
+  // Calculamos un start tal que la secuencia de 4 elementos no exceda `max`.
+  const start = intBetween(rng, 1, Math.max(1, max - step * 3));
+  const sequence = [start, start + step, start + step * 2, start + step * 3];
+  const missingIndex = sequence.length - 1; // siempre el último
+  const answer = sequence[missingIndex];
+  // El payload muestra los 3 primeros + un slot vacío.
+  const visible = sequence.slice(0, missingIndex);
+  return {
+    kind: "PATTERN",
+    prompt: "¿Qué número completa la serie?",
+    payload: { visible, step },
+    solution: { answer },
+    hints: [
+      `Mirá la diferencia entre los números: van saltando de a ${step}.`,
+      `El último que ves es ${visible[visible.length - 1]} — sumále ${step}.`,
+    ],
+    explanation: `La serie va de a ${step}: ${sequence.join(", ")}.`,
+    topic: step === 1 ? "serie-de-1" : "serie-de-2",
+    difficulty: step === 1 ? 1 : 2,
+  };
+}
+
+// =========================================================================
+// NEIGHBOR: ¿qué número viene antes/después de N?
+// =========================================================================
+export function generateNeighbor(rng: () => number, max: number): GeneratedExercise {
+  const direction: "before" | "after" = rng() < 0.5 ? "before" : "after";
+  // Si es antecesor, evitar value=1 (no tiene predecesor positivo).
+  const value = direction === "before"
+    ? intBetween(rng, 2, max)
+    : intBetween(rng, 1, max - 1);
+  const answer = direction === "before" ? value - 1 : value + 1;
+  return {
+    kind: "NEIGHBOR",
+    prompt:
+      direction === "before"
+        ? `¿Qué número viene ANTES del ${value}?`
+        : `¿Qué número viene DESPUÉS del ${value}?`,
+    payload: { value, direction },
+    solution: { answer },
+    hints: [
+      direction === "before"
+        ? `Contá hacia atrás desde ${value}.`
+        : `Contá uno más después de ${value}.`,
+      "Pensá en la fila de números: cada uno tiene un vecino antes y otro después.",
+    ],
+    explanation:
+      direction === "before"
+        ? `Antes del ${value} viene el ${answer}.`
+        : `Después del ${value} viene el ${answer}.`,
+    topic: "vecinos",
+    difficulty: 1,
+  };
+}
+
 /**
- * Genera un batch de N ejercicios usando los tres generadores en proporción
+ * Mix con TODOS los kinds procedurales. Las proporciones por defecto se
+ * eligieron para que un batch típico tenga variedad sin abusar de ningún
+ * tipo. La suma se normaliza así no es necesario que las proporciones
+ * sumen exactamente 1.
+ */
+export type BatchMix = {
+  count: number;
+  fill: number;
+  subtract: number;
+  compare: number;
+  parity: number;
+  pattern: number;
+  neighbor: number;
+};
+
+const DEFAULT_MIX: BatchMix = {
+  count: 0.20,
+  fill: 0.18,
+  subtract: 0.15,
+  compare: 0.15,
+  parity: 0.10,
+  pattern: 0.12,
+  neighbor: 0.10,
+};
+
+/**
+ * Genera un batch de N ejercicios usando los siete generadores en proporción
  * configurable. Determinístico bajo `seed` — útil en seed.ts.
  */
 export function generateBatch({
-  seed, count, max, mix = { count: 0.4, fill: 0.3, subtract: 0.3 },
+  seed, count, max, mix = DEFAULT_MIX,
 }: {
   seed: number;
   count: number;
   max: number;
-  mix?: { count: number; fill: number; subtract: number };
+  mix?: Partial<BatchMix>;
 }): GeneratedExercise[] {
   const rng = makeRng(seed);
+  const m: BatchMix = { ...DEFAULT_MIX, ...mix };
+  // Normalizamos: weights acumulados sobre la suma total.
+  const weights: Array<{ end: number; gen: (rng: () => number) => GeneratedExercise }> = [];
+  let acc = 0;
+  const add = (w: number, gen: (rng: () => number) => GeneratedExercise) => {
+    if (w <= 0) return;
+    acc += w;
+    weights.push({ end: acc, gen });
+  };
+  add(m.count, (r) => generateCount(r, max));
+  add(m.fill, (r) => generateFill(r, max));
+  add(m.subtract, (r) => generateSubtract(r, max));
+  add(m.compare, (r) => generateCompare(r, max));
+  add(m.parity, (r) => generateParity(r, max));
+  add(m.pattern, (r) => generatePattern(r, max));
+  add(m.neighbor, (r) => generateNeighbor(r, max));
+
+  if (weights.length === 0 || acc === 0) return [];
+
   const out: GeneratedExercise[] = [];
-  const total = mix.count + mix.fill + mix.subtract;
   for (let i = 0; i < count; i++) {
-    const r = rng() * total;
-    if (r < mix.count) out.push(generateCount(rng, max));
-    else if (r < mix.count + mix.fill) out.push(generateFill(rng, max));
-    else out.push(generateSubtract(rng, max));
+    const r = rng() * acc;
+    const slot = weights.find((w) => r < w.end) ?? weights[weights.length - 1];
+    out.push(slot.gen(rng));
   }
   return out;
 }

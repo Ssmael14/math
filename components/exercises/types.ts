@@ -10,19 +10,29 @@ export type ExerciseKind =
   | "FILL"
   | "TRACE"
   | "ORDER"
-  | "SPEED";
+  | "SPEED"
+  | "COMPARE"
+  | "PARITY"
+  | "PATTERN"
+  | "NEIGHBOR";
 
 export type ExercisePayload = {
-  // COUNT: { item: string, count: number }
-  // DRAG:  { a: number, b: number, item: string }
+  // COUNT:    { item: string, count: number }
+  // DRAG:     { a: number, b: number, item: string }
   // SUBTRACT: { total: number, removed: number, item: string }
-  // FILL:  { a: number, result: number }
-  // TRACE: { digit: number }
+  // FILL:     { a: number, result: number }
+  // TRACE:    { digit: number }
+  // COMPARE:  { left: number, right: number }
+  // PARITY:   { value: number }
+  // PATTERN:  { visible: number[], step: number }
+  // NEIGHBOR: { value: number, direction: "before" | "after" }
   [k: string]: unknown;
 };
 
 export type ExerciseSolution = {
-  answer?: number;
+  /** number para los kinds numéricos. string para COMPARE ("<"/">"/"=") y
+   *  PARITY ("par"/"impar"). */
+  answer?: number | string;
   digit?: number;
   order?: number[];
   pairs?: number[][];
