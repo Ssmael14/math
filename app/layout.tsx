@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Nunito } from "next/font/google";
+import { Fraunces, Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
 
@@ -13,6 +13,12 @@ const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "600", "700", "800", "900"],
   variable: "--font-nunito",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
@@ -43,9 +49,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${fredoka.variable} ${nunito.variable}`}>
+    <html
+      lang="es"
+      className={`${fredoka.variable} ${nunito.variable} ${fraunces.variable}`}
+    >
       <body className="bg-cream text-ink">
-        <PwaProvider/>
+        <PwaProvider />
         {children}
       </body>
     </html>

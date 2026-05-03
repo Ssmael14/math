@@ -22,6 +22,7 @@
   --color-sun-deep: #e8a500;
 
   /* Fuentes */
+  --font-fraunces: var(--font-display);
   --font-fredoka: "Fredoka", system-ui, sans-serif;
   --font-nunito: "Nunito", system-ui, sans-serif;
 
