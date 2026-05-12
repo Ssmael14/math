@@ -35,9 +35,12 @@ export default function LoginPage() {
 
   async function handleOAuth(provider: "google") {
     try {
+      // Better Auth ya garantiza que la sesión existe cuando redirige al
+      // callbackURL, así que vamos directo al post-login (decide a dónde
+      // mandar al user según si tiene hijos o no).
       await authClient.signIn.social({
         provider,
-        callbackURL: `${location.origin}/auth/callback`,
+        callbackURL: "/auth/post-login",
       });
     } catch (err) {
       setError("Error al conectar con Google");

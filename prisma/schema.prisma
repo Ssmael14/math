@@ -1,12 +1,10 @@
 // =========================================================================
 // LearnMath · Schema Prisma
 // =========================================================================
-// Modelos pensados para portabilidad total:
-// - User = cuenta de padre/madre (sincronizada con Supabase Auth)
-// - Child = perfil del niño que usa la app
-// - Unit / Lesson / Exercise = contenido pedagógico
-// - Attempt = cada intento individual (para analytics y spaced repetition)
-// - Progress = estado actual del niño en cada lección
+// - Better Auth → tablas user / session / account / verification.
+//   Los nombres y campos siguen la spec oficial de Better Auth 1.x.
+// - User extiende con `parentalPin` (PIN del modo padres).
+// - Child = perfil del niño que usa la app, relaciona a user.id.
 // =========================================================================
 
 generator client {
@@ -16,77 +14,79 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // Supabase usa un pooler en prod — agregá DIRECT_URL para migrations
-  directUrl = env("DIRECT_URL")
 }
 
-// -------------------------------------------------------------------------
-// AUTH · BetterAuth Models
-// -------------------------------------------------------------------------
+// =========================================================================
+// AUTH · Better Auth schema (formato oficial 1.x)
+// https://www.better-auth.com/docs/concepts/database#core-schema
+// =========================================================================
 model User {
   id            String    @id @default(cuid())
+  name          String?
   email         String    @unique
   emailVerified Boolean   @default(false)
-  name          String?
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Campos específicos de LearnMath
-  parentalPin   String?  // hash bcrypt del PIN de 4 dígitos (zona padres)
+  // Extensión propia: PIN del modo padres (hash bcrypt de 4 dígitos).
+  parentalPin   String?
 
-  // Relaciones
-  accounts  Account[]
-  sessions  Session[]
-  children  Child[]
+  sessions Session[]
+  accounts Account[]
+  children Child[]
 
-  @@map("users")
-}
-
-model Account {
-  id                 String    @id @default(cuid())
-  userId             String    @db.Text
-  type               String
-  provider           String
-  providerAccountId  String
-  refreshToken       String?   @db.Text
-  accessToken        String?   @db.Text
-  expiresAt          Int?
-  tokenType          String?
-  scope              String?   @db.Text
-  idToken            String?   @db.Text
-  sessionState       String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-  @@map("accounts")
+  @@map("user")
 }
 
 model Session {
   id        String   @id @default(cuid())
-  userId    String   @db.Text
-  token     String   @unique
   expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([userId])
-  @@map("sessions")
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Para email/password Better Auth guarda el hash acá.
+  password              String?
+  // Para OAuth (Google) guarda los tokens.
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
 }
 
 model Verification {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   identifier String
-  token      String   @unique
-  expires    DateTime
-  createdAt  DateTime @default(now())
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 
-  @@unique([identifier, token])
-  @@map("verifications")
+  @@index([identifier])
+  @@map("verification")
 }
 
 // -------------------------------------------------------------------------
