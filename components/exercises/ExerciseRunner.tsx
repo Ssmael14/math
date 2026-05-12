@@ -379,8 +379,8 @@ function KindBody({
   }
 
   if (ex.kind === "MULTIPLE_CHOICE") {
-    // Los visuales tipo "compare"/"parity" usan ChoiceButtons (string).
-    // El resto usa OptionsGrid (números). Lo decide payload.visual.
+    // 1) Visuales con choices fijas (compare/parity) — siguen hardcoded
+    //    porque tienen sub-labels específicos.
     if (visual === "compare") {
       return (
         <>
@@ -416,7 +416,28 @@ function KindBody({
         </>
       );
     }
-    // Default: opciones numéricas (count, subtract, etc.)
+
+    // 2) Si el payload trae options como string[] (Reading, science, etc.),
+    //    renderear con ChoiceButtonsInput dinámicos. Esto destraba el motor
+    //    multi-materia sin necesidad de cases nuevos por subject.
+    const payloadOptions = (ex.payload as { options?: unknown }).options;
+    if (Array.isArray(payloadOptions) && payloadOptions.every((o) => typeof o === "string")) {
+      return (
+        <>
+          <div className="w-full flex justify-center mb-6 md:mb-8">
+            <ExerciseVisual ex={ex}/>
+          </div>
+          <ChoiceButtonsInput
+            choices={(payloadOptions as string[]).map((o) => ({ value: o, label: o }))}
+            disabled={disabled}
+            onPick={onPickString}
+          />
+        </>
+      );
+    }
+
+    // 3) Default: opciones numéricas (count, subtract, etc.) — OptionsGrid
+    //    auto-genera 4 alternativas alrededor de la answer.
     return (
       <>
         <div className="w-full flex justify-center mb-8 md:mb-12">

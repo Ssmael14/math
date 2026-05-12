@@ -45,9 +45,19 @@ async function main() {
       isActive: true,
     },
   });
+  const readingSubject = await prisma.subject.create({
+    data: {
+      slug: "reading",
+      name: "Lectura",
+      description: "Letras, palabras y comprensión.",
+      icon: "📖",
+      color: "mint",
+      order: 2,
+      isActive: true, // ¡ya con contenido real!
+    },
+  });
   await prisma.subject.createMany({
     data: [
-      { slug: "reading",  name: "Lectura",  description: "Letras, palabras y comprensión.",  icon: "📖", color: "mint",  order: 2, isActive: false },
       { slug: "science",  name: "Ciencias", description: "Naturaleza, espacio y experimentos.", icon: "🔬", color: "sky",   order: 3, isActive: false },
       { slug: "english",  name: "Inglés",   description: "Vocabulario, pronunciación y frases.", icon: "🗣️", color: "lilac", order: 4, isActive: false },
     ],
@@ -221,6 +231,165 @@ async function main() {
   await seedProceduralUnit({
     unitId: u3.id, max: 10, lessonsCount: 4, perLesson: 12,
     baseSeed: 3000, slugPrefix: "var-10",
+  });
+
+  // ============================================================
+  // READING · Learning Path: Inicial
+  // Validación del motor multi-materia: el mismo engine que corre Math
+  // ahora soporta Reading sin nuevos kinds. Sólo cambian payload.visual y
+  // payload.options. El runner es agnóstico al dominio.
+  // ============================================================
+  const readingInitial = await prisma.learningPath.create({
+    data: {
+      subjectId: readingSubject.id,
+      slug: "reading-initial",
+      name: "Lectura inicial",
+      description: "Letras, sonidos y primeras palabras.",
+      level: EducationLevel.INITIAL,
+      difficulty: 1,
+      isPremium: false,
+      order: 1,
+    },
+  });
+
+  // --- Unidad 1: Letras y sonidos
+  const ru1 = await prisma.unit.create({
+    data: {
+      learningPathId: readingInitial.id,
+      slug: "letras-sonidos",
+      title: "Letras y sonidos",
+      description: "Reconocé las letras y los sonidos de cada una",
+      order: 1,
+      color: "mint",
+      icon: "🔤",
+    },
+  });
+
+  const rl1 = await prisma.lesson.create({
+    data: {
+      unitId: ru1.id, slug: "reconocer-vocales", title: "Vocales",
+      order: 1, xpReward: 20, estimatedMinutes: 5,
+    },
+  });
+  await prisma.exercise.createMany({
+    data: [
+      {
+        lessonId: rl1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 1,
+        prompt: "¿Qué letra es?",
+        payload: { visual: "letter", letter: "A", options: ["A", "E", "I", "O"] },
+        solution: { answer: "A" },
+        hints: ["Es la primera del abecedario.", "Suena 'aaa', como en 'mamá'."],
+        explanation: "Es la letra A, la primera vocal.",
+        difficulty: 1, xpReward: 5,
+      },
+      {
+        lessonId: rl1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 2,
+        prompt: "¿Qué letra es?",
+        payload: { visual: "letter", letter: "E", options: ["U", "I", "E", "O"] },
+        solution: { answer: "E" },
+        hints: ["Suena 'eee', como en 'elefante'."],
+        explanation: "Es la letra E.",
+        difficulty: 1, xpReward: 5,
+      },
+      {
+        lessonId: rl1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 3,
+        prompt: "¿Con qué letra empieza ☀️?",
+        payload: { visual: "emoji-word", emoji: "☀️", label: "sol", options: ["S", "L", "M", "R"] },
+        solution: { answer: "S" },
+        hints: ["Decí la palabra: SSSSol.", "El sonido es como una serpiente."],
+        explanation: "SOL empieza con la letra S.",
+        difficulty: 1, xpReward: 6,
+      },
+    ] as Prisma.ExerciseCreateManyInput[],
+  });
+
+  const rl2 = await prisma.lesson.create({
+    data: {
+      unitId: ru1.id, slug: "contar-letras", title: "Contar letras",
+      order: 2, xpReward: 25, estimatedMinutes: 6,
+    },
+  });
+  await prisma.exercise.createMany({
+    data: [
+      {
+        lessonId: rl2.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 1,
+        prompt: "¿Cuántas letras tiene la palabra?",
+        payload: { visual: "word-letters", word: "SOL" },
+        solution: { answer: 3 },
+        hints: ["Contá las cajitas.", "S - O - L."],
+        explanation: "SOL tiene 3 letras: S, O, L.",
+        difficulty: 1, xpReward: 5,
+      },
+      {
+        lessonId: rl2.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 2,
+        prompt: "¿Cuántas letras tiene la palabra?",
+        payload: { visual: "word-letters", word: "CASA" },
+        solution: { answer: 4 },
+        hints: ["Contá una por una.", "C - A - S - A."],
+        explanation: "CASA tiene 4 letras.",
+        difficulty: 1, xpReward: 5,
+      },
+      {
+        lessonId: rl2.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 3,
+        prompt: "¿Cuántas letras tiene la palabra?",
+        payload: { visual: "word-letters", word: "LUNA" },
+        solution: { answer: 4 },
+        hints: ["L - U - N - A."],
+        explanation: "LUNA tiene 4 letras.",
+        difficulty: 2, xpReward: 6,
+      },
+    ] as Prisma.ExerciseCreateManyInput[],
+  });
+
+  // --- Unidad 2: Primeras palabras
+  const ru2 = await prisma.unit.create({
+    data: {
+      learningPathId: readingInitial.id,
+      slug: "primeras-palabras",
+      title: "Primeras palabras",
+      description: "Identificá palabras simples y sus imágenes",
+      order: 2,
+      color: "lilac",
+      icon: "📚",
+    },
+  });
+
+  const rl3 = await prisma.lesson.create({
+    data: {
+      unitId: ru2.id, slug: "imagen-palabra", title: "¿Qué dice la imagen?",
+      order: 1, xpReward: 25, estimatedMinutes: 6,
+    },
+  });
+  await prisma.exercise.createMany({
+    data: [
+      {
+        lessonId: rl3.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 1,
+        prompt: "¿Qué palabra describe la imagen?",
+        payload: { visual: "emoji-word", emoji: "🐶", options: ["perro", "gato", "vaca", "pato"] },
+        solution: { answer: "perro" },
+        hints: ["Es un animal que ladra: ¡guau guau!"],
+        explanation: "🐶 es un perro.",
+        difficulty: 1, xpReward: 5,
+      },
+      {
+        lessonId: rl3.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 2,
+        prompt: "¿Qué palabra describe la imagen?",
+        payload: { visual: "emoji-word", emoji: "🍎", options: ["pera", "manzana", "uva", "banana"] },
+        solution: { answer: "manzana" },
+        hints: ["Es una fruta roja y crujiente."],
+        explanation: "🍎 es una manzana.",
+        difficulty: 1, xpReward: 5,
+      },
+      {
+        lessonId: rl3.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 3,
+        prompt: "¿Qué palabra dice?",
+        payload: { visual: "word", word: "MAMA", options: ["papá", "mamá", "tío", "abuela"] },
+        solution: { answer: "mamá" },
+        hints: ["Empieza y termina con la misma letra: M y A."],
+        explanation: "M-A-M-A dice 'mamá'.",
+        difficulty: 2, xpReward: 6,
+      },
+    ] as Prisma.ExerciseCreateManyInput[],
   });
 
   // ============================================================

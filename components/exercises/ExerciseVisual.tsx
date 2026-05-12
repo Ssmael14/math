@@ -146,6 +146,60 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
       return null;
     }
 
+    // -----------------------------------------------------------------
+    // READING visuals
+    // -----------------------------------------------------------------
+    case "letter": {
+      // Una letra grande sola. Para "¿qué letra es?" o sound matching.
+      const { letter } = ex.payload as { letter: string };
+      return (
+        <div className="font-fredoka text-[160px] md:text-[240px] font-bold text-pink leading-none">
+          {letter}
+        </div>
+      );
+    }
+
+    case "word": {
+      // Una palabra grande. Para "¿cuántas letras tiene?" o reconocimiento.
+      const { word } = ex.payload as { word: string };
+      return (
+        <div className="font-fredoka text-6xl md:text-8xl font-bold text-ink tracking-wider">
+          {word.toUpperCase()}
+        </div>
+      );
+    }
+
+    case "word-letters": {
+      // Una palabra mostrada letra por letra en cards (para conteo/análisis).
+      const { word } = ex.payload as { word: string };
+      const letters = word.toUpperCase().split("");
+      return (
+        <div className="flex justify-center gap-2 md:gap-3 flex-wrap max-w-lg">
+          {letters.map((l, i) => (
+            <div
+              key={i}
+              className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-pink-soft border-4 border-white flex items-center justify-center font-fredoka text-3xl md:text-5xl font-bold text-pink"
+              style={{ boxShadow: "var(--shadow-chunky-sm)" }}
+            >
+              {l}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "emoji-word": {
+      // Un emoji grande (ilustración) + label opcional debajo. Útil para
+      // "¿qué palabra describe a esta cosa?".
+      const { emoji, label } = ex.payload as { emoji: string; label?: string };
+      return (
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-[120px] md:text-[180px] leading-none">{emoji}</div>
+          {label && <div className="font-fredoka text-xl font-bold text-ink-soft">{label}</div>}
+        </div>
+      );
+    }
+
     default:
       // Fallback genérico: si no hay visual definido, mostramos el prompt
       // como visual mismo. Útil para audio/speak en el futuro.
