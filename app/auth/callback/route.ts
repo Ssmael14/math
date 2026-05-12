@@ -1,17 +1,19 @@
 // app/auth/callback/route.ts
-// Route handler al que Supabase manda después del OAuth / magic link.
+// BetterAuth maneja el callback automáticamente,
+// pero agregamos este endpoint para redirigir después de OAuth.
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/home";
+  const next = searchParams.get("next") ?? "/auth/post-login";
 
-  if (code) {
-    const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+  // Verificar si la sesión existe
+  const session = await getSession();
+  if (session) {
+    return NextResponse.redirect(new URL(next, origin));
   }
-  return NextResponse.redirect(`${origin}/auth/login?error=oauth`);
+
+  // Si no hay sesión, redirigir al login con error
+  return NextResponse.redirect(new URL("/auth/login?error=oauth", origin));
 }

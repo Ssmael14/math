@@ -19,10 +19,12 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@better-auth/infra": "^0.2.6",
     "@prisma/client": "^6.1.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "bcryptjs": "^2.4.3",
+    "better-auth": "^1.6.10",
     "lucide-react": "^1.11.0",
     "next": "^15.5.15",
     "react": "19.0.0",

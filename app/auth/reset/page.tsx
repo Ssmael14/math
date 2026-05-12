@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPage() {
   const router = useRouter();
@@ -15,24 +14,48 @@ export default function ResetPage() {
   const [done, setDone] = useState(false);
 
   async function save() {
-    if (pass.length < 6) return setErr("Mínimo 6 caracteres");
+    if (pass.length < 8) return setErr("Mínimo 8 caracteres");
     if (pass !== pass2) return setErr("Las contraseñas no coinciden");
-    setLoading(true); setErr(null);
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.updateUser({ password: pass });
-    setLoading(false);
-    if (error) return setErr(error.message);
-    setDone(true);
-    setTimeout(() => { router.push("/home"); router.refresh(); }, 1500);
+    setLoading(true);
+    setErr(null);
+    try {
+      // TODO: Implementar cambio de contraseña con BetterAuth
+      // Por ahora, se puede usar un Server Action o una ruta API personalizada
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: pass }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Error al cambiar contraseña");
+      }
+
+      setDone(true);
+      setTimeout(() => {
+        router.push("/home");
+        router.refresh();
+      }, 1500);
+    } catch (error: any) {
+      setErr(error.message || "Error al cambiar contraseña");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="min-h-[100dvh] flex flex-col md:items-center md:justify-center bg-gradient-to-b from-mint-soft to-cream md:bg-cream">
-      <Link href="/auth/login" className="absolute top-4 left-4 text-ink-soft text-sm font-bold z-10">← Volver</Link>
+      <Link
+        href="/auth/login"
+        className="absolute top-4 left-4 text-ink-soft text-sm font-bold z-10"
+      >
+        ← Volver
+      </Link>
 
       <main className="flex-1 md:flex-none w-full max-w-md mx-auto px-6 pt-16 pb-6 md:py-12 flex flex-col">
         <div className="text-center mb-6">
-          <Lumi size={80} mood={done ? "celebrate" : "happy"}/>
+          <Lumi size={80} mood={done ? "celebrate" : "happy"} />
           <h1 className="font-fredoka text-3xl font-bold text-ink mt-2">
             {done ? "¡Lista!" : "Nueva contraseña"}
           </h1>
@@ -42,15 +65,35 @@ export default function ResetPage() {
         </div>
 
         {!done && (
-          <div className="bg-white rounded-3xl p-6 md:p-8 space-y-3" style={{ boxShadow: "var(--shadow-chunky)" }}>
-            <input type="password" placeholder="Nueva contraseña" value={pass} onChange={(e) => setPass(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"/>
-            <input type="password" placeholder="Repetir contraseña" value={pass2} onChange={(e) => setPass2(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"/>
-            {err && <div className="text-pink text-xs font-bold text-center">{err}</div>}
-            <button onClick={save} disabled={loading || !pass || !pass2}
+          <div
+            className="bg-white rounded-3xl p-6 md:p-8 space-y-3"
+            style={{ boxShadow: "var(--shadow-chunky)" }}
+          >
+            <input
+              type="password"
+              placeholder="Nueva contraseña"
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"
+            />
+            <input
+              type="password"
+              placeholder="Repetir contraseña"
+              value={pass2}
+              onChange={(e) => setPass2(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"
+            />
+            {err && (
+              <div className="text-pink text-xs font-bold text-center">
+                {err}
+              </div>
+            )}
+            <button
+              onClick={save}
+              disabled={loading || !pass || !pass2}
               className="btn-chunky w-full py-4 rounded-2xl bg-mint text-white font-fredoka text-lg font-bold disabled:opacity-50"
-              style={{ boxShadow: "0 5px 0 #4DA86A" }}>
+              style={{ boxShadow: "0 5px 0 #4DA86A" }}
+            >
               {loading ? "Guardando..." : "Guardar contraseña"}
             </button>
           </div>

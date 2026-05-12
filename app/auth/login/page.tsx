@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,23 +15,33 @@ export default function LoginPage() {
   async function handleLogin() {
     setLoading(true);
     setError(null);
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: pass,
-    });
-    setLoading(false);
-    if (error) return setError(error.message);
-    router.push("/auth/post-login");
-    router.refresh();
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password: pass,
+      });
+      if (result.error) {
+        setError(result.error.message || "Error al iniciar sesión");
+      } else {
+        router.push("/auth/post-login");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("Error al iniciar sesión");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function handleOAuth(provider: "google" | "apple") {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    });
+  async function handleOAuth(provider: "google") {
+    try {
+      await authClient.signIn.social({
+        provider,
+        callbackURL: `${location.origin}/auth/callback`,
+      });
+    } catch (err) {
+      setError("Error al conectar con Google");
+    }
   }
 
   return (
@@ -117,10 +127,22 @@ export default function LoginPage() {
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
               >
-                <path d="M9 3.48c1.69 0 2.86.73 3.52 1.34l2.61-2.5C13.9.86 11.7 0 9 0 5.09 0 1.87 2.24.62 5.41l3.34 2.59C4.96 5.01 6.8 3.48 9 3.48z" fill="#4285F4" />
-                <path d="M17.64 9.2c0-.63-.06-1.24-.18-1.82H9v3.44h4.84c-.21 1.12-.82 2.08-1.74 2.73l2.82 2.2c1.64-1.52 2.9-3.74 2.9-6.55z" fill="#34A853" />
-                <path d="M3.96 10.9a5.4 5.4 0 0 1 0-3.8L.62 4.5A8.9 8.9 0 0 0 0 9c0 1.43.34 2.78.95 3.98l3.01-2.08z" fill="#FBBC05" />
-                <path d="M9 18c2.43 0 4.47-.8 5.96-2.16l-2.82-2.2c-.83.56-1.9.9-3.14.9-2.2 0-4.04-1.53-4.68-3.6L.62 13.3C1.87 16.47 5.09 18 9 18z" fill="#EA4335" />
+                <path
+                  d="M9 3.48c1.69 0 2.86.73 3.52 1.34l2.61-2.5C13.9.86 11.7 0 9 0 5.09 0 1.87 2.24.62 5.41l3.34 2.59C4.96 5.01 6.8 3.48 9 3.48z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M17.64 9.2c0-.63-.06-1.24-.18-1.82H9v3.44h4.84c-.21 1.12-.82 2.08-1.74 2.73l2.82 2.2c1.64-1.52 2.9-3.74 2.9-6.55z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M3.96 10.9a5.4 5.4 0 0 1 0-3.8L.62 4.5A8.9 8.9 0 0 0 0 9c0 1.43.34 2.78.95 3.98l3.01-2.08z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M9 18c2.43 0 4.47-.8 5.96-2.16l-2.82-2.2c-.83.56-1.9.9-3.14.9-2.2 0-4.04-1.53-4.68-3.6L.62 13.3C1.87 16.47 5.09 18 9 18z"
+                  fill="#EA4335"
+                />
               </svg>
               <span>Continuar con Google</span>
             </button>
