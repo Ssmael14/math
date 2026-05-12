@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "prisma migrate deploy && tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -19,16 +20,14 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.2.6",
     "@prisma/client": "^6.1.0",
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.47.10",
     "bcryptjs": "^2.4.3",
     "better-auth": "^1.6.10",
     "lucide-react": "^1.11.0",
     "next": "^15.5.15",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "resend": "^6.12.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
