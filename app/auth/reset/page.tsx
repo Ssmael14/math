@@ -1,12 +1,25 @@
-// app/auth/reset/page.tsx — definir nueva contraseña tras link de recovery
+// app/auth/reset/page.tsx — definir nueva contraseña tras click en el link
+// del email. Better Auth manda al user a /auth/reset?token=<firmado>.
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
+import { resetPassword } from "@/lib/auth-client";
 
 export default function ResetPage() {
+  // useSearchParams requiere Suspense en App Router.
+  return (
+    <Suspense>
+      <ResetForm />
+    </Suspense>
+  );
+}
+
+function ResetForm() {
   const router = useRouter();
+  const sp = useSearchParams();
+  const token = sp.get("token");
   const [pass, setPass] = useState("");
   const [pass2, setPass2] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -14,34 +27,25 @@ export default function ResetPage() {
   const [done, setDone] = useState(false);
 
   async function save() {
+    if (!token) {
+      return setErr("Link inválido o expirado. Pedí uno nuevo desde 'Olvidé mi contraseña'.");
+    }
     if (pass.length < 8) return setErr("Mínimo 8 caracteres");
     if (pass !== pass2) return setErr("Las contraseñas no coinciden");
+
     setLoading(true);
     setErr(null);
-    try {
-      // TODO: Implementar cambio de contraseña con BetterAuth
-      // Por ahora, se puede usar un Server Action o una ruta API personalizada
-      const response = await fetch("/api/auth/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newPassword: pass }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Error al cambiar contraseña");
-      }
-
-      setDone(true);
-      setTimeout(() => {
-        router.push("/home");
-        router.refresh();
-      }, 1500);
-    } catch (error: any) {
-      setErr(error.message || "Error al cambiar contraseña");
-    } finally {
-      setLoading(false);
+    const { error } = await resetPassword({ newPassword: pass, token });
+    setLoading(false);
+    if (error) {
+      setErr(error.message ?? "No pudimos cambiar la contraseña.");
+      return;
     }
+    setDone(true);
+    setTimeout(() => {
+      router.push("/auth/login");
+      router.refresh();
+    }, 1500);
   }
 
   return (
@@ -60,7 +64,7 @@ export default function ResetPage() {
             {done ? "¡Lista!" : "Nueva contraseña"}
           </h1>
           <p className="text-ink-soft text-sm font-bold mt-1">
-            {done ? "Te llevamos a casa..." : "Elegí algo que te acuerdes 🔐"}
+            {done ? "Ya podés volver a entrar..." : "Elegí algo que te acuerdes 🔐"}
           </p>
         </div>
 
@@ -71,6 +75,7 @@ export default function ResetPage() {
           >
             <input
               type="password"
+              autoComplete="new-password"
               placeholder="Nueva contraseña"
               value={pass}
               onChange={(e) => setPass(e.target.value)}
@@ -78,15 +83,14 @@ export default function ResetPage() {
             />
             <input
               type="password"
+              autoComplete="new-password"
               placeholder="Repetir contraseña"
               value={pass2}
               onChange={(e) => setPass2(e.target.value)}
               className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"
             />
             {err && (
-              <div className="text-pink text-xs font-bold text-center">
-                {err}
-              </div>
+              <div className="text-pink text-xs font-bold text-center">{err}</div>
             )}
             <button
               onClick={save}

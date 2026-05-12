@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Lumi } from "@/components/Lumi";
+import { requestPasswordReset } from "@/lib/auth-client";
 
 export default function ForgotPage() {
   const [email, setEmail] = useState("");
@@ -12,28 +13,18 @@ export default function ForgotPage() {
   async function handleReset() {
     setLoading(true);
     setError(null);
-    try {
-      // BetterAuth usa un endpoint para solicitar reset de contraseña
-      const response = await fetch("/api/auth/forget-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset`,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Error al solicitar reset");
-      }
-
-      setSent(true);
-    } catch (err: any) {
-      setError(err.message || "Error al solicitar reset de contraseña");
-    } finally {
-      setLoading(false);
+    // Better Auth firma un token, lo agrega a la URL como ?token=... y
+    // dispara sendResetPassword() en auth-config.ts (Resend).
+    const { error } = await requestPasswordReset({
+      email,
+      redirectTo: "/auth/reset",
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message ?? "No pudimos enviar el mail. Probá de nuevo.");
+      return;
     }
+    setSent(true);
   }
 
   return (
@@ -55,8 +46,8 @@ export default function ForgotPage() {
           </h1>
           <p className="text-ink-soft text-sm font-bold mt-1">
             {sent
-              ? "Revisá tu email para el link mágico ✨"
-              : "Te mandamos un link mágico al email"}
+              ? "Revisá tu email para el link ✨"
+              : "Te mandamos un link al email para elegir una nueva"}
           </p>
         </div>
 
@@ -68,6 +59,7 @@ export default function ForgotPage() {
             <input
               placeholder="tu@email.com"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-pink outline-none transition"
@@ -84,11 +76,7 @@ export default function ForgotPage() {
             className="btn-chunky mt-4 w-full py-4 rounded-2xl bg-pink text-white font-fredoka text-lg font-bold disabled:opacity-50"
             style={{ boxShadow: "0 5px 0 #D14A6A" }}
           >
-            {loading
-              ? "Enviando..."
-              : sent
-                ? "Reenviar email"
-                : "Enviar link mágico"}
+            {loading ? "Enviando..." : sent ? "Reenviar email" : "Enviar link"}
           </button>
         </div>
       </main>
