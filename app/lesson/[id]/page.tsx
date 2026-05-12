@@ -25,7 +25,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         kind: e.kind,
         prompt: e.prompt,
         payload: (e.payload ?? {}) as Record<string, unknown>,
-        solution: (e.solution ?? {}) as { answer?: number; digit?: number; order?: number[]; pairs?: number[][] },
+        solution: (e.solution ?? {}) as { answer?: number | string; sequence?: (number | string)[]; pairs?: number[][] },
         hints: Array.isArray(e.hints) ? (e.hints as string[]) : null,
         explanation: e.explanation,
       }))}

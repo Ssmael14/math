@@ -1,40 +1,28 @@
-// Types compartidos por ExerciseRenderer / OptionsGrid / HintPanel.
-// Vive en components/exercises porque es el contrato que une presentación
-// con LessonRunner.
+// Types compartidos por el runner y los inputs.
+// Los kinds son INTERACCIONES, no materias — el mismo MULTIPLE_CHOICE sirve
+// para math, reading, science, etc. El `payload.visual` (cuando aplica)
+// elige qué dibujar en el área visual.
 
 export type ExerciseKind =
-  | "DRAG"
-  | "SUBTRACT"
-  | "COUNT"
+  | "MULTIPLE_CHOICE"
+  | "DRAG_DROP"
+  | "SORT"
   | "MATCH"
-  | "FILL"
-  | "TRACE"
-  | "ORDER"
-  | "SPEED"
-  | "COMPARE"
-  | "PARITY"
-  | "PATTERN"
-  | "NEIGHBOR";
+  | "INPUT"
+  | "DRAW"
+  | "AUDIO"
+  | "SPEAK";
 
 export type ExercisePayload = {
-  // COUNT:    { item: string, count: number }
-  // DRAG:     { a: number, b: number, item: string }
-  // SUBTRACT: { total: number, removed: number, item: string }
-  // FILL:     { a: number, result: number }
-  // TRACE:    { digit: number }
-  // COMPARE:  { left: number, right: number }
-  // PARITY:   { value: number }
-  // PATTERN:  { visible: number[], step: number }
-  // NEIGHBOR: { value: number, direction: "before" | "after" }
+  /** Hint al visualizador de qué dibujar (count, subtract, compare, …).
+   *  Cuando no está, el visual usa un fallback genérico (texto del prompt). */
+  visual?: string;
   [k: string]: unknown;
 };
 
 export type ExerciseSolution = {
-  /** number para los kinds numéricos. string para COMPARE ("<"/">"/"=") y
-   *  PARITY ("par"/"impar"). */
   answer?: number | string;
-  digit?: number;
-  order?: number[];
+  sequence?: (number | string)[];
   pairs?: number[][];
 };
 

@@ -1,6 +1,10 @@
 // lib/queries.ts
 // Queries de alto nivel — envolturas tipadas sobre Prisma.
 // Las pantallas usan esto en lugar de prisma directamente.
+//
+// Nota Fase 1: Subject/LearningPath ya existen en el schema pero el flow de
+// /home y /units sigue mostrando el primer LearningPath disponible. Fase 3
+// agregará Enrollments y un selector real de subject/path.
 
 import { prisma } from "./prisma";
 import { getCurrentUser, getActiveChildId } from "./auth";
@@ -19,23 +23,33 @@ export async function getActiveChild() {
   return user.children[0];
 }
 
-/** Todas las unidades con progreso calculado para un child. */
-export async function getUnitsWithProgress(childId: string) {
+/**
+ * Devuelve el primer LearningPath activo (por orden). Mientras no haya
+ * Enrollments cableados, todas las pantallas trabajan contra este.
+ */
+export async function getDefaultLearningPath() {
+  return prisma.learningPath.findFirst({
+    orderBy: { order: "asc" },
+    include: { subject: true },
+  });
+}
+
+/** Todas las unidades de un learning path, con progreso del child. */
+export async function getUnitsWithProgress(childId: string, learningPathId: string) {
   const units = await prisma.unit.findMany({
+    where: { learningPathId },
     orderBy: { order: "asc" },
     include: {
       lessons: {
         orderBy: { order: "asc" },
-        include: {
-          progress: { where: { childId } },
-        },
+        include: { progresses: { where: { childId } } },
       },
     },
   });
 
   return units.map((u) => {
     const total = u.lessons.length;
-    const done = u.lessons.filter((l) => l.progress[0]?.completed).length;
+    const done = u.lessons.filter((l) => l.progresses[0]?.completed).length;
     return {
       id: u.id,
       slug: u.slug,
@@ -43,7 +57,6 @@ export async function getUnitsWithProgress(childId: string) {
       description: u.description,
       color: u.color,
       icon: u.icon,
-      isPremium: u.isPremium,
       progress: total ? done / total : 0,
       lessonsTotal: total,
       lessonsDone: done,
@@ -51,14 +64,18 @@ export async function getUnitsWithProgress(childId: string) {
   });
 }
 
-/** Lecciones de una unidad, con flag de estado (done/current/locked). */
-export async function getLessonsWithState(unitSlug: string, childId: string) {
+/** Lecciones de una unidad (unique por [learningPathId, slug]). */
+export async function getLessonsWithState(
+  learningPathId: string,
+  unitSlug: string,
+  childId: string,
+) {
   const unit = await prisma.unit.findUnique({
-    where: { slug: unitSlug },
+    where: { learningPathId_slug: { learningPathId, slug: unitSlug } },
     include: {
       lessons: {
         orderBy: { order: "asc" },
-        include: { progress: { where: { childId } } },
+        include: { progresses: { where: { childId } } },
       },
     },
   });
@@ -66,7 +83,7 @@ export async function getLessonsWithState(unitSlug: string, childId: string) {
 
   let hitCurrent = false;
   const lessons = unit.lessons.map((l) => {
-    const done = l.progress[0]?.completed ?? false;
+    const done = l.progresses[0]?.completed ?? false;
     let status: "done" | "current" | "locked" = "locked";
     if (done) status = "done";
     else if (!hitCurrent) { status = "current"; hitCurrent = true; }
@@ -76,7 +93,7 @@ export async function getLessonsWithState(unitSlug: string, childId: string) {
       title: l.title,
       order: l.order,
       xpReward: l.xpReward,
-      stars: l.progress[0]?.stars ?? 0,
+      stars: l.progresses[0]?.stars ?? 0,
       status,
     };
   });
@@ -184,10 +201,7 @@ export async function getMasteryStats(childId: string) {
   return { mastered, learning, dueToday };
 }
 
-/**
- * Próximos N ejercicios cuya review está vencida (nextReviewAt <= ahora).
- * Pensado para alimentar un futuro modo "Repaso del día".
- */
+/** Próximos N ejercicios cuya review está vencida (nextReviewAt <= ahora). */
 export async function getReviewQueue(childId: string, limit = 10) {
   const now = new Date();
   return prisma.mastery.findMany({

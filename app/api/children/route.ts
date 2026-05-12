@@ -26,11 +26,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "name & age required" }, { status: 400 });
   }
 
+  // El cliente todavía manda `age` (número entero de años). Lo convertimos a
+  // `birthDate` aproximado (1 de enero del año correspondiente). Fase 3 va a
+  // exponer un date-picker real.
+  const ageNum = Math.max(0, Math.min(120, Number(age)));
+  const birthYear = new Date().getUTCFullYear() - ageNum;
+  const birthDate = new Date(Date.UTC(birthYear, 0, 1));
+
   const child = await prisma.child.create({
     data: {
       parentId: user.id,
       name,
-      age: Number(age),
+      birthDate,
       avatar: avatar ?? "🦁",
     },
   });

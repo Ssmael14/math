@@ -17,7 +17,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json();
   const data: Record<string, unknown> = {};
   if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
-  if (typeof body.age === "number") data.age = body.age;
+  if (typeof body.age === "number") {
+    // Cliente legacy manda age como entero — convertimos a birthDate aprox.
+    const ageNum = Math.max(0, Math.min(120, body.age));
+    data.birthDate = new Date(Date.UTC(new Date().getUTCFullYear() - ageNum, 0, 1));
+  }
   if (typeof body.avatar === "string") data.avatar = body.avatar;
 
   const child = await prisma.child.update({ where: { id }, data });

@@ -1,25 +1,23 @@
 // lib/evaluate.ts
-// Función pura que dado un ejercicio + la respuesta del niño dice si está
-// bien. Cada kind tiene su propio formato de respuesta:
+// Función pura que evalúa la respuesta del niño contra la solution del
+// ejercicio. Los kinds representan INTERACCIONES (no materias), así que el
+// evaluator es agnóstico al dominio: el mismo MULTIPLE_CHOICE sirve para
+// "¿cuántas estrellas?" (math) o "¿qué letra sigue?" (reading).
 //
-//   COUNT/DRAG/SUBTRACT/FILL/PATTERN/NEIGHBOR → number  (la opción elegida)
-//   COMPARE  → "<" | ">" | "="
-//   PARITY   → "par" | "impar"
-//   ORDER    → number[]
-//   MATCH    → [number, number][]
-//   TRACE    → boolean (matchesDigit lo evalúa antes)
-//
-// Aislar acá la lógica permite testear sin React y sin DB, y deja al
-// ExerciseRunner agnóstico del tipo de ejercicio.
+// Formato de `solution.answer` por kind:
+//   MULTIPLE_CHOICE → number | string (la opción correcta)
+//   INPUT           → number | string (lo tipeado, comparado strict)
+//   DRAG_DROP       → number (count de items arrastrados al target)
+//   SORT            → (number | string)[] (la secuencia esperada)
+//   MATCH           → [number, number][] (pares de índices)
+//   DRAW            → boolean (lo evalúa el recognizer del cliente)
+//   AUDIO / SPEAK   → number | string (la opción esperada)
 
 import type { ExerciseKind } from "@prisma/client";
 
 export type ExerciseSolution = {
-  /** Para los kinds numéricos y los que tienen una respuesta string corta
-   *  (COMPARE: "<"/">"/"=", PARITY: "par"/"impar"). */
   answer?: number | string;
-  digit?: number;
-  order?: number[];
+  sequence?: (number | string)[];
   pairs?: number[][];
 };
 
@@ -29,45 +27,41 @@ export function evaluateAttempt(
   response: unknown,
 ): boolean {
   switch (kind) {
-    case "COUNT":
-    case "DRAG":
-    case "SUBTRACT":
-    case "FILL":
-    case "PATTERN":
-    case "NEIGHBOR":
+    case "MULTIPLE_CHOICE":
+    case "INPUT":
+    case "AUDIO":
+    case "SPEAK":
+      // Comparación strict: number con number, string con string.
+      return (
+        (typeof response === "number" || typeof response === "string") &&
+        response === solution.answer
+      );
+
+    case "DRAG_DROP":
+      // El componente DragInput devuelve cuántos items hay en el canasto.
       return typeof response === "number" && response === solution.answer;
 
-    case "COMPARE":
-      return (response === "<" || response === ">" || response === "=")
-        && response === solution.answer;
-
-    case "PARITY":
-      return (response === "par" || response === "impar")
-        && response === solution.answer;
-
-    case "TRACE":
-      // El componente de trazo evalúa con matchesDigit y manda el bool.
+    case "DRAW":
+      // El recognizer de trazos evalúa con `matchesDigit` del cliente y manda
+      // un boolean. Acá sólo confirmamos que vino true.
       return response === true;
 
-    case "ORDER": {
-      if (!Array.isArray(response) || !Array.isArray(solution.order)) return false;
-      if (response.length !== solution.order.length) return false;
-      return response.every((v, i) => v === solution.order![i]);
+    case "SORT": {
+      if (!Array.isArray(response) || !Array.isArray(solution.sequence)) return false;
+      if (response.length !== solution.sequence.length) return false;
+      return response.every((v, i) => v === solution.sequence![i]);
     }
 
     case "MATCH": {
       if (!Array.isArray(response) || !Array.isArray(solution.pairs)) return false;
       if (response.length !== solution.pairs.length) return false;
-      // Comparamos como sets de strings para no depender del orden.
+      // Comparamos como sets para no depender del orden de los pares.
       const got = new Set(response.map((p: number[]) => `${p[0]}-${p[1]}`));
       const want = new Set(solution.pairs.map((p) => `${p[0]}-${p[1]}`));
       if (got.size !== want.size) return false;
       for (const k of got) if (!want.has(k)) return false;
       return true;
     }
-
-    case "SPEED":
-      return false; // no implementado
 
     default:
       return false;

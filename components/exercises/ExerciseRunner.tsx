@@ -96,15 +96,12 @@ export function ExerciseRunner({
   }, [state]);
 
   // Texto/valor de "respuesta" para el HintPanel.
-  const solutionAnswer = ex.solution.answer ?? ex.solution.digit ?? null;
+  const solutionAnswer = ex.solution.answer ?? null;
 
-  // Opciones aleatorias sólo para los kinds que las usan (COUNT/SUBTRACT).
-  // Si el solution.answer no es numérico (COMPARE/PARITY) usamos 0 — esos
-  // kinds no muestran OptionsGrid igual.
-  const numericAnswer =
-    typeof ex.solution.answer === "number" ? ex.solution.answer
-    : typeof ex.solution.digit === "number" ? ex.solution.digit
-    : 0;
+  // Opciones aleatorias sólo para los kinds que las usan (MULTIPLE_CHOICE
+  // con visuales numéricos). Si la answer no es numérica (compare/parity)
+  // usamos 0 — esos visuales no muestran OptionsGrid igual.
+  const numericAnswer = typeof ex.solution.answer === "number" ? ex.solution.answer : 0;
   const options = useMemo(() => genOptions(numericAnswer), [ex.id, numericAnswer]);
 
   function submit(value: unknown) {
@@ -116,7 +113,8 @@ export function ExerciseRunner({
   // matchesDigit y luego mandamos `true` o `false` a evaluate.
   // Guardamos las estrellas (0-3) en el answer para mostrar feedback granular.
   function onTraceStroke(stroke: Point[]) {
-    const digit = ex.solution.digit ?? 0;
+    // Para DRAW (ex-TRACE) el dígito objetivo viaja en el payload.
+    const digit = typeof ex.payload.digit === "number" ? (ex.payload.digit as number) : 0;
     const { ok, stars } = matchesDigit(stroke, digit);
     const correct = evaluateAttempt(ex.kind, ex.solution, ok);
     setAnswer({ value: ok, correct, stars });
@@ -289,13 +287,18 @@ function KindBody({
   const state: "idle" | "correct" | "wrong" =
     answer === null ? "idle" : answer.correct ? "correct" : "wrong";
   const numericPicked = typeof answer?.value === "number" ? (answer.value as number) : null;
+  const visual = typeof ex.payload.visual === "string" ? ex.payload.visual : null;
 
-  if (ex.kind === "TRACE") {
+  // El kind es la INTERACCIÓN (cómo responde el niño). El visual previo lo
+  // decide payload.visual y lo dibuja <ExerciseVisual>.
+  if (ex.kind === "DRAW") {
+    // Para DRAW el "visual" y el "input" son el mismo canvas.
+    const digit = typeof ex.payload.digit === "number" ? (ex.payload.digit as number) : 0;
     return (
       <div className="w-full flex justify-center mb-4 md:mb-8">
         <TraceCanvas
           key={resetSignal}
-          digit={ex.solution.digit ?? 0}
+          digit={digit}
           onStroke={onTraceStroke}
           disabled={disabled}
           showSolution={showSolution}
@@ -322,7 +325,7 @@ function KindBody({
     );
   }
 
-  if (ex.kind === "ORDER") {
+  if (ex.kind === "SORT") {
     const payload = ex.payload as { numbers?: number[] };
     const numbers = Array.isArray(payload.numbers) ? payload.numbers : [];
     return (
@@ -337,9 +340,9 @@ function KindBody({
     );
   }
 
-  if (ex.kind === "DRAG") {
-    // Drag real con canasto. El ExerciseVisual estático ya no se muestra:
-    // los ítems en sí mismos son el visual.
+  if (ex.kind === "DRAG_DROP") {
+    // Drag real con canasto. El ExerciseVisual no se monta — los items son
+    // el visual.
     const payload = ex.payload as { a?: number; b?: number; item?: string };
     return (
       <div className="w-full flex justify-center mb-4 md:mb-6">
@@ -355,45 +358,9 @@ function KindBody({
     );
   }
 
-  if (ex.kind === "COMPARE") {
-    return (
-      <>
-        <div className="w-full flex justify-center mb-6 md:mb-8">
-          <ExerciseVisual ex={ex}/>
-        </div>
-        <ChoiceButtonsInput
-          choices={[
-            { value: "<", label: "<", sub: "menor" },
-            { value: "=", label: "=", sub: "igual" },
-            { value: ">", label: ">", sub: "mayor" },
-          ]}
-          disabled={disabled}
-          onPick={onPickString}
-        />
-      </>
-    );
-  }
-
-  if (ex.kind === "PARITY") {
-    return (
-      <>
-        <div className="w-full flex justify-center mb-6 md:mb-8">
-          <ExerciseVisual ex={ex}/>
-        </div>
-        <ChoiceButtonsInput
-          choices={[
-            { value: "par", label: "Par", sub: "se reparte de a 2" },
-            { value: "impar", label: "Impar", sub: "queda uno solo" },
-          ]}
-          disabled={disabled}
-          onPick={onPickString}
-        />
-      </>
-    );
-  }
-
-  if (ex.kind === "PATTERN" || ex.kind === "NEIGHBOR") {
-    // Ambos se resuelven tipeando un número en el keypad.
+  if (ex.kind === "INPUT") {
+    // Tipear la respuesta con un teclado numérico. Para textos largos
+    // (cuando lleguemos a Reading) usaríamos un input de texto distinto.
     return (
       <>
         <div className="w-full flex justify-center mb-6 md:mb-8">
@@ -411,35 +378,60 @@ function KindBody({
     );
   }
 
-  if (ex.kind === "FILL") {
-    // FILL pasa de "elegir entre 4 opciones cercanas" (predecible) a tipear
-    // el número en un teclado. Se evita que el niño "adivine" tomando el
-    // valor del medio.
+  if (ex.kind === "MULTIPLE_CHOICE") {
+    // Los visuales tipo "compare"/"parity" usan ChoiceButtons (string).
+    // El resto usa OptionsGrid (números). Lo decide payload.visual.
+    if (visual === "compare") {
+      return (
+        <>
+          <div className="w-full flex justify-center mb-6 md:mb-8">
+            <ExerciseVisual ex={ex}/>
+          </div>
+          <ChoiceButtonsInput
+            choices={[
+              { value: "<", label: "<", sub: "menor" },
+              { value: "=", label: "=", sub: "igual" },
+              { value: ">", label: ">", sub: "mayor" },
+            ]}
+            disabled={disabled}
+            onPick={onPickString}
+          />
+        </>
+      );
+    }
+    if (visual === "parity") {
+      return (
+        <>
+          <div className="w-full flex justify-center mb-6 md:mb-8">
+            <ExerciseVisual ex={ex}/>
+          </div>
+          <ChoiceButtonsInput
+            choices={[
+              { value: "par", label: "Par", sub: "se reparte de a 2" },
+              { value: "impar", label: "Impar", sub: "queda uno solo" },
+            ]}
+            disabled={disabled}
+            onPick={onPickString}
+          />
+        </>
+      );
+    }
+    // Default: opciones numéricas (count, subtract, etc.)
     return (
       <>
-        <div className="w-full flex justify-center mb-6 md:mb-8">
+        <div className="w-full flex justify-center mb-8 md:mb-12">
           <ExerciseVisual ex={ex}/>
         </div>
-        <div className="w-full flex justify-center">
-          <NumericKeypadInput
-            key={resetSignal}
-            max={20}
-            disabled={disabled}
-            onSubmit={onPickNumeric}
-          />
-        </div>
+        <OptionsGrid options={options} picked={numericPicked} state={state} onPick={onPickNumeric}/>
       </>
     );
   }
 
-  // Numeric con opciones múltiple-choice: COUNT/SUBTRACT
+  // AUDIO / SPEAK aún no implementados — placeholder.
   return (
-    <>
-      <div className="w-full flex justify-center mb-8 md:mb-12">
-        <ExerciseVisual ex={ex}/>
-      </div>
-      <OptionsGrid options={options} picked={numericPicked} state={state} onPick={onPickNumeric}/>
-    </>
+    <div className="text-center text-ink-soft italic py-8">
+      Ejercicio en construcción ({ex.kind})
+    </div>
   );
 }
 

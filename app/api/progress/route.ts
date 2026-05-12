@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   const stars = computeStars(safeCorrect, totalExercises);
 
   const now = new Date();
-  const nextStreak = computeNextStreak(child.streak, child.lastPlay, now);
+  const nextStreak = computeNextStreak(child.streak, child.lastPlayAt, now);
   const weekStart = mondayOfWeek(now);
 
   // Si ya existía progreso, no bajamos estrellas ni bestScore por un repaso peor.
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
       where: { id: childId },
       data: {
         xp: { increment: lesson.xpReward },
-        lastPlay: now,
+        lastPlayAt: now,
         streak: nextStreak,
       },
     }),
