@@ -4,10 +4,10 @@
 // Si el intento es el "final" del ejercicio (final: true), actualizamos
 // también la Mastery (SRS simplificado en lib/srs.ts).
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
-import { applyReview, gradeQuality, INITIAL_SRS, nextReviewDate } from "@/lib/srs";
+import { applyReview, gradeQuality, INITIAL_SRS, nextReviewDate } from "@/lib/learning/srs";
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();

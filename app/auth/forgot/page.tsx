@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Lumi } from "@/components/Lumi";
-import { requestPasswordReset } from "@/lib/auth-client";
+import { requestPasswordReset } from "@/lib/auth/client";
 
 export default function ForgotPage() {
   const [email, setEmail] = useState("");

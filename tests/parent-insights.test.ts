@@ -5,7 +5,7 @@ import {
   avgExerciseTimeMs,
   type AttemptRow,
   type ExerciseLite,
-} from "@/lib/parent-insights";
+} from "@/lib/analytics/parent-insights";
 
 const ex: ExerciseLite[] = [
   { id: "a", prompt: "Sumá 2+3", kind: "DRAG" },

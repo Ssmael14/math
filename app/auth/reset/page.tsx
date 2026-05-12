@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
-import { resetPassword } from "@/lib/auth-client";
+import { resetPassword } from "@/lib/auth/client";
 
 export default function ResetPage() {
   // useSearchParams requiere Suspense en App Router.

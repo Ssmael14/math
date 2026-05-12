@@ -8,7 +8,7 @@
 //  - Shop + Achievements compartidos cross-subject.
 
 import { PrismaClient, ExerciseKind, EducationLevel, Prisma } from "@prisma/client";
-import { generateBatch, type GeneratedExercise, type BatchMix } from "../lib/generators";
+import { generateBatch, type GeneratedExercise, type BatchMix } from "../lib/learning/generators";
 
 const prisma = new PrismaClient();
 

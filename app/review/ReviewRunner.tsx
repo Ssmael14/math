@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Confetti } from "@/components/Confetti";
-import { playTap, playVictory } from "@/lib/audio";
+import { playTap, playVictory } from "@/lib/gamification/audio";
 import { Lumi } from "@/components/Lumi";
 import { ExerciseRunner } from "@/components/exercises/ExerciseRunner";
 import type { ExerciseDTO } from "@/components/exercises/types";

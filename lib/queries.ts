@@ -7,8 +7,8 @@
 // agregará Enrollments y un selector real de subject/path.
 
 import { prisma } from "./prisma";
-import { getCurrentUser, getActiveChildId, getActivePathSlug } from "./auth";
-import { MASTERY_THRESHOLD } from "./srs";
+import { getCurrentUser, getActiveChildId, getActivePathSlug } from "./auth/server";
+import { MASTERY_THRESHOLD } from "./learning/srs";
 
 // =========================================================================
 // SUBJECTS / LEARNING PATHS / ENROLLMENTS

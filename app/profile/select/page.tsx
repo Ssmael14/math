@@ -1,7 +1,7 @@
 // app/profile/select/page.tsx — selector de niño
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/server";
 import { SelectClient } from "./SelectClient";
 
 export default async function SelectChildPage() {

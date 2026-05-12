@@ -3,7 +3,7 @@
 // POST /api/children — crear un nuevo perfil de niño y setearlo como activo
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getCurrentUser, ACTIVE_CHILD_COOKIE } from "@/lib/auth";
+import { getCurrentUser, ACTIVE_CHILD_COOKIE } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {

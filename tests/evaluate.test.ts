@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { evaluateAttempt } from "@/lib/evaluate";
+import { evaluateAttempt } from "@/lib/learning/evaluate";
 
 describe("evaluateAttempt · MULTIPLE_CHOICE / INPUT / AUDIO / SPEAK", () => {
   it("acepta number === answer", () => {

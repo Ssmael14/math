@@ -24,11 +24,11 @@ import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadI
 import { DragInput } from "@/components/exercises/inputs/DragInput";
 import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
 import type { ExerciseDTO } from "@/components/exercises/types";
-import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/hints";
+import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
 import { postOrQueue } from "@/lib/offline-queue";
-import { matchesDigit, type Point } from "@/lib/gesture";
-import { evaluateAttempt } from "@/lib/evaluate";
-import { playCorrect, playWrong, playTap } from "@/lib/audio";
+import { matchesDigit, type Point } from "@/lib/learning/gesture";
+import { evaluateAttempt } from "@/lib/learning/evaluate";
+import { playCorrect, playWrong, playTap } from "@/lib/gamification/audio";
 
 export type RunnerLabels = {
   step: string;

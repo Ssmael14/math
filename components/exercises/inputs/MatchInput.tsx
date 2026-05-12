@@ -14,7 +14,7 @@ import {
   tapOption,
   isComplete,
   toPairsArray,
-} from "@/lib/match-state";
+} from "@/lib/learning/match-state";
 
 type Group = { item: string; count: number };
 

@@ -8,7 +8,7 @@
 // runner, este test va a marcarlo (porque la combinación quedará "unknown").
 
 import { describe, it, expect } from "vitest";
-import { evaluateAttempt, type ExerciseSolution } from "@/lib/evaluate";
+import { evaluateAttempt, type ExerciseSolution } from "@/lib/learning/evaluate";
 import type { ExerciseKind } from "@prisma/client";
 
 // Fixtures: una entrada por combinación (kind, visual) usada en el seed

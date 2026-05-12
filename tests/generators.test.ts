@@ -9,7 +9,7 @@ import {
   generatePattern,
   generateNeighbor,
   generateBatch,
-} from "@/lib/generators";
+} from "@/lib/learning/generators";
 
 describe("makeRng", () => {
   it("es determinístico para el mismo seed", () => {

@@ -9,7 +9,7 @@
 // está oculto), saltamos ese paso silenciosamente para no trabar al niño.
 
 import { useEffect, useState } from "react";
-import { playTap } from "@/lib/audio";
+import { playTap } from "@/lib/gamification/audio";
 
 const STORAGE_KEY = "lm_tutorial_done_v1";
 const PADDING = 8;

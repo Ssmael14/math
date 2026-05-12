@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { INITIAL_ORDER, pick, unpick, toggle, isComplete } from "@/lib/order-state";
+import { INITIAL_ORDER, pick, unpick, toggle, isComplete } from "@/lib/learning/order-state";
 
 describe("OrderState", () => {
   it("pick agrega al final preservando orden", () => {

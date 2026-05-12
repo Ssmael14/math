@@ -4,7 +4,7 @@ import {
   shouldAdvanceAfterWrong,
   pickHint,
   MAX_WRONG_BEFORE_SOLUTION,
-} from "@/lib/hints";
+} from "@/lib/learning/hints";
 
 describe("nextHintLevel", () => {
   it("0 errores no muestra nada", () => {

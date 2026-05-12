@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { countCols, countSizeCls } from "@/lib/visual-layout";
+import { countCols, countSizeCls } from "@/lib/learning/visual-layout";
 
 describe("countCols", () => {
   it("counts chicos van todos en una fila", () => {

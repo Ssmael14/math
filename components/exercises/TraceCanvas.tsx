@@ -8,7 +8,7 @@
 // del template para que vea cómo se traza el dígito correcto.
 
 import { useEffect, useRef, useState } from "react";
-import { DIGIT_TEMPLATES, type Point, type Stroke } from "@/lib/gesture";
+import { DIGIT_TEMPLATES, type Point, type Stroke } from "@/lib/learning/gesture";
 
 export function TraceCanvas({
   digit,

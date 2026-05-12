@@ -1,7 +1,7 @@
 // app/api/children/[id]/route.ts — editar/borrar perfil
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getCurrentUser, ACTIVE_CHILD_COOKIE, getActiveChildId } from "@/lib/auth";
+import { getCurrentUser, ACTIVE_CHILD_COOKIE, getActiveChildId } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 
 async function ownChild(userId: string, id: string) {

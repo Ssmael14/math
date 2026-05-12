@@ -6,7 +6,7 @@
 // visuales totalmente distintos: uno cuenta estrellas, otro compara números,
 // otro pregunta paridad. El motor sigue siendo el mismo.
 import type { ExerciseDTO } from "./types";
-import { countCols, countSizeCls } from "@/lib/visual-layout";
+import { countCols, countSizeCls } from "@/lib/learning/visual-layout";
 
 const ITEM_CLS = "text-5xl md:text-7xl";
 

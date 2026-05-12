@@ -6,7 +6,7 @@ import {
   scoreToStars,
   DIGIT_TEMPLATES,
   type Point,
-} from "@/lib/gesture";
+} from "@/lib/learning/gesture";
 
 // Genera un trazo de N puntos a lo largo de una línea entre dos puntos.
 function line(a: Point, b: Point, n = 30): Point[] {

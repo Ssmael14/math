@@ -2,10 +2,10 @@
 // POST /api/progress — el niño completó una lección.
 // El servidor calcula estrellas, XP y streak — el cliente NO los manda.
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
-import { computeStars, mondayOfWeek } from "@/lib/scoring";
-import { computeNextStreak } from "@/lib/streak";
+import { computeStars, mondayOfWeek } from "@/lib/gamification/scoring";
+import { computeNextStreak } from "@/lib/gamification/streak";
 import { rateLimit } from "@/lib/rate-limit";
 
 async function checkAchievements(childId: string) {

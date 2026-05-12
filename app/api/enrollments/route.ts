@@ -11,7 +11,7 @@
 //     402 (Payment Required) — Fase 5 va a manejar el upgrade real.
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getCurrentUser, ACTIVE_PATH_COOKIE } from "@/lib/auth";
+import { getCurrentUser, ACTIVE_PATH_COOKIE } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 

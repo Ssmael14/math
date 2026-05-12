@@ -8,8 +8,8 @@
 // =============================================================================
 
 import { cookies, headers } from "next/headers";
-import { auth } from "./auth-config";
-import { prisma } from "./prisma";
+import { auth } from "./config";
+import { prisma } from "../prisma";
 import type { User as AppUser, Child } from "@prisma/client";
 
 export type AuthUser = AppUser & { children: Child[] };

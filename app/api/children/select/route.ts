@@ -1,7 +1,7 @@
 // app/api/children/select/route.ts — setea el child activo en cookie
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getCurrentUser, ACTIVE_CHILD_COOKIE } from "@/lib/auth";
+import { getCurrentUser, ACTIVE_CHILD_COOKIE } from "@/lib/auth/server";
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();

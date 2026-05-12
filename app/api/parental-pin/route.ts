@@ -4,7 +4,7 @@
 // DELETE: cerrar sesión parental
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 // Next 15 no permite re-exportar constantes desde un route.ts. La canonical

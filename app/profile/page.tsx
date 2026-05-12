@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getActiveChild, getMasteryStats } from "@/lib/queries";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { ageFromBirthDate } from "@/lib/age";
 import { TopNav } from "@/components/TopNav";

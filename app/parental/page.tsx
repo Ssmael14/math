@@ -4,13 +4,13 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getActiveChild, getMasteryStats } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/server";
 import { PARENT_SESSION_COOKIE } from "./session";
 import {
   findWeakSpots,
   activeDays,
   avgExerciseTimeMs,
-} from "@/lib/parent-insights";
+} from "@/lib/analytics/parent-insights";
 
 function startOfDay(d: Date) {
   const x = new Date(d); x.setHours(0, 0, 0, 0); return x;

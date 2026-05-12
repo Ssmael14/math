@@ -2,7 +2,7 @@
 // Panel que aparece bajo el visual cuando el niño se equivocó.
 // La política de qué mostrar está en lib/hints.ts — este componente sólo
 // renderiza el resultado.
-import type { HintLevel } from "@/lib/hints";
+import type { HintLevel } from "@/lib/learning/hints";
 
 export function HintPanel({
   level,

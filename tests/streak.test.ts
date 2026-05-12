@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeNextStreak } from "@/lib/streak";
+import { computeNextStreak } from "@/lib/gamification/streak";
 
 const day = (y: number, m: number, d: number) => new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
 

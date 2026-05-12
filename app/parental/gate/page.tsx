@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/server";
 import { PinForm } from "./PinForm";
 import { PARENT_SESSION_COOKIE } from "../session";
 

@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import {
   isSoundsEnabled,
@@ -10,7 +10,7 @@ import {
   setSoundsEnabled,
   setHapticsEnabled,
   playCorrect,
-} from "@/lib/audio";
+} from "@/lib/gamification/audio";
 
 export default function SettingsPage() {
   const router = useRouter();

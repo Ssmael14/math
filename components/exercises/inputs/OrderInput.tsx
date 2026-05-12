@@ -7,7 +7,7 @@
 // Cuando todos están colocados, dispara onComplete con el array.
 
 import { useState } from "react";
-import { INITIAL_ORDER, toggle, isComplete } from "@/lib/order-state";
+import { INITIAL_ORDER, toggle, isComplete } from "@/lib/learning/order-state";
 
 export function OrderInput({
   numbers,

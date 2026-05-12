@@ -6,7 +6,7 @@ import {
   isMastered,
   MASTERY_THRESHOLD,
   nextReviewDate,
-} from "@/lib/srs";
+} from "@/lib/learning/srs";
 
 describe("gradeQuality", () => {
   it("correcto sin errores → 5", () => {
