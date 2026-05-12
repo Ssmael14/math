@@ -14,6 +14,7 @@ import type { User as AppUser, Child } from "@prisma/client";
 
 export type AuthUser = AppUser & { children: Child[] };
 export const ACTIVE_CHILD_COOKIE = "lm_child";
+export const ACTIVE_PATH_COOKIE = "lm_path";
 
 /** Devuelve la sesión actual usando la API oficial de Better Auth. */
 export async function getSession() {
@@ -47,4 +48,10 @@ export async function requireUser(): Promise<AuthUser> {
 export async function getActiveChildId(): Promise<string | null> {
   const c = await cookies();
   return c.get(ACTIVE_CHILD_COOKIE)?.value ?? null;
+}
+
+/** Lee el slug del LearningPath activo desde cookie. */
+export async function getActivePathSlug(): Promise<string | null> {
+  const c = await cookies();
+  return c.get(ACTIVE_PATH_COOKIE)?.value ?? null;
 }

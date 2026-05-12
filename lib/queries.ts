@@ -7,8 +7,68 @@
 // agregará Enrollments y un selector real de subject/path.
 
 import { prisma } from "./prisma";
-import { getCurrentUser, getActiveChildId } from "./auth";
+import { getCurrentUser, getActiveChildId, getActivePathSlug } from "./auth";
 import { MASTERY_THRESHOLD } from "./srs";
+
+// =========================================================================
+// SUBJECTS / LEARNING PATHS / ENROLLMENTS
+// =========================================================================
+
+/** Todas las materias en orden (incluye placeholders coming-soon). */
+export async function getSubjects() {
+  return prisma.subject.findMany({
+    orderBy: { order: "asc" },
+    include: {
+      _count: { select: { learningPaths: true } },
+    },
+  });
+}
+
+/** LearningPaths de un subject (por slug). null si no existe. */
+export async function getLearningPathsBySubject(subjectSlug: string) {
+  return prisma.subject.findUnique({
+    where: { slug: subjectSlug },
+    include: {
+      learningPaths: { orderBy: { order: "asc" } },
+    },
+  });
+}
+
+/** LearningPath por slug + su subject. null si no existe. */
+export async function getLearningPathBySlug(slug: string) {
+  return prisma.learningPath.findUnique({
+    where: { slug },
+    include: { subject: true },
+  });
+}
+
+/** Enrollments del child con su path + subject incluidos. */
+export async function getEnrollments(childId: string) {
+  return prisma.enrollment.findMany({
+    where: { childId },
+    orderBy: { startedAt: "desc" },
+    include: {
+      learningPath: { include: { subject: true } },
+    },
+  });
+}
+
+/**
+ * Elige el LearningPath "activo" para una página agnóstica de path:
+ *  1. Si hay cookie `lm_path` y el child está enrolled ahí, ese.
+ *  2. Sino, el enrollment más reciente del child.
+ *  3. Sino, null (caller debe redirigir a /subjects).
+ */
+export async function getActiveEnrollment(childId: string) {
+  const activeSlug = await getActivePathSlug();
+  const enrollments = await getEnrollments(childId);
+  if (enrollments.length === 0) return null;
+  if (activeSlug) {
+    const match = enrollments.find((e) => e.learningPath.slug === activeSlug);
+    if (match) return match;
+  }
+  return enrollments[0];
+}
 
 /** Devuelve el child activo del user (cookie o primero). */
 export async function getActiveChild() {

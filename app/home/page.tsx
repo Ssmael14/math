@@ -1,15 +1,23 @@
-// app/home/page.tsx — Server Component con datos reales de la DB.
+// app/home/page.tsx — Mapa de unidades del LearningPath activo.
 //
-// Fase 1: mostramos las unidades del primer LearningPath disponible
-// (típicamente Math · Primary 1). Fase 3 va a introducir Enrollments y
-// permitir cambiar de subject/path.
+// Selección del path:
+//   1. Si vino ?path=<slug>, el caller fuerza ese (y se setea la cookie
+//      `lm_path` vía /api/enrollments cuando se inscribe).
+//   2. Sino, el path activo del child (cookie `lm_path` o enrollment más
+//      reciente — ver getActiveEnrollment).
+//   3. Sino → redirect a /subjects (el child todavía no eligió materia).
 //
-// Selección de unidad activa dentro del path:
+// Selección de unidad dentro del path:
 //   1. Si vino ?unit=<slug>, esa.
 //   2. Sino, la primera con lecciones incompletas.
 //   3. Sino, la primera disponible.
 import { redirect } from "next/navigation";
-import { getActiveChild, getDefaultLearningPath, getMasteryStats } from "@/lib/queries";
+import {
+  getActiveChild,
+  getActiveEnrollment,
+  getLearningPathBySlug,
+  getMasteryStats,
+} from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
@@ -44,32 +52,32 @@ function pickActiveUnit(units: UnitWithLessons[], requestedSlug: string | undefi
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ unit?: string }>;
+  searchParams: Promise<{ unit?: string; path?: string }>;
 }) {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
 
-  const { unit: requestedSlug } = await searchParams;
+  const { unit: requestedUnitSlug, path: requestedPathSlug } = await searchParams;
 
-  const path = await getDefaultLearningPath();
-  if (!path) {
-    return (
-      <div className="min-h-[100dvh] flex flex-col bg-cream">
-        <TopNav/>
-        <div className="p-8 text-center">
-          <h1 className="font-fredoka text-2xl font-bold text-ink">Sin contenido</h1>
-          <p className="text-ink-soft mt-2">Corré <code>npm run db:seed</code>.</p>
-        </div>
-      </div>
-    );
+  // Elegir LearningPath: query > enrollment activo. Sin enrollment → /subjects.
+  let activePath = null;
+  if (requestedPathSlug) {
+    activePath = await getLearningPathBySlug(requestedPathSlug);
+  }
+  if (!activePath) {
+    const enrollment = await getActiveEnrollment(child.id);
+    if (!enrollment) {
+      redirect("/subjects");
+    }
+    activePath = enrollment.learningPath;
   }
 
   const [units, masteryStats] = await Promise.all([
-    loadUnits(child.id, path.id),
+    loadUnits(child.id, activePath.id),
     getMasteryStats(child.id),
   ]);
 
-  const unit = pickActiveUnit(units, requestedSlug);
+  const unit = pickActiveUnit(units, requestedUnitSlug);
 
   if (!unit) {
     return (
@@ -77,7 +85,7 @@ export default async function HomePage({
         <TopNav/>
         <div className="p-8 text-center">
           <h1 className="font-fredoka text-2xl font-bold text-ink">Path sin unidades</h1>
-          <p className="text-ink-soft mt-2">El path "{path.name}" no tiene unidades cargadas.</p>
+          <p className="text-ink-soft mt-2">El path "{activePath.name}" no tiene unidades cargadas.</p>
         </div>
       </div>
     );
