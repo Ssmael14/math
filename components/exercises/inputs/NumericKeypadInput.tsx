@@ -6,7 +6,7 @@
 // de FILL (donde 4 botones cercanos a la respuesta hacen que se adivine).
 
 import { useState } from "react";
-import { playTap } from "@/lib/audio";
+import { playTap } from "@/lib/gamification/audio";
 
 export function NumericKeypadInput({
   max = 20,

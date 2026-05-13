@@ -26,7 +26,7 @@ export default async function ReviewPage() {
         kind: m.exercise.kind,
         prompt: m.exercise.prompt,
         payload: (m.exercise.payload ?? {}) as Record<string, unknown>,
-        solution: (m.exercise.solution ?? {}) as { answer?: number; digit?: number; order?: number[]; pairs?: number[][] },
+        solution: (m.exercise.solution ?? {}) as { answer?: number | string; sequence?: (number | string)[]; pairs?: number[][] },
         hints: Array.isArray(m.exercise.hints) ? (m.exercise.hints as string[]) : null,
         explanation: m.exercise.explanation,
       }))}

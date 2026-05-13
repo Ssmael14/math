@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getActiveChild, getMasteryStats } from "@/lib/queries";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
+import { ageFromBirthDate } from "@/lib/age";
 import { TopNav } from "@/components/TopNav";
 import { ChildSwitcher } from "./ChildSwitcher";
 
@@ -38,7 +39,7 @@ export default async function ProfilePage() {
               {child.avatar}
             </div>
             <h1 className="font-fredoka text-3xl md:text-4xl font-bold text-ink mt-3">{child.name}</h1>
-            <div className="text-sm font-bold text-ink-soft">{child.age} años · Nivel {child.level}</div>
+            <div className="text-sm font-bold text-ink-soft">{ageFromBirthDate(child.birthDate) ?? "—"} años · Nivel {child.level}</div>
             <Link href={`/profile/edit/${child.id}`} className="inline-block mt-2 text-xs font-bold text-sky underline">✏️ Editar perfil</Link>
 
             {user.children.length > 1 && (

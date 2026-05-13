@@ -8,7 +8,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
-import { prisma } from "./prisma";
+import { prisma } from "../prisma";
 
 // El cliente de Resend sólo se construye si hay API key — así en dev sin
 // SMTP la app sigue funcionando y el link de reset se loguea por consola.

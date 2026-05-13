@@ -1,14 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Trophy, ShoppingBag, User } from "lucide-react";
+import { Home, BookOpen, GraduationCap, Trophy, ShoppingBag, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Item = { href: string; label: string; Icon: LucideIcon; mobile: boolean };
 
 const items: Item[] = [
   { href: "/home", label: "Inicio", Icon: Home, mobile: true },
-  { href: "/units", label: "Cursos", Icon: BookOpen, mobile: true },
+  { href: "/subjects", label: "Materias", Icon: GraduationCap, mobile: true },
+  { href: "/units", label: "Unidades", Icon: BookOpen, mobile: false },
   { href: "/league", label: "Liga", Icon: Trophy, mobile: false },
   { href: "/shop", label: "Tienda", Icon: ShoppingBag, mobile: false },
   { href: "/profile", label: "Perfil", Icon: User, mobile: true },

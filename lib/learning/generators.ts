@@ -1,10 +1,10 @@
 // lib/generators.ts
-// Generación procedural de ejercicios. Funciones puras: dado un seed o
-// parámetros, devuelven un payload listo para guardar como Exercise.
+// Generación procedural de ejercicios para Math. Funciones puras: dado un
+// seed o parámetros, devuelven un payload listo para persistir como Exercise.
 //
-// Los generadores cubren COUNT, FILL y SUBTRACT — los tres tipos cuyo
-// payload JSON está bien acotado y pueden generarse sin curaduría humana.
-// Los otros tipos (TRACE, MATCH, ORDER) se siguen escribiendo a mano.
+// El `kind` que emiten son los GENÉRICOS de la plataforma (MULTIPLE_CHOICE,
+// INPUT, etc.). El `payload.visual` indica al renderer qué dibujar (count,
+// subtract, compare…) — eso mantiene al engine agnóstico al dominio.
 
 import type { ExerciseKind } from "@prisma/client";
 
@@ -12,19 +12,14 @@ export type GeneratedExercise = {
   kind: ExerciseKind;
   prompt: string;
   payload: Record<string, unknown>;
-  /** answer puede ser number (mayoría) o string corto (COMPARE: "<"/">"/"=",
-   *  PARITY: "par"/"impar"). */
-  solution: { answer: number | string };
+  solution: { answer: number | string; sequence?: (number | string)[]; pairs?: number[][] };
   hints: string[];
   explanation: string;
-  /** "tag" pedagógico para agrupar — útil para crear lecciones temáticas. */
   topic: string;
-  /** dificultad subjetiva 1-3, usable después con la dificultad adaptativa. */
   difficulty: 1 | 2 | 3;
 };
 
-// PRNG determinístico (mulberry32). Recibir un seed permite generar el
-// mismo set de ejercicios de un build a otro — facilita debugging y tests.
+// PRNG determinístico (mulberry32) para reproducibilidad en seeds y tests.
 export function makeRng(seed: number): () => number {
   let s = seed >>> 0;
   return () => {
@@ -47,11 +42,7 @@ type Item = {
   emoji: string;
   sing: string;
   plural: string;
-  /** Concordancia gramatical: "f" → "cuántas / quedan", "m" → "cuántos / quedan". */
   gender: "m" | "f";
-  /** Verbo en pasado para contextualizar la resta sin que suene violento.
-   *  Algunos items se pueden comer ("comiste"), otros se vuelan ("se volaron"),
-   *  otros se sacan a una caja ("guardaste"). */
   removalVerb: string;
 };
 
@@ -68,21 +59,20 @@ const ITEMS: ReadonlyArray<Item> = [
   { emoji: "🐧", sing: "pingüino",  plural: "pingüinos",  gender: "m", removalVerb: "se zambulleron" },
 ];
 
-/** "Cuántas" o "Cuántos" según el género gramatical. */
 function howMany(item: Item): string {
   return item.gender === "f" ? "Cuántas" : "Cuántos";
 }
 
 // =========================================================================
-// COUNT: ¿cuántos hay?
+// "Contar" — MULTIPLE_CHOICE con visual="count"
 // =========================================================================
 export function generateCount(rng: () => number, max: number): GeneratedExercise {
   const item = pick(rng, ITEMS);
   const count = intBetween(rng, 1, max);
   return {
-    kind: "COUNT",
+    kind: "MULTIPLE_CHOICE",
     prompt: `¿${howMany(item)} ${item.plural} hay?`,
-    payload: { item: item.emoji, count },
+    payload: { visual: "count", item: item.emoji, count },
     solution: { answer: count },
     hints: [
       `Apuntá con el dedo a cada ${item.sing} mientras contás.`,
@@ -95,16 +85,16 @@ export function generateCount(rng: () => number, max: number): GeneratedExercise
 }
 
 // =========================================================================
-// FILL: a + ? = result   →  ¿qué sumando falta?
+// "Llenar el hueco" — INPUT (teclado numérico)
 // =========================================================================
 export function generateFill(rng: () => number, max: number): GeneratedExercise {
   const result = intBetween(rng, 2, max);
   const a = intBetween(rng, 1, result - 1);
   const missing = result - a;
   return {
-    kind: "FILL",
+    kind: "INPUT",
     prompt: `${a} + ? = ${result}`,
-    payload: { a, result },
+    payload: { visual: "fill", a, result },
     solution: { answer: missing },
     hints: [
       `¿Cuánto le falta al ${a} para llegar al ${result}?`,
@@ -117,22 +107,20 @@ export function generateFill(rng: () => number, max: number): GeneratedExercise 
 }
 
 // =========================================================================
-// SUBTRACT: tenés N, sacás K, ¿cuántos quedan?
+// "Restar" — MULTIPLE_CHOICE con visual="subtract"
 // =========================================================================
 export function generateSubtract(rng: () => number, max: number): GeneratedExercise {
   const item = pick(rng, ITEMS);
   const total = intBetween(rng, 2, max);
   const removed = intBetween(rng, 1, total - 1);
   const remaining = total - removed;
-  // Si el verbo es reflexivo ("se volaron") no anteponemos "te". Si es
-  // transitivo ("comiste", "regalaste") sí.
   const reflexive = item.removalVerb.startsWith("se ");
   const verbPhrase = reflexive ? item.removalVerb : `te ${item.removalVerb}`;
   const howManyQ = item.gender === "f" ? "Cuántas" : "Cuántos";
   return {
-    kind: "SUBTRACT",
+    kind: "MULTIPLE_CHOICE",
     prompt: `Tenías ${total} ${item.plural} y ${verbPhrase} ${removed}. ¿${howManyQ} quedan?`,
-    payload: { total, removed, item: item.emoji },
+    payload: { visual: "subtract", total, removed, item: item.emoji },
     solution: { answer: remaining },
     hints: [
       `Empezá desde ${total} y retrocedé ${removed}.`,
@@ -145,10 +133,9 @@ export function generateSubtract(rng: () => number, max: number): GeneratedExerc
 }
 
 // =========================================================================
-// COMPARE: ¿qué número es mayor / menor / igual?
+// "Comparar" — MULTIPLE_CHOICE con visual="compare", options = "<"/">"/"="
 // =========================================================================
 export function generateCompare(rng: () => number, max: number): GeneratedExercise {
-  // Cada tanto elegimos `=` para asegurar que el niño vea casos de igualdad.
   const wantEqual = rng() < 0.2;
   const left = intBetween(rng, 1, max);
   const right = wantEqual ? left : intBetween(rng, 1, max);
@@ -157,9 +144,9 @@ export function generateCompare(rng: () => number, max: number): GeneratedExerci
   else if (left > right) answer = ">";
   else answer = "<";
   return {
-    kind: "COMPARE",
+    kind: "MULTIPLE_CHOICE",
     prompt: "¿Qué signo va entre los números?",
-    payload: { left, right },
+    payload: { visual: "compare", left, right },
     solution: { answer },
     hints: [
       "El boquita del cocodrilo apunta al número más grande 🐊.",
@@ -175,15 +162,15 @@ export function generateCompare(rng: () => number, max: number): GeneratedExerci
 }
 
 // =========================================================================
-// PARITY: ¿es par o impar?
+// "Par o impar" — MULTIPLE_CHOICE con visual="parity"
 // =========================================================================
 export function generateParity(rng: () => number, max: number): GeneratedExercise {
   const value = intBetween(rng, 1, max);
   const answer: "par" | "impar" = value % 2 === 0 ? "par" : "impar";
   return {
-    kind: "PARITY",
+    kind: "MULTIPLE_CHOICE",
     prompt: `¿El número ${value} es par o impar?`,
-    payload: { value },
+    payload: { visual: "parity", value },
     solution: { answer },
     hints: [
       "Si podés agruparlos de a dos sin que sobre uno, es par.",
@@ -199,23 +186,18 @@ export function generateParity(rng: () => number, max: number): GeneratedExercis
 }
 
 // =========================================================================
-// PATTERN: completá la serie. La regla es paso constante (de 1, 2, o 3).
-// El hueco siempre va en la última posición — más simple visualmente para
-// kids de 4-6 años.
+// "Serie" — INPUT (tipear el siguiente número)
 // =========================================================================
 export function generatePattern(rng: () => number, max: number): GeneratedExercise {
   const step = pick(rng, [1, 2] as const);
-  // Calculamos un start tal que la secuencia de 4 elementos no exceda `max`.
   const start = intBetween(rng, 1, Math.max(1, max - step * 3));
   const sequence = [start, start + step, start + step * 2, start + step * 3];
-  const missingIndex = sequence.length - 1; // siempre el último
-  const answer = sequence[missingIndex];
-  // El payload muestra los 3 primeros + un slot vacío.
-  const visible = sequence.slice(0, missingIndex);
+  const answer = sequence[sequence.length - 1];
+  const visible = sequence.slice(0, -1);
   return {
-    kind: "PATTERN",
+    kind: "INPUT",
     prompt: "¿Qué número completa la serie?",
-    payload: { visible, step },
+    payload: { visual: "pattern", visible, step },
     solution: { answer },
     hints: [
       `Mirá la diferencia entre los números: van saltando de a ${step}.`,
@@ -228,22 +210,21 @@ export function generatePattern(rng: () => number, max: number): GeneratedExerci
 }
 
 // =========================================================================
-// NEIGHBOR: ¿qué número viene antes/después de N?
+// "Vecinos" — INPUT (antecesor o sucesor)
 // =========================================================================
 export function generateNeighbor(rng: () => number, max: number): GeneratedExercise {
   const direction: "before" | "after" = rng() < 0.5 ? "before" : "after";
-  // Si es antecesor, evitar value=1 (no tiene predecesor positivo).
   const value = direction === "before"
     ? intBetween(rng, 2, max)
     : intBetween(rng, 1, max - 1);
   const answer = direction === "before" ? value - 1 : value + 1;
   return {
-    kind: "NEIGHBOR",
+    kind: "INPUT",
     prompt:
       direction === "before"
         ? `¿Qué número viene ANTES del ${value}?`
         : `¿Qué número viene DESPUÉS del ${value}?`,
-    payload: { value, direction },
+    payload: { visual: "neighbor", value, direction },
     solution: { answer },
     hints: [
       direction === "before"
@@ -260,12 +241,29 @@ export function generateNeighbor(rng: () => number, max: number): GeneratedExerc
   };
 }
 
-/**
- * Mix con TODOS los kinds procedurales. Las proporciones por defecto se
- * eligieron para que un batch típico tenga variedad sin abusar de ningún
- * tipo. La suma se normaliza así no es necesario que las proporciones
- * sumen exactamente 1.
- */
+// =========================================================================
+// "Sumá arrastrando" — DRAG_DROP
+// =========================================================================
+export function generateDrag(rng: () => number, max: number): GeneratedExercise {
+  const item = pick(rng, ITEMS);
+  const a = intBetween(rng, 1, Math.min(5, max - 1));
+  const b = intBetween(rng, 1, max - a);
+  const total = a + b;
+  return {
+    kind: "DRAG_DROP",
+    prompt: `Arrastrá los ${item.plural} al canasto y contá: ${a} + ${b}`,
+    payload: { visual: "drag", a, b, item: item.emoji },
+    solution: { answer: total },
+    hints: [
+      `Movelos a todos al canasto, después contá.`,
+      `Son ${a} más ${b}.`,
+    ],
+    explanation: `${a} + ${b} = ${total}.`,
+    topic: max <= 5 ? "sumas-hasta-5" : "sumas-hasta-10",
+    difficulty: max <= 5 ? 1 : 2,
+  };
+}
+
 export type BatchMix = {
   count: number;
   fill: number;
@@ -274,21 +272,23 @@ export type BatchMix = {
   parity: number;
   pattern: number;
   neighbor: number;
+  drag: number;
 };
 
 const DEFAULT_MIX: BatchMix = {
-  count: 0.20,
-  fill: 0.18,
-  subtract: 0.15,
-  compare: 0.15,
+  count: 0.18,
+  fill: 0.16,
+  subtract: 0.14,
+  compare: 0.14,
   parity: 0.10,
-  pattern: 0.12,
+  pattern: 0.10,
   neighbor: 0.10,
+  drag: 0.08,
 };
 
 /**
- * Genera un batch de N ejercicios usando los siete generadores en proporción
- * configurable. Determinístico bajo `seed` — útil en seed.ts.
+ * Genera un batch determinístico de N ejercicios mezclando los generadores.
+ * Las proporciones del mix se normalizan automáticamente.
  */
 export function generateBatch({
   seed, count, max, mix = DEFAULT_MIX,
@@ -300,7 +300,6 @@ export function generateBatch({
 }): GeneratedExercise[] {
   const rng = makeRng(seed);
   const m: BatchMix = { ...DEFAULT_MIX, ...mix };
-  // Normalizamos: weights acumulados sobre la suma total.
   const weights: Array<{ end: number; gen: (rng: () => number) => GeneratedExercise }> = [];
   let acc = 0;
   const add = (w: number, gen: (rng: () => number) => GeneratedExercise) => {
@@ -315,6 +314,7 @@ export function generateBatch({
   add(m.parity, (r) => generateParity(r, max));
   add(m.pattern, (r) => generatePattern(r, max));
   add(m.neighbor, (r) => generateNeighbor(r, max));
+  add(m.drag, (r) => generateDrag(r, max));
 
   if (weights.length === 0 || acc === 0) return [];
 

@@ -1,20 +1,21 @@
 // components/exercises/ExerciseVisual.tsx
-// Visual centrado de un ejercicio. Sin estado: dado el kind+payload renderiza
-// la representación gráfica. Si querés agregar un nuevo tipo de ejercicio,
-// agregás un case acá y todo el resto (LessonRunner, hints, scoring) ya funciona.
+// Visual del ejercicio. NO depende del `kind` (que es la interacción), sino
+// de `payload.visual` — un hint del seeder/generator sobre qué dibujar.
+//
+// Esto permite que dos exercises con el mismo kind (MULTIPLE_CHOICE) tengan
+// visuales totalmente distintos: uno cuenta estrellas, otro compara números,
+// otro pregunta paridad. El motor sigue siendo el mismo.
 import type { ExerciseDTO } from "./types";
-import { countCols, countSizeCls } from "@/lib/visual-layout";
+import { countCols, countSizeCls } from "@/lib/learning/visual-layout";
 
 const ITEM_CLS = "text-5xl md:text-7xl";
 
 export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
-  switch (ex.kind) {
-    case "COUNT": {
+  const visual = typeof ex.payload.visual === "string" ? ex.payload.visual : null;
+
+  switch (visual) {
+    case "count": {
       const { item, count } = ex.payload as { item: string; count: number };
-      // Grilla con cantidad de columnas según el count, así los ítems
-      // quedan ordenados (filas parejas) en lugar del flex-wrap-de-suerte.
-      // El tamaño del emoji baja para counts altos para que entren en
-      // pantallas chicas (375px).
       const cols = countCols(count);
       const sizeCls = countSizeCls(count);
       return (
@@ -28,17 +29,8 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
-    case "DRAG": {
-      const { a, b, item } = ex.payload as { a: number; b: number; item: string };
-      return (
-        <div className="flex items-center justify-center gap-4 md:gap-8">
-          <Group n={a} item={item}/>
-          <span className="font-fredoka text-4xl md:text-6xl font-bold text-ink">+</span>
-          <Group n={b} item={item}/>
-        </div>
-      );
-    }
-    case "SUBTRACT": {
+
+    case "subtract": {
       const { total, removed, item } = ex.payload as { total: number; removed: number; item: string };
       return (
         <div className="flex flex-col items-center gap-3">
@@ -49,8 +41,6 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
                 <span
                   key={i}
                   className={`${ITEM_CLS} relative inline-block ${isRemoved ? "subtract-removed" : ""}`}
-                  // delay escalonado: el primer item desaparece primero, así
-                  // se ve la "salida" en cascada en lugar de todo a la vez.
                   style={isRemoved ? { animationDelay: `${i * 120}ms` } : undefined}
                   aria-hidden={isRemoved}
                 >
@@ -67,7 +57,8 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
-    case "FILL": {
+
+    case "fill": {
       const { a, result } = ex.payload as { a: number; result: number };
       return (
         <div className="font-fredoka text-5xl md:text-7xl font-bold text-ink">
@@ -75,15 +66,8 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
-    case "TRACE": {
-      const { digit } = ex.payload as { digit: number };
-      return (
-        <div className="font-fredoka text-[140px] md:text-[220px] font-bold text-sun leading-none">
-          {digit}
-        </div>
-      );
-    }
-    case "COMPARE": {
+
+    case "compare": {
       const { left, right } = ex.payload as { left: number; right: number };
       return (
         <div className="flex items-center justify-center gap-4 md:gap-8">
@@ -93,10 +77,9 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
-    case "PARITY": {
+
+    case "parity": {
       const { value } = ex.payload as { value: number };
-      // Mostramos el número grande y, si caben, los puntitos en filas de a dos
-      // para sugerir visualmente el concepto de paridad.
       const dots = Math.min(value, 10);
       return (
         <div className="flex flex-col items-center gap-3">
@@ -111,7 +94,8 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
-    case "PATTERN": {
+
+    case "pattern": {
       const { visible, step } = ex.payload as { visible: number[]; step: number };
       return (
         <div className="flex flex-col items-center gap-2">
@@ -130,7 +114,8 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
-    case "NEIGHBOR": {
+
+    case "neighbor": {
       const { value, direction } = ex.payload as { value: number; direction: "before" | "after" };
       return (
         <div className="flex items-center justify-center gap-3 md:gap-4">
@@ -150,13 +135,78 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
         </div>
       );
     }
+
+    case "drag": {
+      // El visual real lo dibuja DragInput. Acá no mostramos nada extra.
+      return null;
+    }
+
+    case "draw": {
+      // Idem TraceCanvas.
+      return null;
+    }
+
+    // -----------------------------------------------------------------
+    // READING visuals
+    // -----------------------------------------------------------------
+    case "letter": {
+      // Una letra grande sola. Para "¿qué letra es?" o sound matching.
+      const { letter } = ex.payload as { letter: string };
+      return (
+        <div className="font-fredoka text-[160px] md:text-[240px] font-bold text-pink leading-none">
+          {letter}
+        </div>
+      );
+    }
+
+    case "word": {
+      // Una palabra grande. Para "¿cuántas letras tiene?" o reconocimiento.
+      const { word } = ex.payload as { word: string };
+      return (
+        <div className="font-fredoka text-6xl md:text-8xl font-bold text-ink tracking-wider">
+          {word.toUpperCase()}
+        </div>
+      );
+    }
+
+    case "word-letters": {
+      // Una palabra mostrada letra por letra en cards (para conteo/análisis).
+      const { word } = ex.payload as { word: string };
+      const letters = word.toUpperCase().split("");
+      return (
+        <div className="flex justify-center gap-2 md:gap-3 flex-wrap max-w-lg">
+          {letters.map((l, i) => (
+            <div
+              key={i}
+              className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-pink-soft border-4 border-white flex items-center justify-center font-fredoka text-3xl md:text-5xl font-bold text-pink"
+              style={{ boxShadow: "var(--shadow-chunky-sm)" }}
+            >
+              {l}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "emoji-word": {
+      // Un emoji grande (ilustración) + label opcional debajo. Útil para
+      // "¿qué palabra describe a esta cosa?".
+      const { emoji, label } = ex.payload as { emoji: string; label?: string };
+      return (
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-[120px] md:text-[180px] leading-none">{emoji}</div>
+          {label && <div className="font-fredoka text-xl font-bold text-ink-soft">{label}</div>}
+        </div>
+      );
+    }
+
     default:
-      return <div className="text-center text-ink-soft italic">Ejercicio en construcción</div>;
+      // Fallback genérico: si no hay visual definido, mostramos el prompt
+      // como visual mismo. Útil para audio/speak en el futuro.
+      return null;
   }
 }
 
-/** Cuadradito chunky con un número o un slot vacío para los kinds que muestran
- *  números individuales (COMPARE / PATTERN / NEIGHBOR). */
 function NumberCard({ n, placeholder = false }: { n?: number; placeholder?: boolean }) {
   return (
     <div
@@ -171,14 +221,3 @@ function NumberCard({ n, placeholder = false }: { n?: number; placeholder?: bool
     </div>
   );
 }
-
-function Group({ n, item }: { n: number; item: string }) {
-  return (
-    <div className="flex gap-1 md:gap-2 flex-wrap justify-center max-w-[200px]">
-      {Array.from({ length: n }).map((_, i) => (
-        <span key={i} className={ITEM_CLS}>{item}</span>
-      ))}
-    </div>
-  );
-}
-

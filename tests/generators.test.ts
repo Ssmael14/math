@@ -9,7 +9,7 @@ import {
   generatePattern,
   generateNeighbor,
   generateBatch,
-} from "@/lib/generators";
+} from "@/lib/learning/generators";
 
 describe("makeRng", () => {
   it("es determinístico para el mismo seed", () => {
@@ -218,25 +218,39 @@ describe("generateBatch", () => {
     expect(a).toEqual(b);
   });
 
-  it("respeta el mix (sólo COUNT cuando mix lo dice)", () => {
+  it("respeta el mix (sólo COUNT visuals cuando mix lo pide)", () => {
     const out = generateBatch({
       seed: 1, count: 20, max: 10,
-      mix: { count: 1, fill: 0, subtract: 0, compare: 0, parity: 0, pattern: 0, neighbor: 0 },
+      mix: { count: 1, fill: 0, subtract: 0, compare: 0, parity: 0, pattern: 0, neighbor: 0, drag: 0 },
     });
-    expect(out.every((e) => e.kind === "COUNT")).toBe(true);
+    // Todos deben ser MULTIPLE_CHOICE con visual="count".
+    expect(out.every((e) => e.kind === "MULTIPLE_CHOICE")).toBe(true);
+    expect(out.every((e) => e.payload.visual === "count")).toBe(true);
   });
 
-  it("genera todos los kinds cuando todos los pesos están activos", () => {
+  it("con todos los pesos activos, emite los 3 kinds genéricos", () => {
     const out = generateBatch({ seed: 7, count: 200, max: 10 });
     const kinds = new Set(out.map((e) => e.kind));
-    // No exigimos los 7 (puede haber sesgos por seed) pero sí varios.
-    expect(kinds.size).toBeGreaterThanOrEqual(5);
+    // Tenemos: MULTIPLE_CHOICE (count/subtract/compare/parity), INPUT
+    // (fill/pattern/neighbor) y DRAG_DROP (drag). Esperamos los 3.
+    expect(kinds.size).toBe(3);
+    expect(kinds.has("MULTIPLE_CHOICE")).toBe(true);
+    expect(kinds.has("INPUT")).toBe(true);
+    expect(kinds.has("DRAG_DROP")).toBe(true);
+  });
+
+  it("variedad de visuals al usar el mix default", () => {
+    const out = generateBatch({ seed: 11, count: 200, max: 10 });
+    const visuals = new Set(out.map((e) => e.payload.visual));
+    // Esperamos al menos 5 de los 8 visuals (count/subtract/fill/compare/
+    // parity/pattern/neighbor/drag) — algunos seeds pueden no emitir alguno.
+    expect(visuals.size).toBeGreaterThanOrEqual(5);
   });
 
   it("mix vacío devuelve []", () => {
     const out = generateBatch({
       seed: 1, count: 10, max: 5,
-      mix: { count: 0, fill: 0, subtract: 0, compare: 0, parity: 0, pattern: 0, neighbor: 0 },
+      mix: { count: 0, fill: 0, subtract: 0, compare: 0, parity: 0, pattern: 0, neighbor: 0, drag: 0 },
     });
     expect(out).toEqual([]);
   });

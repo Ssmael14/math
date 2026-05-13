@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeStars, mondayOfWeek } from "@/lib/scoring";
+import { computeStars, mondayOfWeek } from "@/lib/gamification/scoring";
 
 describe("computeStars", () => {
   it("100% de aciertos = 3 estrellas", () => {

@@ -5,7 +5,7 @@ import {
   tapOption,
   isComplete,
   toPairsArray,
-} from "@/lib/match-state";
+} from "@/lib/learning/match-state";
 
 describe("MatchState", () => {
   it("emparejar tapeando grupo y luego opción", () => {

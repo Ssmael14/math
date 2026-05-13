@@ -4,7 +4,7 @@ import {
   recommendMove,
   adjustLevel,
   MIN_WINDOW,
-} from "@/lib/difficulty";
+} from "@/lib/learning/difficulty";
 
 const ok = { correct: true };
 const fail = { correct: false };

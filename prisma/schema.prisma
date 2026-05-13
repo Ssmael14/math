@@ -1,10 +1,18 @@
 // =========================================================================
-// LearnMath · Schema Prisma
+// Learn Platform · Prisma Schema
 // =========================================================================
-// - Better Auth → tablas user / session / account / verification.
-//   Los nombres y campos siguen la spec oficial de Better Auth 1.x.
-// - User extiende con `parentalPin` (PIN del modo padres).
-// - Child = perfil del niño que usa la app, relaciona a user.id.
+// Plataforma educativa multi-materia. La filosofía:
+//
+//  - Subject (Math, Reading, Science, English…) agrupa LearningPaths.
+//  - LearningPath (Primary 1, Initial Reading…) tiene Units.
+//  - Unit tiene Lessons.
+//  - Lesson tiene Exercises.
+//  - ExerciseKind representa la INTERACCIÓN (MULTIPLE_CHOICE, DRAG_DROP,
+//    INPUT, DRAW, MATCH, SORT, AUDIO, SPEAK) — no la materia. Esto permite
+//    reutilizar el motor entre subjects.
+//  - Children se enrollan a paths independientemente (multi-materia paralela).
+//
+// Auth: Better Auth (user/session/account/verification).
 // =========================================================================
 
 generator client {
@@ -18,7 +26,6 @@ datasource db {
 
 // =========================================================================
 // AUTH · Better Auth schema (formato oficial 1.x)
-// https://www.better-auth.com/docs/concepts/database#core-schema
 // =========================================================================
 model User {
   id            String    @id @default(cuid())
@@ -29,8 +36,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Extensión propia: PIN del modo padres (hash bcrypt de 4 dígitos).
+  // Extensiones propias.
   parentalPin   String?
+  plan          SubscriptionPlan @default(FREE)
 
   sessions Session[]
   accounts Account[]
@@ -60,9 +68,7 @@ model Account {
   providerId            String
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Para email/password Better Auth guarda el hash acá.
   password              String?
-  // Para OAuth (Google) guarda los tokens.
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -89,116 +95,211 @@ model Verification {
   @@map("verification")
 }
 
-// -------------------------------------------------------------------------
-// CHILD (perfil del niño)
-// -------------------------------------------------------------------------
-model Child {
-  id        String   @id @default(cuid())
-  parentId  String   @db.Text
-  name      String
-  age       Int
-  avatar    String   // emoji o clave de sprite
-  hearts    Int      @default(5)
-  gems      Int      @default(0)
-  xp        Int      @default(0)
-  level     Int      @default(1)
-  streak    Int      @default(0)
-  lastPlay  DateTime?
-  createdAt DateTime @default(now())
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+  FAMILY
+}
 
-  parent       User       @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  progress     Progress[]
+// =========================================================================
+// CHILDREN
+// =========================================================================
+model Child {
+  id         String    @id @default(cuid())
+  parentId   String
+  name       String
+  birthDate  DateTime?
+  avatar     String
+
+  // Gamificación (compartida entre subjects).
+  hearts     Int       @default(5)
+  gems       Int       @default(0)
+  xp         Int       @default(0)
+  level      Int       @default(1)
+  streak     Int       @default(0)
+  lastPlayAt DateTime?
+
+  createdAt  DateTime  @default(now())
+
+  parent       User               @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+  progresses   Progress[]
   attempts     Attempt[]
+  masteries    Mastery[]
   inventory    Inventory[]
   achievements ChildAchievement[]
   weeklyXP     WeeklyXP[]
-  masteries    Mastery[]
 
   @@index([parentId])
   @@map("children")
 }
 
-// -------------------------------------------------------------------------
-// CONTENIDO: Unit → Lesson → Exercise
-// -------------------------------------------------------------------------
-model Unit {
-  id          String   @id @default(cuid())
-  slug        String   @unique  // "numeros-1-10"
-  title       String
+// =========================================================================
+// EDUCATIONAL STRUCTURE
+// Subject → LearningPath → Unit → Lesson → Exercise
+// =========================================================================
+model Subject {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
   description String?
+  icon        String
+  color       String
   order       Int
-  color       String   // token de color (ej "peach")
-  icon        String   // emoji
-  isPremium   Boolean  @default(false)
+  // Si está disabled, se muestra como "Coming soon" pero no se puede entrar.
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
 
-  lessons     Lesson[]
+  learningPaths LearningPath[]
 
+  @@map("subjects")
+}
+
+enum EducationLevel {
+  INITIAL
+  PRIMARY
+  SECONDARY
+  PREUNIVERSITY
+}
+
+model LearningPath {
+  id          String         @id @default(cuid())
+  subjectId   String
+  slug        String         @unique
+  name        String
+  description String?
+  level       EducationLevel
+  grade       Int?
+  difficulty  Int            @default(1)
+  isPremium   Boolean        @default(false)
+  order       Int
+  createdAt   DateTime       @default(now())
+
+  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  units       Unit[]
+  enrollments Enrollment[]
+
+  @@index([subjectId])
+  @@map("learning_paths")
+}
+
+model Unit {
+  id             String  @id @default(cuid())
+  learningPathId String
+  slug           String
+  title          String
+  description    String?
+  icon           String?
+  color          String?
+  order          Int
+  createdAt      DateTime @default(now())
+
+  learningPath LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+
+  @@unique([learningPathId, slug])
+  @@index([learningPathId])
   @@map("units")
 }
 
 model Lesson {
-  id       String   @id @default(cuid())
-  unitId   String
-  slug     String
-  title    String
-  order    Int
-  xpReward Int      @default(20)
+  id               String   @id @default(cuid())
+  unitId           String
+  slug             String
+  title            String
+  description      String?
+  order            Int
+  xpReward         Int      @default(20)
+  estimatedMinutes Int?
+  audioUrl         String?
+  createdAt        DateTime @default(now())
 
-  unit      Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  exercises Exercise[]
-  progress  Progress[]
+  unit       Unit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  exercises  Exercise[]
+  progresses Progress[]
 
   @@unique([unitId, slug])
   @@index([unitId])
   @@map("lessons")
 }
 
+// =========================================================================
+// ENROLLMENTS
+// Children pueden estar enrolled en múltiples paths simultáneamente
+// (Math Primary 2 + Reading Initial + English Beginner, por ejemplo).
+// =========================================================================
+model Enrollment {
+  id              String   @id @default(cuid())
+  childId         String
+  learningPathId  String
+  // Punteros para reanudar donde quedó (sin tener que recomputarlo cada vez).
+  currentUnitId   String?
+  currentLessonId String?
+  startedAt       DateTime @default(now())
+
+  child        Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
+  learningPath LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, learningPathId])
+  @@index([childId])
+  @@index([learningPathId])
+  @@map("enrollments")
+}
+
+// =========================================================================
+// EXERCISE ENGINE
+// Kinds = INTERACCIONES (no materias). El mismo MULTIPLE_CHOICE sirve
+// para "¿cuántas estrellas?" en Math o "¿qué palabra suena igual?" en Reading.
+// =========================================================================
 enum ExerciseKind {
-  DRAG         // arrastrar
-  SUBTRACT     // resta visual
-  COUNT        // contar
-  MATCH        // unir con líneas
-  FILL         // llenar hueco
-  TRACE        // trazar número
-  ORDER        // ordenar menor→mayor
-  SPEED        // speed round
-  COMPARE      // ¿qué es mayor / menor / igual?
-  PARITY       // par o impar
-  PATTERN      // completar la serie
-  NEIGHBOR     // antecesor o sucesor
+  MULTIPLE_CHOICE  // elegir 1 entre N opciones (texto o número)
+  DRAG_DROP        // arrastrar items a una zona
+  SORT             // ordenar items en una secuencia
+  MATCH            // emparejar pares
+  INPUT            // tipear una respuesta (teclado numérico o texto)
+  DRAW             // trazar/dibujar (recognizer)
+  AUDIO            // escuchar y responder
+  SPEAK            // hablar (speech-to-text)
 }
 
 model Exercise {
-  id          String       @id @default(cuid())
-  lessonId    String
-  kind        ExerciseKind
-  order       Int
-  prompt      String       // "¿Cuántas hay?"
-  payload     Json         // data específica del tipo
-  solution    Json         // respuesta correcta
-  hints       Json?        // array<string> — pistas progresivas (1ra pista = índice 0)
-  explanation String?      // se muestra cuando el niño falla 2 veces
+  id           String       @id @default(cuid())
+  lessonId     String
+  kind         ExerciseKind
+  order        Int
+  title        String?
+  prompt       String
+  instructions String?
+  payload      Json
+  solution     Json
+  hints        Json?
+  explanation  String?
+  difficulty   Int          @default(1)
+  xpReward     Int          @default(5)
+  audioUrl     String?
+  createdAt    DateTime     @default(now())
 
-  lesson   Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  attempts Attempt[]
+  lesson    Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts  Attempt[]
   masteries Mastery[]
 
   @@index([lessonId])
   @@map("exercises")
 }
 
-// -------------------------------------------------------------------------
-// PROGRESO y ATTEMPTS
-// -------------------------------------------------------------------------
+// =========================================================================
+// PROGRESS / ATTEMPTS / MASTERY
+// =========================================================================
 model Progress {
-  id          String    @id @default(cuid())
-  childId     String
-  lessonId    String
-  completed   Boolean   @default(false)
-  stars       Int       @default(0) // 0–3
-  bestScore   Int       @default(0)
-  completedAt DateTime?
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  childId       String
+  lessonId      String
+  completed     Boolean   @default(false)
+  stars         Int       @default(0)
+  bestScore     Int       @default(0)
+  attemptsCount Int       @default(0)
+  completedAt   DateTime?
+  updatedAt     DateTime  @updatedAt
 
   child  Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
@@ -213,8 +314,9 @@ model Attempt {
   childId    String
   exerciseId String
   correct    Boolean
-  response   Json     // qué respondió el niño
-  timeMs     Int      // cuánto tardó
+  response   Json
+  timeMs     Int
+  hintsUsed  Int      @default(0)
   createdAt  DateTime @default(now())
 
   child    Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
@@ -225,13 +327,33 @@ model Attempt {
   @@map("attempts")
 }
 
-// -------------------------------------------------------------------------
-// SHOP · ACHIEVEMENTS · LEAGUE
-// -------------------------------------------------------------------------
+// Mastery simplificado: masteryLevel (0-1) + repetitions + nextReviewAt.
+// El algoritmo SM-2 se aplica internamente en lib/srs.ts pero acá sólo
+// guardamos lo necesario para revivar y mostrar progreso.
+model Mastery {
+  id           String    @id @default(cuid())
+  childId      String
+  exerciseId   String
+  masteryLevel Float     @default(0)
+  repetitions  Int       @default(0)
+  nextReviewAt DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  child    Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, exerciseId])
+  @@index([childId, nextReviewAt])
+  @@map("mastery")
+}
+
+// =========================================================================
+// SHOP · ACHIEVEMENTS · LEAGUE (gamificación compartida cross-subject)
+// =========================================================================
 enum ShopItemKind {
-  ACCESSORY     // sombrero, anteojos…
-  GEMS_PACK     // paquete de gemas (IAP)
-  HEARTS_REFILL // recarga corazones
+  ACCESSORY
+  GEMS_PACK
+  HEARTS_REFILL
 }
 
 enum Rarity {
@@ -246,8 +368,8 @@ model ShopItem {
   slug      String       @unique
   kind      ShopItemKind
   name      String
-  icon      String       // emoji o sprite key
-  price     Int          // gemas (o centavos USD si es GEMS_PACK)
+  icon      String
+  price     Int
   rarity    Rarity       @default(COMMON)
   isActive  Boolean      @default(true)
 
@@ -272,13 +394,13 @@ model Inventory {
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String  @id @default(cuid())
+  slug        String  @unique
   name        String
   description String
   icon        String
-  target      Int      // valor a alcanzar (ej: 100 aciertos)
-  metric      String   // "lessons_completed" | "correct_answers" | "streak" | …
+  target      Int
+  metric      String
 
   unlocks ChildAchievement[]
 
@@ -299,43 +421,16 @@ model ChildAchievement {
   @@map("child_achievements")
 }
 
-// XP semanal — se resetea los lunes. Usado para liga/leaderboard.
 model WeeklyXP {
   id        String   @id @default(cuid())
   childId   String
-  weekStart DateTime @db.Date  // lunes 00:00 UTC de la semana
+  weekStart DateTime @db.Date
   xp        Int      @default(0)
-  league    String   @default("BRONZE") // BRONZE/SILVER/GOLD/DIAMOND…
+  league    String   @default("BRONZE")
 
   child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@unique([childId, weekStart])
   @@index([weekStart, league, xp])
   @@map("weekly_xp")
-}
-
-// -------------------------------------------------------------------------
-// SRS · Mastery (un row por niño/ejercicio)
-// Implementa SM-2: easeFactor + interval + repetitions + nextReviewAt.
-// `masteryLevel` (0-1) es una métrica derivada para mostrar en UI ("dominado"
-// cuando >= 0.8). El algoritmo y el cálculo viven en lib/srs.ts.
-// -------------------------------------------------------------------------
-model Mastery {
-  id            String   @id @default(cuid())
-  childId       String
-  exerciseId    String
-  easeFactor    Float    @default(2.5)
-  interval      Int      @default(0)        // días hasta el próximo repaso
-  repetitions   Int      @default(0)        // aciertos consecutivos
-  masteryLevel  Float    @default(0)        // 0-1, para UI
-  nextReviewAt  DateTime @default(now())    // cuándo toca repasar
-  lastSeenAt    DateTime?
-  updatedAt     DateTime @updatedAt
-
-  child    Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
-  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-
-  @@unique([childId, exerciseId])
-  @@index([childId, nextReviewAt])
-  @@map("mastery")
 }

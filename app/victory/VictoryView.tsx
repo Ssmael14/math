@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { Confetti } from "@/components/Confetti";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
-import { playVictory, playTap } from "@/lib/audio";
-import { useCountUp } from "@/lib/use-count-up";
+import { playVictory, playTap } from "@/lib/gamification/audio";
+import { useCountUp } from "@/lib/gamification/use-count-up";
 
 export function VictoryView({
   xp,

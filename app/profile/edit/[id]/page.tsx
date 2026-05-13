@@ -19,7 +19,15 @@ export default function EditChildPage({ params }: { params: Promise<{ id: string
   useEffect(() => {
     fetch("/api/children").then((r) => r.json()).then((d) => {
       const c = d.children?.find((c: { id: string }) => c.id === id);
-      if (c) { setName(c.name); setAge(c.age); setAvatar(c.avatar); }
+      if (c) {
+        setName(c.name);
+        setAvatar(c.avatar);
+        // El backend ahora persiste birthDate. Para la UI calculamos años.
+        if (c.birthDate) {
+          const yDiff = new Date().getUTCFullYear() - new Date(c.birthDate).getUTCFullYear();
+          setAge(Math.max(0, yDiff));
+        }
+      }
     });
   }, [id]);
 

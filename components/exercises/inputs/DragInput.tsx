@@ -9,7 +9,7 @@
 // de vuelta a su posición original (clearing del transform).
 
 import { useRef, useState } from "react";
-import { playTap } from "@/lib/audio";
+import { playTap } from "@/lib/gamification/audio";
 
 type Item = { id: string; emoji: string; group: "a" | "b" };
 
