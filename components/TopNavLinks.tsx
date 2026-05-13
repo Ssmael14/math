@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, GraduationCap, Trophy, ShoppingBag, User } from "lucide-react";
+import { Home, GraduationCap, Trophy, ShoppingBag, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Item = { href: string; label: string; Icon: LucideIcon; mobile: boolean };
@@ -9,7 +9,6 @@ type Item = { href: string; label: string; Icon: LucideIcon; mobile: boolean };
 const items: Item[] = [
   { href: "/home", label: "Inicio", Icon: Home, mobile: true },
   { href: "/subjects", label: "Materias", Icon: GraduationCap, mobile: true },
-  { href: "/units", label: "Unidades", Icon: BookOpen, mobile: false },
   { href: "/league", label: "Liga", Icon: Trophy, mobile: false },
   { href: "/shop", label: "Tienda", Icon: ShoppingBag, mobile: false },
   { href: "/profile", label: "Perfil", Icon: User, mobile: true },
@@ -38,9 +37,11 @@ export function TopNavLinks() {
               fill={active ? "currentColor" : "none"}
               fillOpacity={active ? 0.08 : 0}
             />
-            <span className="hidden md:inline text-[15px] font-bold">{label}</span>
+            <span className="hidden md:inline text-[15px] font-bold">
+              {label}
+            </span>
             {active && (
-              <span className="absolute left-1 right-1 -bottom-px h-[3px] bg-ink rounded-full"/>
+              <span className="absolute left-1 right-1 -bottom-px h-[3px] bg-ink rounded-full" />
             )}
           </Link>
         );

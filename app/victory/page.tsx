@@ -35,7 +35,7 @@ export default async function VictoryPage({
   // Volvemos al mapa de la MISMA unidad (no al home genérico) para que el
   // niño no salga rebotado a la unidad 1 después de terminar una lección
   // en otra unidad.
-  const continueHref = `/home?unit=${progress.lesson.unit.slug}`;
+  const continueHref = `/units/${progress.lesson.unit.slug}`;
 
   return (
     <VictoryView

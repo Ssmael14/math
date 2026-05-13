@@ -23,7 +23,7 @@ export default async function SubjectsPage() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-cream md:bg-white">
-      <TopNav/>
+      <TopNav />
 
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-10">
@@ -40,20 +40,24 @@ export default async function SubjectsPage() {
             {subjects.map((s) => {
               const bg = bgByColor[s.color] ?? "from-peach-soft to-peach";
               const enabled = s.isActive && s._count.learningPaths > 0;
-              const href = enabled ? `/paths?subject=${s.slug}` : "#";
+              const href = enabled ? `/subjects/${s.slug}` : "#";
               return (
                 <Link
                   key={s.id}
                   href={href}
                   aria-disabled={!enabled}
                   className={`btn-chunky flex items-center gap-4 p-5 md:p-6 rounded-3xl border-4 border-white bg-gradient-to-br ${
-                    enabled ? bg : "from-[#F0EBF5] to-[#F0EBF5] opacity-70 pointer-events-none"
+                    enabled
+                      ? bg
+                      : "from-[#F0EBF5] to-[#F0EBF5] opacity-70 pointer-events-none"
                   }`}
                   style={{ boxShadow: "var(--shadow-chunky)" }}
                 >
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-4xl md:text-5xl border-2 border-white flex-shrink-0 ${
-                    enabled ? "bg-white/85" : "bg-white/60"
-                  }`}>
+                  <div
+                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-4xl md:text-5xl border-2 border-white flex-shrink-0 ${
+                      enabled ? "bg-white/85" : "bg-white/60"
+                    }`}
+                  >
                     {s.icon}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -66,9 +70,15 @@ export default async function SubjectsPage() {
                       </div>
                     )}
                     <div className="mt-2">
-                      {enabled
-                        ? <span className="text-[10px] font-black bg-ink text-white px-3 py-1 rounded-lg">ENTRAR</span>
-                        : <span className="text-[10px] font-black bg-ink-mute/30 text-ink-mute px-3 py-1 rounded-lg">PRONTO ✨</span>}
+                      {enabled ? (
+                        <span className="text-[10px] font-black bg-ink text-white px-3 py-1 rounded-lg">
+                          ENTRAR
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-black bg-ink-mute/30 text-ink-mute px-3 py-1 rounded-lg">
+                          PRONTO ✨
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>
