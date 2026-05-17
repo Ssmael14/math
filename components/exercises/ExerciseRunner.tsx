@@ -26,19 +26,21 @@ import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsI
 import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
 import { postOrQueue } from "@/lib/offline-queue";
-import { matchesDigit, type Point } from "@/lib/learning/gesture";
 import { evaluateAttempt } from "@/lib/learning/evaluate";
 import { playCorrect, playWrong, playTap } from "@/lib/gamification/audio";
+// matchesDigit ya no se usa: el scoring de trazo lo hace TraceCanvas vía
+// lib/learning/trace-scoring (cobertura de máscara).
 
 export type RunnerLabels = {
   step: string;
   idle: string;
 };
 
-type Answer = {
-  value: unknown;
+type RunnerState = "idle" | "selected" | "correct" | "wrong";
+
+type Verdict = {
   correct: boolean;
-  /** Sólo para kinds con score parcial (hoy: TRACE). 0-3. */
+  /** Sólo para kinds con score parcial (hoy: DRAW/trace). 0-3. */
   stars?: 0 | 1 | 2 | 3;
 };
 
@@ -63,7 +65,10 @@ export function ExerciseRunner({
 }) {
   const router = useRouter();
   const [i, setI] = useState(0);
-  const [answer, setAnswer] = useState<Answer | null>(null);
+  // selection = lo que el niño eligió/armó, AÚN NO evaluado.
+  // verdict   = resultado, sólo tras tocar "Comprobar" (o "Terminé" en trace).
+  const [selection, setSelection] = useState<{ value: unknown } | null>(null);
+  const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [wrongCount, setWrongCount] = useState(0);
   const [exerciseStartedAt, setExerciseStartedAt] = useState(Date.now());
   const [correctCount, setCorrectCount] = useState(0);
@@ -72,7 +77,11 @@ export function ExerciseRunner({
   const [resetSignal, setResetSignal] = useState(0);
 
   const ex = exercises[i];
-  const state = answer === null ? "idle" : answer.correct ? "correct" : "wrong";
+  // 4 estados: idle (nada) · selected (eligió, sin chequear) · correct · wrong.
+  const state: RunnerState =
+    verdict === null
+      ? selection === null ? "idle" : "selected"
+      : verdict.correct ? "correct" : "wrong";
   const hintLevel = nextHintLevel(wrongCount);
   const mustAdvance = shouldAdvanceAfterWrong(wrongCount);
 
@@ -84,11 +93,13 @@ export function ExerciseRunner({
   const [animClass, setAnimClass] = useState("");
   useEffect(() => {
     const prev = prevStateRef.current;
-    if (prev === "idle" && state === "correct") {
+    // El veredicto aparece al "Comprobar"/"Terminé": disparamos sonido y
+    // animación en la transición selected→correct/wrong (o idle→… en trace).
+    if (prev !== "correct" && state === "correct") {
       playCorrect();
       setAnimClass("animate-correct-pop");
     }
-    if (prev === "idle" && state === "wrong") {
+    if (prev !== "wrong" && state === "wrong") {
       playWrong();
       setAnimClass("animate-wrong-shake");
     }
@@ -104,20 +115,27 @@ export function ExerciseRunner({
   const numericAnswer = typeof ex.solution.answer === "number" ? ex.solution.answer : 0;
   const options = useMemo(() => genOptions(numericAnswer), [ex.id, numericAnswer]);
 
-  function submit(value: unknown) {
-    const correct = evaluateAttempt(ex.kind, ex.solution, value);
-    setAnswer({ value, correct });
+  // El niño elige/arma una respuesta — todavía NO se evalúa.
+  function select(value: unknown) {
+    if (verdict !== null) return; // ya chequeado, no permitir re-seleccionar
+    setSelection({ value });
   }
 
-  // Adapter para TRACE: el canvas devuelve un stroke, evaluamos con
-  // matchesDigit y luego mandamos `true` o `false` a evaluate.
-  // Guardamos las estrellas (0-3) en el answer para mostrar feedback granular.
-  function onTraceStroke(stroke: Point[]) {
-    // Para DRAW (ex-TRACE) el dígito objetivo viaja en el payload.
-    const digit = typeof ex.payload.digit === "number" ? (ex.payload.digit as number) : 0;
-    const { ok, stars } = matchesDigit(stroke, digit);
-    const correct = evaluateAttempt(ex.kind, ex.solution, ok);
-    setAnswer({ value: ok, correct, stars });
+  // "Comprobar": ahora sí evaluamos la selección. Disparado por el botón
+  // del footer (nunca automático al elegir).
+  function comprobar() {
+    if (selection === null || verdict !== null) return;
+    const correct = evaluateAttempt(ex.kind, ex.solution, selection.value);
+    setVerdict({ correct });
+  }
+
+  // TRACE evalúa al tocar "Terminé" dentro del TraceCanvas (su propia acción
+  // explícita de chequeo). El canvas ya computó el score por cobertura.
+  function onTraceResult(r: { correct: boolean; stars: 0 | 1 | 2 | 3 }) {
+    if (verdict !== null) return;
+    const correct = evaluateAttempt(ex.kind, ex.solution, r.correct);
+    setSelection({ value: r.correct });
+    setVerdict({ correct, stars: r.stars });
   }
 
   async function recordAttempt(
@@ -143,7 +161,8 @@ export function ExerciseRunner({
     }
 
     setI(i + 1);
-    setAnswer(null);
+    setSelection(null);
+    setVerdict(null);
     setWrongCount(0);
     setExerciseStartedAt(Date.now());
     setResetSignal((s) => s + 1);
@@ -151,7 +170,7 @@ export function ExerciseRunner({
 
   async function onContinue() {
     if (state === "correct") {
-      await recordAttempt(true, answer?.value, {
+      await recordAttempt(true, selection?.value, {
         final: true, priorWrongs: wrongCount, solutionShown: false,
       });
       await advance(true);
@@ -164,18 +183,20 @@ export function ExerciseRunner({
     if (shouldAdvanceAfterWrong(next)) {
       // Cierre del ejercicio con solución revelada — único intento que
       // descuenta corazón en el server (ver /api/attempts).
-      await recordAttempt(false, answer?.value, {
+      await recordAttempt(false, selection?.value, {
         final: true, priorWrongs: wrongCount, solutionShown: true,
       });
       return;
     }
 
     // Wrong intermedio: NO es final, server lo registra para analytics
-    // pero no descuenta corazón.
-    await recordAttempt(false, answer?.value, {
+    // pero no descuenta corazón. Limpiamos selección+veredicto para que el
+    // niño vuelva a intentar (y los inputs internos se remontan).
+    await recordAttempt(false, selection?.value, {
       final: false, priorWrongs: wrongCount, solutionShown: false,
     });
-    setAnswer(null);
+    setSelection(null);
+    setVerdict(null);
     setResetSignal((s) => s + 1);
   }
 
@@ -229,16 +250,19 @@ export function ExerciseRunner({
           >
             <KindBody
               ex={ex}
-              answer={answer}
+              state={state}
+              selectedValue={selection?.value ?? null}
               options={options}
-              disabled={state !== "idle"}
+              // Los inputs se bloquean recién cuando hay veredicto, NO al
+              // elegir — el niño puede cambiar la respuesta antes de Comprobar.
+              disabled={verdict !== null}
               resetSignal={resetSignal}
               showSolution={hintLevel === "solution"}
-              onPickNumeric={(n) => submit(n)}
-              onPickString={(s) => submit(s)}
-              onTraceStroke={onTraceStroke}
-              onMatchComplete={(pairs) => submit(pairs)}
-              onOrderComplete={(seq) => submit(seq)}
+              onSelectNumeric={(n) => select(n)}
+              onSelectString={(s) => select(s)}
+              onTraceResult={onTraceResult}
+              onMatchComplete={(pairs) => select(pairs)}
+              onOrderComplete={(seq) => select(seq)}
             />
           </div>
 
@@ -260,7 +284,8 @@ export function ExerciseRunner({
         mustAdvance={mustAdvance}
         xpPerExercise={xpPerExercise}
         idleMessage={labels.idle}
-        traceStars={answer?.stars}
+        traceStars={verdict?.stars}
+        onComprobar={comprobar}
         onContinue={onContinue}
         onAcknowledgeSolution={onAcknowledgeSolution}
       />
@@ -269,24 +294,24 @@ export function ExerciseRunner({
 }
 
 function KindBody({
-  ex, answer, options, disabled, resetSignal, showSolution,
-  onPickNumeric, onPickString, onTraceStroke, onMatchComplete, onOrderComplete,
+  ex, state, selectedValue, options, disabled, resetSignal, showSolution,
+  onSelectNumeric, onSelectString, onTraceResult, onMatchComplete, onOrderComplete,
 }: {
   ex: ExerciseDTO;
-  answer: Answer | null;
+  state: RunnerState;
+  selectedValue: unknown;
   options: number[];
   disabled: boolean;
   resetSignal: number;
   showSolution: boolean;
-  onPickNumeric: (n: number) => void;
-  onPickString: (s: string) => void;
-  onTraceStroke: (stroke: Point[]) => void;
+  onSelectNumeric: (n: number) => void;
+  onSelectString: (s: string) => void;
+  onTraceResult: (r: { correct: boolean; stars: 0 | 1 | 2 | 3 }) => void;
   onMatchComplete: (pairs: number[][]) => void;
   onOrderComplete: (seq: number[]) => void;
 }) {
-  const state: "idle" | "correct" | "wrong" =
-    answer === null ? "idle" : answer.correct ? "correct" : "wrong";
-  const numericPicked = typeof answer?.value === "number" ? (answer.value as number) : null;
+  const numericPicked = typeof selectedValue === "number" ? selectedValue : null;
+  const stringPicked = typeof selectedValue === "string" ? selectedValue : null;
   const visual = typeof ex.payload.visual === "string" ? ex.payload.visual : null;
 
   // El kind es la INTERACCIÓN (cómo responde el niño). El visual previo lo
@@ -299,7 +324,7 @@ function KindBody({
         <TraceCanvas
           key={resetSignal}
           digit={digit}
-          onStroke={onTraceStroke}
+          onResult={onTraceResult}
           disabled={disabled}
           showSolution={showSolution}
           size={typeof window !== "undefined" && window.innerWidth < 380 ? 240 : 280}
@@ -352,7 +377,7 @@ function KindBody({
           b={payload.b ?? 0}
           item={payload.item ?? "⭐"}
           disabled={disabled}
-          onSubmit={onPickNumeric}
+          onSubmit={onSelectNumeric}
         />
       </div>
     );
@@ -371,7 +396,7 @@ function KindBody({
             key={resetSignal}
             max={20}
             disabled={disabled}
-            onSubmit={onPickNumeric}
+            onSubmit={onSelectNumeric}
           />
         </div>
       </>
@@ -394,7 +419,8 @@ function KindBody({
               { value: ">", label: ">", sub: "mayor" },
             ]}
             disabled={disabled}
-            onPick={onPickString}
+            selected={stringPicked as never}
+            onPick={onSelectString}
           />
         </>
       );
@@ -411,7 +437,8 @@ function KindBody({
               { value: "impar", label: "Impar", sub: "queda uno solo" },
             ]}
             disabled={disabled}
-            onPick={onPickString}
+            selected={stringPicked as never}
+            onPick={onSelectString}
           />
         </>
       );
@@ -430,7 +457,8 @@ function KindBody({
           <ChoiceButtonsInput
             choices={(payloadOptions as string[]).map((o) => ({ value: o, label: o }))}
             disabled={disabled}
-            onPick={onPickString}
+            selected={stringPicked as never}
+            onPick={onSelectString}
           />
         </>
       );
@@ -443,7 +471,7 @@ function KindBody({
         <div className="w-full flex justify-center mb-8 md:mb-12">
           <ExerciseVisual ex={ex}/>
         </div>
-        <OptionsGrid options={options} picked={numericPicked} state={state} onPick={onPickNumeric}/>
+        <OptionsGrid options={options} picked={numericPicked} state={state} onPick={onSelectNumeric}/>
       </>
     );
   }
@@ -457,14 +485,16 @@ function KindBody({
 }
 
 function Footer({
-  state, mustAdvance, xpPerExercise, idleMessage, traceStars, onContinue, onAcknowledgeSolution,
+  state, mustAdvance, xpPerExercise, idleMessage, traceStars,
+  onComprobar, onContinue, onAcknowledgeSolution,
 }: {
-  state: "idle" | "correct" | "wrong";
+  state: RunnerState;
   mustAdvance: boolean;
   xpPerExercise: number;
   idleMessage: string;
   /** Estrellas (0-3) para feedback granular de TRACE. */
   traceStars?: 0 | 1 | 2 | 3;
+  onComprobar: () => void;
   onContinue: () => void;
   onAcknowledgeSolution: () => void;
 }) {
@@ -487,6 +517,22 @@ function Footer({
             </div>
             <button disabled className="w-full md:w-auto md:min-w-[200px] ml-auto py-3 px-6 rounded-full bg-ink-mute/20 text-ink-mute font-black uppercase tracking-wide text-sm">
               Elegí una respuesta
+            </button>
+          </>
+        )}
+
+        {state === "selected" && (
+          <>
+            <div className="hidden md:flex items-center gap-3 flex-1">
+              <Lumi size={48}/>
+              <span className="text-sm font-bold text-ink-soft">¿Estás seguro? Tocá Comprobar.</span>
+            </div>
+            <button
+              onClick={() => { playTap(); onComprobar(); }}
+              className="btn-chunky w-full md:w-auto md:min-w-[200px] ml-auto py-3 px-8 rounded-full bg-sky text-white font-black uppercase tracking-wide text-sm"
+              style={{ boxShadow: "0 4px 0 #2C8FB8" }}
+            >
+              Comprobar ✓
             </button>
           </>
         )}
