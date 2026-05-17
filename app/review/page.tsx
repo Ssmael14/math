@@ -29,6 +29,7 @@ export default async function ReviewPage() {
         solution: (m.exercise.solution ?? {}) as { answer?: number | string; sequence?: (number | string)[]; pairs?: number[][] },
         hints: Array.isArray(m.exercise.hints) ? (m.exercise.hints as string[]) : null,
         explanation: m.exercise.explanation,
+        audioUrl: m.exercise.audioUrl,
       }))}
     />
   );

@@ -28,6 +28,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         solution: (e.solution ?? {}) as { answer?: number | string; sequence?: (number | string)[]; pairs?: number[][] },
         hints: Array.isArray(e.hints) ? (e.hints as string[]) : null,
         explanation: e.explanation,
+        audioUrl: e.audioUrl,
       }))}
     />
   );
