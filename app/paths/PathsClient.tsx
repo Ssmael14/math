@@ -1,7 +1,7 @@
 "use client";
 // app/paths/PathsClient.tsx
-// Click → POST /api/enrollments + push a /home. Idempotente: si ya está
-// enrolled, sólo updatea la cookie y sigue.
+// Click → POST /api/enrollments + push al LearningPath canónico.
+// Idempotente: si ya está enrolled, sólo updatea la cookie y sigue.
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -18,7 +18,13 @@ type Path = {
   enrolled: boolean;
 };
 
-export function PathsClient({ childId, paths }: { childId: string; paths: Path[] }) {
+export function PathsClient({
+  childId,
+  paths,
+}: {
+  childId: string;
+  paths: Path[];
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +45,7 @@ export function PathsClient({ childId, paths }: { childId: string; paths: Path[]
         setError("No pudimos inscribirte. Probá de nuevo.");
         return;
       }
-      router.push("/home");
+      router.push(`/paths/${slug}`);
       router.refresh();
     });
   }
@@ -58,7 +64,8 @@ export function PathsClient({ childId, paths }: { childId: string; paths: Path[]
           >
             <div className="flex items-center justify-between mb-1">
               <div className="text-[10px] font-extrabold text-ink-mute tracking-widest">
-                {p.level.toUpperCase()}{p.grade ? ` · ${p.grade}°` : ""}
+                {p.level.toUpperCase()}
+                {p.grade ? ` · ${p.grade}°` : ""}
               </div>
               {p.isPremium && (
                 <span className="text-[10px] font-black bg-sun text-ink px-2 py-0.5 rounded-md">
@@ -75,16 +82,24 @@ export function PathsClient({ childId, paths }: { childId: string; paths: Path[]
               </div>
             )}
             <div className="mt-3 flex items-center gap-2">
-              {p.enrolled
-                ? <span className="text-[10px] font-black bg-mint text-white px-3 py-1.5 rounded-lg">CONTINUAR</span>
-                : <span className="text-[10px] font-black bg-ink text-white px-3 py-1.5 rounded-lg">EMPEZAR</span>}
+              {p.enrolled ? (
+                <span className="text-[10px] font-black bg-mint text-white px-3 py-1.5 rounded-lg">
+                  CONTINUAR
+                </span>
+              ) : (
+                <span className="text-[10px] font-black bg-ink text-white px-3 py-1.5 rounded-lg">
+                  EMPEZAR
+                </span>
+              )}
             </div>
           </button>
         ))}
       </div>
 
       {error && (
-        <div className="mt-4 text-pink text-sm font-bold text-center">{error}</div>
+        <div className="mt-4 text-pink text-sm font-bold text-center">
+          {error}
+        </div>
       )}
 
       <div className="mt-6">

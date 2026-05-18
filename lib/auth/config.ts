@@ -20,7 +20,7 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   secret: process.env.BETTER_AUTH_SECRET!,
   basePath: "/api/auth",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL,
 
   emailAndPassword: {
     enabled: true,
@@ -32,12 +32,14 @@ export const auth = betterAuth({
       if (!resend) {
         // Dev sin Resend: dejamos el link en consola para poder probar
         // el flujo sin SMTP real.
-        console.warn(`[auth] RESEND_API_KEY no seteada — link de reset para ${user.email}:`);
+        console.warn(
+          `[auth] RESEND_API_KEY no seteada — link de reset para ${user.email}:`,
+        );
         console.warn(url);
         return;
       }
       await resend.emails.send({
-        from: "LearnMath <onboarding@resend.dev>",
+        from: "noreply@psskal.com",
         to: user.email,
         subject: "Recuperá tu contraseña 🦙",
         html: `

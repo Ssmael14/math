@@ -12,6 +12,8 @@ import { getSessionCookie } from "better-auth/cookies";
 
 const PROTECTED = [
   "/home",
+  "/subjects",
+  "/paths",
   "/units",
   "/lesson",
   "/review",
@@ -24,7 +26,12 @@ const PROTECTED = [
   "/parental",
   "/settings",
 ];
-const AUTH_PAGES = ["/auth/login", "/auth/signup", "/auth/forgot", "/auth/reset"];
+const AUTH_PAGES = [
+  "/auth/login",
+  "/auth/signup",
+  "/auth/forgot",
+  "/auth/reset",
+];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -37,7 +44,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Ya logueado yendo a login/signup → home
-  if (logged && AUTH_PAGES.some((p) => path === p || path.startsWith(p + "/"))) {
+  if (
+    logged &&
+    AUTH_PAGES.some((p) => path === p || path.startsWith(p + "/"))
+  ) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 

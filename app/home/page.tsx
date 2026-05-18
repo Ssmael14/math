@@ -22,7 +22,9 @@ import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
 
-type UnitWithLessons = NonNullable<Awaited<ReturnType<typeof loadUnits>>>[number];
+type UnitWithLessons = NonNullable<
+  Awaited<ReturnType<typeof loadUnits>>
+>[number];
 
 async function loadUnits(childId: string, learningPathId: string) {
   return prisma.unit.findMany({
@@ -37,14 +39,19 @@ async function loadUnits(childId: string, learningPathId: string) {
   });
 }
 
-function pickActiveUnit(units: UnitWithLessons[], requestedSlug: string | undefined): UnitWithLessons | null {
+function pickActiveUnit(
+  units: UnitWithLessons[],
+  requestedSlug: string | undefined,
+): UnitWithLessons | null {
   if (units.length === 0) return null;
   if (requestedSlug) {
     const found = units.find((u) => u.slug === requestedSlug);
     if (found) return found;
   }
-  const incomplete = units.find((u) =>
-    u.lessons.length === 0 || u.lessons.some((l) => !l.progresses[0]?.completed),
+  const incomplete = units.find(
+    (u) =>
+      u.lessons.length === 0 ||
+      u.lessons.some((l) => !l.progresses[0]?.completed),
   );
   return incomplete ?? units[0];
 }
@@ -57,7 +64,8 @@ export default async function HomePage({
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
 
-  const { unit: requestedUnitSlug, path: requestedPathSlug } = await searchParams;
+  const { unit: requestedUnitSlug, path: requestedPathSlug } =
+    await searchParams;
 
   // Elegir LearningPath: query > enrollment activo. Sin enrollment → /subjects.
   let activePath = null;
@@ -82,10 +90,14 @@ export default async function HomePage({
   if (!unit) {
     return (
       <div className="min-h-[100dvh] flex flex-col bg-cream">
-        <TopNav/>
+        <TopNav />
         <div className="p-8 text-center">
-          <h1 className="font-fredoka text-2xl font-bold text-ink">Path sin unidades</h1>
-          <p className="text-ink-soft mt-2">El path "{activePath.name}" no tiene unidades cargadas.</p>
+          <h1 className="font-fredoka text-2xl font-bold text-ink">
+            Path sin unidades
+          </h1>
+          <p className="text-ink-soft mt-2">
+            El path "{activePath.name}" no tiene unidades cargadas.
+          </p>
         </div>
       </div>
     );
@@ -96,20 +108,26 @@ export default async function HomePage({
     const done = l.progresses[0]?.completed ?? false;
     let status: "done" | "current" | "locked" = "locked";
     if (done) status = "done";
-    else if (!hitCurrent) { status = "current"; hitCurrent = true; }
+    else if (!hitCurrent) {
+      status = "current";
+      hitCurrent = true;
+    }
     return { id: l.id, label: l.title, status };
   });
 
-  const totalDone = unit.lessons.filter((l) => l.progresses[0]?.completed).length;
+  const totalDone = unit.lessons.filter(
+    (l) => l.progresses[0]?.completed,
+  ).length;
   const progressPct = unit.lessons.length ? totalDone / unit.lessons.length : 0;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-cream">
-      <TopNav/>
+      <TopNav />
       <HomeClient
         unit={{ title: unit.title, order: unit.order, progressPct }}
         nodes={nodes}
         reviewsDue={masteryStats.dueToday}
+        pathHref={`/paths/${activePath.slug}`}
       />
     </div>
   );
