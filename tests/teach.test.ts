@@ -1,5 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { isTeachKind, gradedCount, parseTeach } from "../lib/learning/teach";
+import {
+  isTeachKind,
+  gradedCount,
+  parseTeach,
+  stripTeach,
+  precedingTeach,
+} from "../lib/learning/teach";
+
+const TEACH_PAYLOAD = {
+  teach: {
+    beats: [{ emoji: "🍎", text: "Una manzana", repeat: 3 }],
+    tryIt: { emoji: "🍎", count: 3, text: "Tocá", successText: "¡Bien!" },
+  },
+};
 
 describe("isTeachKind", () => {
   it("solo TEACH es enseñanza", () => {
@@ -65,5 +78,50 @@ describe("parseTeach", () => {
     });
     expect(c).not.toBeNull();
     expect(c!.tryIt).toBeUndefined();
+  });
+});
+
+describe("stripTeach", () => {
+  it("saca solo los pasos TEACH y conserva el orden", () => {
+    const steps = [
+      { kind: "TEACH", payload: TEACH_PAYLOAD },
+      { kind: "MULTIPLE_CHOICE" },
+      { kind: "DRAW" },
+    ];
+    const out = stripTeach(steps);
+    expect(out.map((s) => s.kind)).toEqual(["MULTIPLE_CHOICE", "DRAW"]);
+  });
+
+  it("no toca secuencias sin TEACH (unidades procedurales)", () => {
+    const steps = [{ kind: "INPUT" }, { kind: "MULTIPLE_CHOICE" }];
+    expect(stripTeach(steps)).toHaveLength(2);
+  });
+});
+
+describe("precedingTeach", () => {
+  const steps = [
+    { kind: "TEACH", payload: TEACH_PAYLOAD },
+    { kind: "MULTIPLE_CHOICE" },
+    { kind: "DRAW" },
+  ];
+
+  it("devuelve el Momento Lumi previo al ejercicio fallado", () => {
+    const c = precedingTeach(steps, 2);
+    expect(c).not.toBeNull();
+    expect(c!.beats[0].emoji).toBe("🍎");
+  });
+
+  it("devuelve null si no hay TEACH antes (unidad procedural)", () => {
+    const proc = [{ kind: "INPUT" }, { kind: "MULTIPLE_CHOICE" }];
+    expect(precedingTeach(proc, 1)).toBeNull();
+  });
+
+  it("devuelve null en el primer paso (no hay nada antes)", () => {
+    expect(precedingTeach(steps, 0)).toBeNull();
+  });
+
+  it("devuelve null si el TEACH previo está mal formado", () => {
+    const bad = [{ kind: "TEACH", payload: { teach: {} } }, { kind: "DRAW" }];
+    expect(precedingTeach(bad, 1)).toBeNull();
   });
 });

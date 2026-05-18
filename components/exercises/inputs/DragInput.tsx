@@ -8,8 +8,10 @@
 // sin librería externa. Si el niño suelta fuera del canasto, el ítem snapea
 // de vuelta a su posición original (clearing del transform).
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { playTap } from "@/lib/gamification/audio";
+import { speak } from "@/lib/tts";
+import { numberWord } from "@/lib/learning/number-words";
 
 type Item = { id: string; emoji: string; group: "a" | "b" };
 
@@ -18,12 +20,15 @@ export function DragInput({
   b,
   item,
   disabled = false,
+  verified = false,
   onSubmit,
 }: {
   a: number;
   b: number;
   item: string;
   disabled?: boolean;
+  /** true al acertar: dispara el conteo celebratorio del canasto en voz. */
+  verified?: boolean;
   onSubmit: (count: number) => void;
 }) {
   const [pool, setPool] = useState<Item[]>(() => [
@@ -34,6 +39,31 @@ export function DragInput({
   const [dragging, setDragging] = useState<{ id: string; dx: number; dy: number } | null>(null);
   const startRef = useRef<{ x: number; y: number; itemId: string } | null>(null);
   const basketRef = useRef<HTMLDivElement>(null);
+  // -1 = sin contar; 0..n-1 = ítem iluminado; n = total cantado al final.
+  const [countLit, setCountLit] = useState(-1);
+
+  // Conteo celebratorio: al acertar, los ítems del canasto se iluminan de a
+  // uno mientras Lumi cuenta "uno… dos… tres…" y cierra con el total. No
+  // bloquea: el footer del runner ya muestra "Continuar" en paralelo.
+  useEffect(() => {
+    if (!verified) return;
+    const n = basket.length;
+    if (n === 0) return;
+    let k = 0;
+    setCountLit(-1);
+    let timer = window.setTimeout(function tick() {
+      setCountLit(k);
+      void speak(numberWord(k + 1));
+      k += 1;
+      timer = window.setTimeout(
+        k < n ? tick : () => setCountLit(n),
+        k < n ? 650 : 700,
+      );
+    }, 350);
+    return () => window.clearTimeout(timer);
+    // basket.length es estable una vez verificado (input deshabilitado).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verified]);
 
   function onPointerDown(e: React.PointerEvent, id: string) {
     if (disabled) return;
@@ -111,24 +141,29 @@ export function DragInput({
         className="w-full min-h-[120px] rounded-3xl border-4 border-dashed border-mint/60 bg-mint-soft/40 p-3 relative"
       >
         <div className="absolute top-2 right-3 font-fredoka text-2xl font-bold text-mint" aria-hidden>
-          {basket.length}
+          {countLit >= 0 ? Math.min(countLit + 1, basket.length) : basket.length}
         </div>
         <div className="flex flex-wrap gap-2 items-center justify-center min-h-[80px] pt-4">
           {basket.length === 0 ? (
             <span className="text-ink-mute text-sm font-bold">🧺 vacío</span>
           ) : (
-            basket.map((it) => (
-              <button
-                key={it.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => returnFromBasket(it.id)}
-                aria-label={`${it.emoji} (tocá para devolver)`}
-                className="text-3xl md:text-4xl drag-pop"
-              >
-                {it.emoji}
-              </button>
-            ))
+            basket.map((it, idx) => {
+              const lit = countLit >= 0 && idx <= countLit;
+              return (
+                <button
+                  key={it.id}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => returnFromBasket(it.id)}
+                  aria-label={`${it.emoji} (tocá para devolver)`}
+                  className={`text-3xl md:text-4xl drag-pop transition-transform duration-200 ${
+                    lit ? "scale-125 drop-shadow" : countLit >= 0 ? "opacity-40" : ""
+                  }`}
+                >
+                  {it.emoji}
+                </button>
+              );
+            })
           )}
         </div>
       </div>

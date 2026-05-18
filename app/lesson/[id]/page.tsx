@@ -1,11 +1,9 @@
 // app/lesson/[id]/page.tsx — corre ejercicios reales de una lección
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import {
-  getActiveChild,
-  getLessonById,
-  getLessonExercises,
-} from "@/lib/queries";
+import { getActiveChild, getLessonById, getLessonExercises } from "@/lib/queries";
+import { prisma } from "@/lib/prisma";
+import { stripTeach } from "@/lib/learning/teach";
 import { LessonRunner } from "./LessonRunner";
 
 export async function generateMetadata({
@@ -40,7 +38,16 @@ export default async function LessonPage({
   const lesson = await getLessonById(id);
   if (!lesson) notFound();
 
-  const exercises = await getLessonExercises(id);
+  const rawExercises = await getLessonExercises(id);
+  if (!rawExercises.length) notFound();
+
+  // No re-enseñar lo aprendido: si la lección ya fue completada, al repetirla
+  // se saltea el Momento Lumi y se va directo a practicar.
+  const progress = await prisma.progress.findUnique({
+    where: { childId_lessonId: { childId: child.id, lessonId: id } },
+    select: { completed: true },
+  });
+  const exercises = progress?.completed ? stripTeach(rawExercises) : rawExercises;
   if (!exercises.length) notFound();
 
   return (

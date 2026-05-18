@@ -238,12 +238,15 @@ async function main() {
         difficulty: 2, xpReward: 8,
       },
       {
-        lessonId: l3.id, kind: ExerciseKind.INPUT, order: 2,
-        prompt: "2 + ? = 5",
-        payload: { visual: "fill", a: 2, result: 5 },
-        solution: { answer: 3 },
-        hints: ["¿Cuánto le falta al 2 para llegar al 5?", "Contá con los dedos desde el 2 hasta el 5."],
-        explanation: "Falta 3, porque 2 + 3 = 5.",
+        // Concreto antes que abstracto: el teclado numérico (visual "fill")
+        // es muy abstracto para pre-lectores 4-6. Acá vuelven a sumar
+        // manipulando objetos y contándolos en voz al acertar.
+        lessonId: l3.id, kind: ExerciseKind.DRAG_DROP, order: 2,
+        prompt: "Arrastrá las frutillas al canasto y contá: 3 + 2",
+        payload: { visual: "drag", a: 3, b: 2, item: "🍓" },
+        solution: { answer: 5 },
+        hints: ["Llevá todas al canasto y después contá.", "3 frutillas más 2 frutillas."],
+        explanation: "3 + 2 = 5. Si juntás los dos grupos te quedan 5 frutillas.",
         difficulty: 2, xpReward: 7,
       },
       {
