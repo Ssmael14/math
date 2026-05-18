@@ -24,6 +24,7 @@ import { MatchInput } from "@/components/exercises/inputs/MatchInput";
 import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
 import { DragInput } from "@/components/exercises/inputs/DragInput";
+import { TakeAwayInput } from "@/components/exercises/inputs/TakeAwayInput";
 import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
 import type { ExerciseDTO, TeachContent } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
@@ -457,6 +458,25 @@ function KindBody({
   }
 
   if (ex.kind === "MULTIPLE_CHOICE") {
+    // 0) Resta concreta: en vez de elegir un número, el niño SACA objetos
+    //    tocándolos y cuenta los que quedan (concreto antes que abstracto).
+    if (visual === "subtract") {
+      const p = ex.payload as { total?: number; removed?: number; item?: string };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <TakeAwayInput
+            key={resetSignal}
+            total={p.total ?? 0}
+            removed={p.removed ?? 0}
+            item={p.item ?? "⭐"}
+            disabled={disabled}
+            verified={state === "correct"}
+            onSubmit={onSelectNumeric}
+          />
+        </div>
+      );
+    }
+
     // 1) Visuales con choices fijas (compare/parity) — siguen hardcoded
     //    porque tienen sub-labels específicos.
     if (visual === "compare") {
