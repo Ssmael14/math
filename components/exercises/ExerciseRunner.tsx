@@ -25,6 +25,7 @@ import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
 import { DragInput } from "@/components/exercises/inputs/DragInput";
 import { TakeAwayInput } from "@/components/exercises/inputs/TakeAwayInput";
+import { CountTapInput } from "@/components/exercises/inputs/CountTapInput";
 import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
 import type { ExerciseDTO, TeachContent } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
@@ -458,7 +459,25 @@ function KindBody({
   }
 
   if (ex.kind === "MULTIPLE_CHOICE") {
-    // 0) Resta concreta: en vez de elegir un número, el niño SACA objetos
+    // 0a) Contar tocando: correspondencia uno-a-uno en vez de elegir un
+    //     número. Es la base del conteo a los 4-6.
+    if (visual === "count") {
+      const p = ex.payload as { count?: number; item?: string };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <CountTapInput
+            key={resetSignal}
+            count={p.count ?? 0}
+            item={p.item ?? "⭐"}
+            disabled={disabled}
+            verified={state === "correct"}
+            onSubmit={onSelectNumeric}
+          />
+        </div>
+      );
+    }
+
+    // 0b) Resta concreta: en vez de elegir un número, el niño SACA objetos
     //    tocándolos y cuenta los que quedan (concreto antes que abstracto).
     if (visual === "subtract") {
       const p = ex.payload as { total?: number; removed?: number; item?: string };
