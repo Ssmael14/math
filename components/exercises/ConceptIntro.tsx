@@ -10,14 +10,8 @@ import { useEffect, useState } from "react";
 import { Lumi } from "@/components/Lumi";
 import { speak, stopSpeaking } from "@/lib/tts";
 import { playTap, playCorrect, vibrate } from "@/lib/gamification/audio";
+import { numberWord } from "@/lib/learning/number-words";
 import type { TeachContent } from "@/components/exercises/types";
-
-// Números narrados del conteo animado (counts del Momento Lumi van 1..20).
-const NUMBER_WORDS = [
-  "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
-  "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis",
-  "diecisiete", "dieciocho", "diecinueve", "veinte",
-];
 
 export function ConceptIntro({
   content,
@@ -61,7 +55,7 @@ export function ConceptIntro({
     let timer = window.setTimeout(function tick() {
       n += 1;
       setRevealed(n);
-      void speak(NUMBER_WORDS[n - 1] ?? String(n));
+      void speak(numberWord(n));
       timer = window.setTimeout(
         n >= total ? () => void speak(beat.text) : tick,
         n >= total ? 900 : 850,

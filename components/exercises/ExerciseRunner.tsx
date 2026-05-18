@@ -429,6 +429,7 @@ function KindBody({
           b={payload.b ?? 0}
           item={payload.item ?? "⭐"}
           disabled={disabled}
+          verified={state === "correct"}
           onSubmit={onSelectNumeric}
         />
       </div>
