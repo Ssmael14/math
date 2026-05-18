@@ -268,8 +268,8 @@ async function main() {
       { emoji: "🐊", count: 1, text: "Tocá al cocodrilo para saludarlo.", successText: "¡Listo! Ya sabés su truco." },
     ),
     compare(2, 5),
-    compare(4, 4),
     compare(5, 3),
+    compare(4, 4),
   ]);
 
   await lesson(u1.id, { slug: "ordenar-1-5", title: "Ordenar 1 a 5", order: 4, xpReward: 26, minutes: 6 }, [
@@ -282,8 +282,15 @@ async function main() {
       { emoji: "🪜", count: 1, text: "Tocá la escalera para empezar.", successText: "¡A ordenar!" },
     ),
     order([2, 1, 3]),
-    order([3, 5, 1, 4, 2]),
     match([{ item: "⭐", count: 4 }, { item: "🍎", count: 5 }], [5, 4]),
+    order([3, 5, 1, 4, 2]),
+  ]);
+
+  await lesson(u1.id, { slug: "repaso-1-5", title: "Repaso 1 al 5", order: 5, xpReward: 32, minutes: 7 }, [
+    count("🍎", 5, "Tocá uno por uno."),
+    compare(2, 4),
+    match([{ item: "🐟", count: 3 }, { item: "⭐", count: 5 }, { item: "🍎", count: 4 }], [4, 3, 5]),
+    order([3, 1, 5, 2, 4]),
   ]);
 
   // ---------- Unidad 2 · Números 6 al 10 ----------
@@ -332,8 +339,8 @@ async function main() {
       { emoji: "✏️", count: 1, text: "Tocá el lápiz para empezar.", successText: "¡A trazar!" },
     ),
     trace(6),
-    trace(8),
     trace(9),
+    trace(8),
   ]);
 
   await lesson(u2.id, { slug: "comparar-ordenar-10", title: "Comparar hasta 10", order: 4, xpReward: 28, minutes: 7 }, [
@@ -344,10 +351,17 @@ async function main() {
       ],
       { emoji: "🐊", count: 1, text: "Tocá al cocodrilo.", successText: "¡Vamos!" },
     ),
+    compare(8, 6),
     compare(7, 9),
     compare(10, 10),
-    compare(8, 6),
     order([9, 6, 8, 7, 10]),
+  ]);
+
+  await lesson(u2.id, { slug: "repaso-6-10", title: "Repaso 6 al 10", order: 5, xpReward: 34, minutes: 8 }, [
+    count("🐟", 7, "Contá despacio."),
+    trace(8),
+    compare(10, 8),
+    order([6, 9, 7, 10, 8]),
   ]);
 
   // ---------- Unidad 3 · Primeras sumas ----------
@@ -400,6 +414,13 @@ async function main() {
     add(5, 5, "🍎"),
   ]);
 
+  await lesson(u3.id, { slug: "repaso-sumas", title: "Repaso de sumas", order: 4, xpReward: 34, minutes: 8 }, [
+    add(2, 2, "🍎"),
+    add(3, 2, "⭐"),
+    add(5, 3, "🍓"),
+    add(4, 4, "🐟"),
+  ]);
+
   // ---------- Unidad 4 · Primeras restas ----------
   const u4 = await prisma.unit.create({
     data: {
@@ -435,6 +456,13 @@ async function main() {
     sub(6, 2, "🍎"),
     sub(8, 3, "⭐"),
     sub(10, 4, "🐟"),
+  ]);
+
+  await lesson(u4.id, { slug: "repaso-restas", title: "Repaso de restas", order: 3, xpReward: 36, minutes: 8 }, [
+    sub(4, 1, "🍎"),
+    sub(7, 3, "⭐"),
+    sub(9, 4, "🐟"),
+    sub(10, 5, "🧁"),
   ]);
 
   // ============================================================
