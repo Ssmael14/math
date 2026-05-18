@@ -33,6 +33,19 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   return dbUser;
 }
 
+/**
+ * ¿El email está en la lista de admins? Lista en `ADMIN_EMAILS` (separada
+ * por comas). Aún no hay modelo de roles; esto gatea el panel admin mínimo.
+ */
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const allow = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allow.includes(email.toLowerCase());
+}
+
 /** Requiere sesión — tira redirect si no hay. Usalo en páginas protegidas. */
 export async function requireUser(): Promise<AuthUser> {
   const user = await getCurrentUser();
