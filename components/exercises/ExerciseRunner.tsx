@@ -25,11 +25,11 @@ import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
 import { DragInput } from "@/components/exercises/inputs/DragInput";
 import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
-import type { ExerciseDTO } from "@/components/exercises/types";
+import type { ExerciseDTO, TeachContent } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { evaluateAttempt } from "@/lib/learning/evaluate";
-import { gradedCount, parseTeach } from "@/lib/learning/teach";
+import { gradedCount, parseTeach, precedingTeach } from "@/lib/learning/teach";
 import { playCorrect, playWrong, playTap } from "@/lib/gamification/audio";
 // matchesDigit ya no se usa: el scoring de trazo lo hace TraceCanvas vía
 // lib/learning/trace-scoring (cobertura de máscara).
@@ -78,6 +78,9 @@ export function ExerciseRunner({
   // resetSignal cambia cada vez que volvemos a idle desde wrong, para que
   // los inputs internos (canvas, match, order) limpien su estado local.
   const [resetSignal, setResetSignal] = useState(0);
+  // Re-enseñar al trabarse: cuando el niño agota los intentos, mostramos de
+  // nuevo el Momento Lumi previo antes de avanzar (null = no estamos en eso).
+  const [reteach, setReteach] = useState<TeachContent | null>(null);
 
   const ex = exercises[i];
   // Los pasos TEACH no se califican: el denominador de estrellas/XP cuenta
@@ -217,10 +220,33 @@ export function ExerciseRunner({
   }
 
   async function onAcknowledgeSolution() {
+    // Si este ejercicio venía precedido de un Momento Lumi, lo re-enseñamos
+    // antes de seguir. En unidades sin TEACH precedingTeach() devuelve null
+    // y el flujo es el de siempre.
+    const rt = precedingTeach(exercises, i);
+    if (rt) {
+      setReteach(rt);
+      return;
+    }
     await advance(false);
   }
 
   const progress = ((i + (state === "correct" ? 1 : 0)) / exercises.length) * 100;
+
+  // Re-enseñanza tras trabarse: reusa el mismo Momento Lumi con copys
+  // más suaves. Al terminar avanza al siguiente ejercicio.
+  if (reteach) {
+    return (
+      <ConceptIntro
+        content={reteach}
+        variant="reteach"
+        onDone={() => {
+          setReteach(null);
+          void advance(false);
+        }}
+      />
+    );
+  }
 
   // Momento Lumi: enseñanza no calificada. Toma la pantalla completa con su
   // propia narración/footer; al terminar avanza al siguiente paso.

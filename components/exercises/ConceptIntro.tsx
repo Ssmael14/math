@@ -6,40 +6,72 @@
 //
 // No se califica, no descuenta corazones, no suma estrellas. Solo enseña.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Lumi } from "@/components/Lumi";
 import { speak, stopSpeaking } from "@/lib/tts";
 import { playTap, playCorrect, vibrate } from "@/lib/gamification/audio";
 import type { TeachContent } from "@/components/exercises/types";
 
+// Números narrados del conteo animado (counts del Momento Lumi van 1..20).
+const NUMBER_WORDS = [
+  "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
+  "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis",
+  "diecisiete", "dieciocho", "diecinueve", "veinte",
+];
+
 export function ConceptIntro({
   content,
   onDone,
+  variant = "teach",
 }: {
   content: TeachContent;
   onDone: () => void;
+  /** "reteach" = se vuelve a enseñar tras trabarse (copys más suaves). */
+  variant?: "teach" | "reteach";
 }) {
   const { beats, tryIt } = content;
+  const isReteach = variant === "reteach";
   // phase: índice de beat (0..beats.length-1) → luego "try" (si hay) → fin.
   const [beatIdx, setBeatIdx] = useState(0);
   const [phase, setPhase] = useState<"beats" | "try">("beats");
   const [tapped, setTapped] = useState(0);
-  const narratedRef = useRef<string>("");
+  // Cuántos emojis de la escena actual ya aparecieron (conteo animado).
+  const [revealed, setRevealed] = useState(1);
 
   const beat = beats[beatIdx];
   const isLastBeat = beatIdx >= beats.length - 1;
 
-  // Narra la escena/instrucción actual una sola vez al entrar.
+  // Conteo animado con voz: si la escena repite el emoji, aparecen de a uno
+  // mientras Lumi cuenta "uno… dos… tres…"; al terminar narra la frase.
+  // Si no repite, se muestra y se narra de una. La fase "try" solo narra.
   useEffect(() => {
-    const line =
-      phase === "beats" ? beat?.text : tryIt?.text;
-    if (!line) return;
-    const key = `${phase}:${beatIdx}`;
-    if (narratedRef.current === key) return;
-    narratedRef.current = key;
-    void speak(line);
-    return () => stopSpeaking();
-  }, [phase, beatIdx, beat?.text, tryIt?.text]);
+    if (phase !== "beats") {
+      if (tryIt?.text) void speak(tryIt.text);
+      return () => stopSpeaking();
+    }
+    if (!beat) return;
+    const total = beat.repeat ?? 1;
+    if (total <= 1) {
+      setRevealed(total);
+      void speak(beat.text);
+      return () => stopSpeaking();
+    }
+    setRevealed(0);
+    let n = 0;
+    let timer = window.setTimeout(function tick() {
+      n += 1;
+      setRevealed(n);
+      void speak(NUMBER_WORDS[n - 1] ?? String(n));
+      timer = window.setTimeout(
+        n >= total ? () => void speak(beat.text) : tick,
+        n >= total ? 900 : 850,
+      );
+    }, 450);
+    return () => {
+      window.clearTimeout(timer);
+      stopSpeaking();
+    };
+  }, [phase, beatIdx, beat, tryIt?.text]);
 
   function nextBeat() {
     playTap();
@@ -78,7 +110,7 @@ export function ConceptIntro({
       <header className="sticky top-0 z-20 bg-cream/80 backdrop-blur">
         <div className="max-w-2xl mx-auto h-14 flex items-center justify-center">
           <span className="text-xs font-black text-ink-mute tracking-widest uppercase">
-            ✨ Aprendamos con Lumi
+            {isReteach ? "🔁 Repasemos juntos" : "✨ Aprendamos con Lumi"}
           </span>
         </div>
       </header>
@@ -87,10 +119,10 @@ export function ConceptIntro({
         {phase === "beats" && beat && (
           <div key={beatIdx} className="flex flex-col items-center animate-correct-pop">
             <div className="flex flex-wrap items-center justify-center gap-2 max-w-md mb-6">
-              {Array.from({ length: beat.repeat ?? 1 }).map((_, k) => (
+              {Array.from({ length: Math.max(1, revealed) }).map((_, k) => (
                 <span
                   key={k}
-                  className="text-6xl md:text-7xl drop-shadow-sm"
+                  className="text-6xl md:text-7xl drop-shadow-sm animate-correct-pop"
                   aria-hidden
                 >
                   {beat.emoji}

@@ -2,6 +2,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getActiveChild, getLessonExercises } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
+import { stripTeach } from "@/lib/learning/teach";
 import { LessonRunner } from "./LessonRunner";
 
 export default async function LessonPage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,7 +13,16 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
   const lesson = await prisma.lesson.findUnique({ where: { id } });
   if (!lesson) notFound();
 
-  const exercises = await getLessonExercises(id);
+  const rawExercises = await getLessonExercises(id);
+  if (!rawExercises.length) notFound();
+
+  // No re-enseñar lo aprendido: si la lección ya fue completada, al repetirla
+  // se saltea el Momento Lumi y se va directo a practicar.
+  const progress = await prisma.progress.findUnique({
+    where: { childId_lessonId: { childId: child.id, lessonId: id } },
+    select: { completed: true },
+  });
+  const exercises = progress?.completed ? stripTeach(rawExercises) : rawExercises;
   if (!exercises.length) notFound();
 
   return (

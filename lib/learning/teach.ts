@@ -17,6 +17,34 @@ export function gradedCount(kinds: string[]): number {
   return kinds.filter((k) => !isTeachKind(k)).length;
 }
 
+/** Forma mínima de un paso para las utilidades de secuencia (kind + payload). */
+type TeachStep = { kind: string; payload?: unknown };
+
+/**
+ * Saca los pasos TEACH de la secuencia. Se usa cuando la lección ya fue
+ * aprendida (Progress.completed): al repetirla no re-enseñamos, vamos
+ * directo a practicar.
+ */
+export function stripTeach<T extends TeachStep>(steps: T[]): T[] {
+  return steps.filter((s) => !isTeachKind(s.kind));
+}
+
+/**
+ * Momento Lumi más cercano ANTES de `index` (o null si no hay ninguno).
+ * Sostiene el "re-enseñar al trabarse": cuando el niño agota los intentos
+ * de un ejercicio, le volvemos a mostrar la enseñanza que lo precedía.
+ * En unidades procedurales (sin TEACH) devuelve null → comportamiento normal.
+ */
+export function precedingTeach<T extends TeachStep>(
+  steps: T[],
+  index: number,
+): TeachContent | null {
+  for (let i = Math.min(index, steps.length) - 1; i >= 0; i--) {
+    if (isTeachKind(steps[i].kind)) return parseTeach(steps[i].payload);
+  }
+  return null;
+}
+
 /**
  * Valida y normaliza el payload de un TEACH. Devuelve null si está mal
  * formado (el runner entonces lo saltea sin romper la lección).
