@@ -102,6 +102,26 @@ async function main() {
   await prisma.exercise.createMany({
     data: [
       {
+        lessonId: l1.id, kind: ExerciseKind.TEACH, order: 0,
+        prompt: "",
+        payload: {
+          teach: {
+            beats: [
+              { emoji: "🍎", repeat: 1, text: "Esto es una manzana. ¡Una sola!" },
+              { emoji: "🍎", repeat: 3, text: "Si hay más, las contamos: uno, dos, tres." },
+              { emoji: "🖐️", repeat: 1, text: "Contar es decir los números señalando cada cosa." },
+            ],
+            tryIt: {
+              emoji: "🍎", count: 3,
+              text: "Ahora vos: tocá las 3 manzanas, una por una.",
+              successText: "¡Muy bien! Contaste hasta 3.",
+            },
+          },
+        },
+        solution: {},
+        difficulty: 1, xpReward: 0,
+      },
+      {
         lessonId: l1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 1,
         prompt: "¿Cuántas estrellas hay?",
         payload: { visual: "count", item: "⭐", count: 3 },
@@ -140,6 +160,26 @@ async function main() {
   await prisma.exercise.createMany({
     data: [
       {
+        lessonId: l2.id, kind: ExerciseKind.TEACH, order: 0,
+        prompt: "",
+        payload: {
+          teach: {
+            beats: [
+              { emoji: "🐟", repeat: 5, text: "Mirá: cinco pececitos. Uno, dos, tres, cuatro, cinco." },
+              { emoji: "🐟", repeat: 7, text: "Si hay más, seguimos: seis, siete." },
+              { emoji: "🔟", repeat: 1, text: "Cuantas más cosas, más alto contamos. ¡Hasta diez!" },
+            ],
+            tryIt: {
+              emoji: "🐟", count: 6,
+              text: "Tocá los 6 peces, uno por uno.",
+              successText: "¡Genial! Contaste hasta 6.",
+            },
+          },
+        },
+        solution: {},
+        difficulty: 1, xpReward: 0,
+      },
+      {
         lessonId: l2.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 1,
         prompt: "¿Cuántos peces hay?",
         payload: { visual: "count", item: "🐟", count: 7 },
@@ -168,6 +208,26 @@ async function main() {
   });
   await prisma.exercise.createMany({
     data: [
+      {
+        lessonId: l3.id, kind: ExerciseKind.TEACH, order: 0,
+        prompt: "",
+        payload: {
+          teach: {
+            beats: [
+              { emoji: "🍓", repeat: 2, text: "Tenés 2 frutillas." },
+              { emoji: "🍓", repeat: 3, text: "Te dan 3 frutillas más." },
+              { emoji: "🍓", repeat: 5, text: "Si las juntás todas, ¡ahora hay 5! Eso es sumar." },
+            ],
+            tryIt: {
+              emoji: "🍓", count: 5,
+              text: "Tocá todas las frutillas: 2 y 3 juntas.",
+              successText: "¡Exacto! 2 más 3 es 5.",
+            },
+          },
+        },
+        solution: {},
+        difficulty: 1, xpReward: 0,
+      },
       {
         lessonId: l3.id, kind: ExerciseKind.DRAG_DROP, order: 1,
         prompt: "Arrastrá los peces al canasto y contá: 2 + 3",

@@ -62,13 +62,13 @@ export async function POST(req: Request) {
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: { _count: { select: { exercises: true } } },
-  });
+  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
   if (!lesson) return NextResponse.json({ error: "lesson not found" }, { status: 404 });
 
-  const totalExercises = lesson._count.exercises;
+  // Los pasos TEACH (enseñanza) no se califican: no cuentan para estrellas.
+  const totalExercises = await prisma.exercise.count({
+    where: { lessonId, kind: { not: "TEACH" } },
+  });
   if (totalExercises === 0) {
     return NextResponse.json({ error: "lesson_empty" }, { status: 400 });
   }

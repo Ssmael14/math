@@ -11,7 +11,34 @@ export type ExerciseKind =
   | "INPUT"
   | "DRAW"
   | "AUDIO"
-  | "SPEAK";
+  | "SPEAK"
+  | "TEACH";
+
+/** Una escena del "Momento Lumi": ilustración + frase narrada. */
+export type TeachBeat = {
+  /** Emoji protagonista grande de la escena. */
+  emoji: string;
+  /** Repetición del emoji (ej: contar 3 manzanas). Default 1. */
+  repeat?: number;
+  /** Texto que se narra por TTS y se muestra como pie. */
+  text: string;
+};
+
+/** Mini-interacción final imposible de fallar (aprender haciendo). */
+export type TeachTryIt = {
+  emoji: string;
+  /** Cuántos tocar para "lograrlo". */
+  count: number;
+  /** Instrucción narrada. */
+  text: string;
+  /** Celebración narrada al completar. */
+  successText: string;
+};
+
+export type TeachContent = {
+  beats: TeachBeat[];
+  tryIt?: TeachTryIt;
+};
 
 export type ExercisePayload = {
   /** Hint al visualizador de qué dibujar (count, subtract, compare, …).

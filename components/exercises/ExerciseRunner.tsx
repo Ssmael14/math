@@ -19,6 +19,7 @@ import { OptionsGrid } from "@/components/exercises/OptionsGrid";
 import { HintPanel } from "@/components/exercises/HintPanel";
 import { TraceCanvas } from "@/components/exercises/TraceCanvas";
 import { SpeakerButton } from "@/components/exercises/SpeakerButton";
+import { ConceptIntro } from "@/components/exercises/ConceptIntro";
 import { MatchInput } from "@/components/exercises/inputs/MatchInput";
 import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
@@ -28,6 +29,7 @@ import type { ExerciseDTO } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
 import { postOrQueue } from "@/lib/offline-queue";
 import { evaluateAttempt } from "@/lib/learning/evaluate";
+import { gradedCount, parseTeach } from "@/lib/learning/teach";
 import { playCorrect, playWrong, playTap } from "@/lib/gamification/audio";
 // matchesDigit ya no se usa: el scoring de trazo lo hace TraceCanvas vía
 // lib/learning/trace-scoring (cobertura de máscara).
@@ -78,6 +80,13 @@ export function ExerciseRunner({
   const [resetSignal, setResetSignal] = useState(0);
 
   const ex = exercises[i];
+  // Los pasos TEACH no se califican: el denominador de estrellas/XP cuenta
+  // solo los ejercicios reales.
+  const gradedTotal = useMemo(
+    () => gradedCount(exercises.map((e) => e.kind)),
+    [exercises],
+  );
+  const teach = ex.kind === "TEACH" ? parseTeach(ex.payload) : null;
   // 4 estados: idle (nada) · selected (eligió, sin chequear) · correct · wrong.
   const state: RunnerState =
     verdict === null
@@ -106,6 +115,12 @@ export function ExerciseRunner({
     }
     prevStateRef.current = state;
   }, [state]);
+
+  // Un TEACH con payload mal formado no debe trabar la lección: se saltea.
+  useEffect(() => {
+    if (ex.kind === "TEACH" && !teach) void advance(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i]);
 
   // Texto/valor de "respuesta" para el HintPanel.
   const solutionAnswer = ex.solution.answer ?? null;
@@ -157,7 +172,7 @@ export function ExerciseRunner({
     setCorrectCount(nextCount);
 
     if (i + 1 >= exercises.length) {
-      await onComplete({ correctCount: nextCount, total: exercises.length });
+      await onComplete({ correctCount: nextCount, total: gradedTotal });
       return;
     }
 
@@ -206,6 +221,13 @@ export function ExerciseRunner({
   }
 
   const progress = ((i + (state === "correct" ? 1 : 0)) / exercises.length) * 100;
+
+  // Momento Lumi: enseñanza no calificada. Toma la pantalla completa con su
+  // propia narración/footer; al terminar avanza al siguiente paso.
+  if (ex.kind === "TEACH") {
+    if (!teach) return null; // el effect de arriba ya lo está salteando
+    return <ConceptIntro content={teach} onDone={() => void advance(false)} />;
+  }
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-white">

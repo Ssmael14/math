@@ -260,6 +260,7 @@ enum ExerciseKind {
   DRAW             // trazar/dibujar (recognizer)
   AUDIO            // escuchar y responder
   SPEAK            // hablar (speech-to-text)
+  TEACH            // momento de enseñanza (no calificado, precede a la práctica)
 }
 
 model Exercise {

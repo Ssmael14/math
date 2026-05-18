@@ -4,6 +4,7 @@
 import { useRouter } from "next/navigation";
 import { ExerciseRunner } from "@/components/exercises/ExerciseRunner";
 import type { ExerciseDTO } from "@/components/exercises/types";
+import { gradedCount } from "@/lib/learning/teach";
 import { postOrQueue } from "@/lib/offline-queue";
 
 export function LessonRunner({
@@ -21,7 +22,9 @@ export function LessonRunner({
       childId={childId}
       hearts={hearts}
       exercises={exercises}
-      xpPerExercise={Math.round(lesson.xpReward / Math.max(1, exercises.length))}
+      xpPerExercise={Math.round(
+        lesson.xpReward / Math.max(1, gradedCount(exercises.map((e) => e.kind))),
+      )}
       reviewMode={false}
       labels={{ step: "EJERCICIO", idle: "¡Tú puedes! Elegí tu respuesta." }}
       onComplete={async ({ correctCount }) => {
