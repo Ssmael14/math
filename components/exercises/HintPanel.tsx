@@ -1,8 +1,14 @@
+"use client";
 // components/exercises/HintPanel.tsx
 // Panel que aparece bajo el visual cuando el niño se equivocó.
 // La política de qué mostrar está en lib/hints.ts — este componente sólo
 // renderiza el resultado.
+//
+// Pre-lectores 4-6: la pista/explicación se NARRA sola al aparecer (y queda
+// un 🔊 para repetir), igual que el enunciado. Sin esto la ayuda era texto
+// que el niño no puede leer.
 import type { HintLevel } from "@/lib/learning/hints";
+import { SpeakerButton } from "@/components/exercises/SpeakerButton";
 
 export function HintPanel({
   level,
@@ -18,6 +24,7 @@ export function HintPanel({
   if (level === "none") return null;
 
   if (level === "hint") {
+    const text = hint ?? "Mirá el ejercicio con calma y contá despacio.";
     return (
       <div
         role="status"
@@ -26,17 +33,21 @@ export function HintPanel({
         style={{ boxShadow: "var(--shadow-chunky-sm)" }}
       >
         <span className="text-3xl shrink-0" aria-hidden>💡</span>
-        <div>
+        <div className="flex-1">
           <div className="font-fredoka font-bold text-ink text-sm md:text-base">Pista</div>
-          <p className="text-ink-soft text-sm md:text-base mt-0.5">
-            {hint ?? "Mirá el ejercicio con calma y contá despacio."}
-          </p>
+          <p className="text-ink-soft text-sm md:text-base mt-0.5">{text}</p>
         </div>
+        <SpeakerButton text={text} autoPlayKey="hint" />
       </div>
     );
   }
 
   // level === "solution"
+  const title =
+    answer !== null ? `La respuesta es ${answer}` : "Mirá la explicación";
+  const body =
+    explanation ??
+    "No te preocupes — vas a ir mejorando con la práctica. ¡Seguimos!";
   return (
     <div
       role="status"
@@ -47,12 +58,11 @@ export function HintPanel({
       <span className="text-3xl shrink-0" aria-hidden>📖</span>
       <div className="flex-1">
         <div className="font-fredoka font-bold text-ink text-sm md:text-base">
-          {answer !== null ? `La respuesta es ${answer}` : "Mirá la explicación"}
+          {title}
         </div>
-        <p className="text-ink-soft text-sm md:text-base mt-0.5">
-          {explanation ?? "No te preocupes — vas a ir mejorando con la práctica. ¡Seguimos!"}
-        </p>
+        <p className="text-ink-soft text-sm md:text-base mt-0.5">{body}</p>
       </div>
+      <SpeakerButton text={`${title}. ${body}`} autoPlayKey="solution" />
     </div>
   );
 }
