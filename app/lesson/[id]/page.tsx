@@ -60,6 +60,7 @@ export default async function LessonPage({
         },
         hints: Array.isArray(e.hints) ? (e.hints as string[]) : null,
         explanation: e.explanation,
+        audioUrl: e.audioUrl,
       }))}
     />
   );

@@ -34,4 +34,6 @@ export type ExerciseDTO = {
   solution: ExerciseSolution;
   hints?: string[] | null;
   explanation?: string | null;
+  /** Audio pre-generado del enunciado (TTS). Si falta, se usa Web Speech. */
+  audioUrl?: string | null;
 };

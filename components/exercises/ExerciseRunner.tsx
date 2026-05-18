@@ -18,6 +18,7 @@ import { ExerciseVisual } from "@/components/exercises/ExerciseVisual";
 import { OptionsGrid } from "@/components/exercises/OptionsGrid";
 import { HintPanel } from "@/components/exercises/HintPanel";
 import { TraceCanvas } from "@/components/exercises/TraceCanvas";
+import { SpeakerButton } from "@/components/exercises/SpeakerButton";
 import { MatchInput } from "@/components/exercises/inputs/MatchInput";
 import { OrderInput } from "@/components/exercises/inputs/OrderInput";
 import { NumericKeypadInput } from "@/components/exercises/inputs/NumericKeypadInput";
@@ -240,9 +241,12 @@ export function ExerciseRunner({
           <div className="text-[10px] md:text-xs font-black text-ink-mute tracking-widest mb-2">
             {labels.step} {i + 1} / {exercises.length}
           </div>
-          <h2 className="font-fredoka text-xl md:text-3xl font-bold text-ink text-center mb-8 md:mb-12 text-balance">
-            {ex.prompt}
-          </h2>
+          <div className="flex items-center justify-center gap-3 mb-8 md:mb-12">
+            <h2 className="font-fredoka text-xl md:text-3xl font-bold text-ink text-center text-balance">
+              {ex.prompt}
+            </h2>
+            <SpeakerButton text={ex.prompt} audioUrl={ex.audioUrl} autoPlayKey={ex.id} />
+          </div>
 
           <div
             className={`w-full flex flex-col items-center ${animClass}`}
