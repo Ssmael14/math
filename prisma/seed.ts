@@ -372,7 +372,7 @@ async function main() {
   const primary1 = await prisma.learningPath.create({
     data: {
       subjectId: mathSubject.id,
-      slug: "math-primary-1",
+      slug: "math-initial-nel",
       name: "Inicial · Aventura con Lumi",
       description: "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Lumi.",
       level: EducationLevel.INITIAL,
