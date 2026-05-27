@@ -144,14 +144,17 @@ export default async function UnitPage({
           <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {lessons.map((lesson, index) => {
               const href =
-                lesson.status === "locked" ? "#" : `/lesson/${lesson.id}`;
+                lesson.status === "current" ? `/lesson/${lesson.id}` : "#";
               const isLocked = lesson.status === "locked";
+              const isDone = lesson.status === "done";
               return (
                 <Link
                   key={lesson.id}
                   href={href}
-                  aria-disabled={isLocked}
-                  className={`btn-chunky flex items-center gap-4 p-4 md:p-5 rounded-3xl border-4 border-white bg-white ${isLocked ? "pointer-events-none opacity-70" : "hover:border-sky"}`}
+                  aria-disabled={isLocked || isDone}
+                  className={`btn-chunky flex items-center gap-4 p-4 md:p-5 rounded-3xl border-4 border-white bg-white ${
+                    isLocked || isDone ? "pointer-events-none opacity-80" : "hover:border-sky"
+                  }`}
                   style={{ boxShadow: "var(--shadow-chunky)" }}
                 >
                   <div className="w-14 h-14 rounded-2xl bg-sun-soft flex items-center justify-center text-2xl font-black text-ink shrink-0">

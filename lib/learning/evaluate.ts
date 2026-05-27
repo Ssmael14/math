@@ -7,7 +7,7 @@
 // Formato de `solution.answer` por kind:
 //   MULTIPLE_CHOICE → number | string (la opción correcta)
 //   INPUT           → number | string (lo tipeado, comparado strict)
-//   DRAG_DROP       → number (count de items arrastrados al target)
+//   DRAG_DROP       → number (canasto), { groups } (clasificar) o { parts }
 //   SORT            → (number | string)[] (la secuencia esperada)
 //   MATCH           → [number, number][] (pares de índices)
 //   DRAW            → boolean (lo evalúa el recognizer del cliente)
@@ -19,7 +19,13 @@ export type ExerciseSolution = {
   answer?: number | string;
   sequence?: (number | string)[];
   pairs?: number[][];
+  groups?: Record<string, string[]>;
+  total?: number;
+  parts?: number[];
 };
+
+type GroupResponse = { groups?: unknown };
+type PartsResponse = { parts?: unknown };
 
 export function evaluateAttempt(
   kind: ExerciseKind,
@@ -38,8 +44,12 @@ export function evaluateAttempt(
       );
 
     case "DRAG_DROP":
-      // El componente DragInput devuelve cuántos items hay en el canasto.
-      return typeof response === "number" && response === solution.answer;
+      // DragInput de sumas devuelve un número. Los juegos nuevos devuelven
+      // estructuras pequeñas para clasificar o separar en partes.
+      if (typeof response === "number") return response === solution.answer;
+      if (solution.groups) return sameGroups(solution.groups, (response as GroupResponse)?.groups);
+      if (solution.parts) return sameParts(solution.parts, (response as PartsResponse)?.parts);
+      return false;
 
     case "DRAW":
       // El recognizer de trazos evalúa con `matchesDigit` del cliente y manda
@@ -66,4 +76,28 @@ export function evaluateAttempt(
     default:
       return false;
   }
+}
+
+function sameGroups(expected: Record<string, string[]>, raw: unknown): boolean {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+  const got = raw as Record<string, unknown>;
+  const expectedKeys = Object.keys(expected).sort();
+  const gotKeys = Object.keys(got).sort();
+  if (expectedKeys.length !== gotKeys.length) return false;
+  if (!expectedKeys.every((k, i) => k === gotKeys[i])) return false;
+
+  return expectedKeys.every((key) => {
+    const expectedItems = [...expected[key]].sort();
+    const gotItems = got[key];
+    if (!Array.isArray(gotItems) || !gotItems.every((v) => typeof v === "string")) return false;
+    const actualItems = [...gotItems].sort();
+    return expectedItems.length === actualItems.length && expectedItems.every((v, i) => v === actualItems[i]);
+  });
+}
+
+function sameParts(expected: number[], raw: unknown): boolean {
+  if (!Array.isArray(raw) || !raw.every((v) => typeof v === "number")) return false;
+  const a = [...expected].sort((x, y) => x - y);
+  const b = [...raw].sort((x, y) => x - y);
+  return a.length === b.length && a.every((v, i) => v === b[i]);
 }

@@ -64,6 +64,9 @@ export default async function LessonPage({
           answer?: number | string;
           sequence?: (number | string)[];
           pairs?: number[][];
+          groups?: Record<string, string[]>;
+          total?: number;
+          parts?: number[];
         },
         hints: Array.isArray(e.hints) ? (e.hints as string[]) : null,
         explanation: e.explanation,

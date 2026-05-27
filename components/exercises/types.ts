@@ -51,6 +51,9 @@ export type ExerciseSolution = {
   answer?: number | string;
   sequence?: (number | string)[];
   pairs?: number[][];
+  groups?: Record<string, string[]>;
+  total?: number;
+  parts?: number[];
 };
 
 export type ExerciseDTO = {

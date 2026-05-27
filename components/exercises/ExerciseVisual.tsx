@@ -146,6 +146,117 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
       return null;
     }
 
+    case "same-match": {
+      const { left = [], right = [] } = ex.payload as {
+        left?: { emoji: string }[];
+        right?: { emoji: string }[];
+      };
+      return (
+        <div className="flex items-center justify-center gap-4 text-3xl md:text-4xl">
+          <EmojiStrip items={left.map((i) => i.emoji)} />
+          <span className="font-fredoka font-bold text-ink-mute">↔</span>
+          <EmojiStrip items={right.map((i) => i.emoji)} />
+        </div>
+      );
+    }
+
+    case "sort-attribute": {
+      const { items = [], categories = [] } = ex.payload as {
+        items?: { emoji: string }[];
+        categories?: { label: string; emoji?: string }[];
+      };
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <EmojiStrip items={items.map((i) => i.emoji)} />
+          <div className="flex flex-wrap justify-center gap-2">
+            {categories.map((c, i) => (
+              <span key={i} className="rounded-full bg-mint-soft px-3 py-1 text-xs font-black text-ink-soft">
+                {c.emoji ? `${c.emoji} ` : ""}{c.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "compare-attribute": {
+      const { left, right } = ex.payload as {
+        left?: { emoji: string; label?: string; size?: number };
+        right?: { emoji: string; label?: string; size?: number };
+      };
+      return (
+        <div className="flex items-end justify-center gap-8">
+          {left && <ScaledEmoji emoji={left.emoji} label={left.label} size={left.size ?? 1} />}
+          {right && <ScaledEmoji emoji={right.emoji} label={right.label} size={right.size ?? 1} />}
+        </div>
+      );
+    }
+
+    case "order-objects": {
+      const { objects = [] } = ex.payload as { objects?: { emoji: string; size?: number; label?: string }[] };
+      return (
+        <div className="flex items-end justify-center gap-3 md:gap-4 flex-wrap">
+          {objects.map((object, i) => (
+            <ScaledEmoji key={i} emoji={object.emoji} label={object.label} size={object.size ?? 1} />
+          ))}
+        </div>
+      );
+    }
+
+    case "pattern-next": {
+      const { sequence = [] } = ex.payload as { sequence?: string[] };
+      return (
+        <div className="flex items-center justify-center flex-wrap gap-2 md:gap-3">
+          {sequence.map((item, i) => (
+            <span key={i} className="text-4xl md:text-6xl leading-none">{item}</span>
+          ))}
+          <NumberCard placeholder />
+        </div>
+      );
+    }
+
+    case "flash-quantity": {
+      const { item, count, arrangement } = ex.payload as { item: string; count: number; arrangement?: string };
+      return (
+        <div className="flex flex-col items-center gap-2">
+          <div className={`grid gap-2 ${arrangement === "dice" ? "grid-cols-3" : count === 4 ? "grid-cols-2" : "grid-cols-3"}`}>
+            {Array.from({ length: count }).map((_, i) => (
+              <span key={i} className="text-4xl md:text-6xl leading-none">{item}</span>
+            ))}
+          </div>
+          <div className="text-[10px] font-black text-ink-mute tracking-widest">MIRÁ EL GRUPO COMPLETO</div>
+        </div>
+      );
+    }
+
+    case "conservation": {
+      const { item, count } = ex.payload as { item: string; count: number };
+      return (
+        <div className="flex flex-col items-center gap-4">
+          <EmojiStrip items={Array.from({ length: count }, () => item)} />
+          <EmojiStrip spread items={Array.from({ length: count }, () => item)} />
+        </div>
+      );
+    }
+
+    case "compare-groups": {
+      const { left, right } = ex.payload as {
+        left?: { item: string; count: number };
+        right?: { item: string; count: number };
+      };
+      return (
+        <div className="grid grid-cols-2 gap-6 w-full max-w-md">
+          <GroupBox label="Izquierda" group={left} />
+          <GroupBox label="Derecha" group={right} />
+        </div>
+      );
+    }
+
+    case "part-whole": {
+      const { item, total } = ex.payload as { item: string; total: number };
+      return <EmojiStrip items={Array.from({ length: total }, () => item)} />;
+    }
+
     // -----------------------------------------------------------------
     // READING visuals
     // -----------------------------------------------------------------
@@ -205,6 +316,38 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
       // como visual mismo. Útil para audio/speak en el futuro.
       return null;
   }
+}
+
+function EmojiStrip({ items, spread = false }: { items: string[]; spread?: boolean }) {
+  return (
+    <div className={`flex flex-wrap justify-center ${spread ? "gap-5 md:gap-8" : "gap-1.5 md:gap-2"} max-w-lg`}>
+      {items.map((item, i) => (
+        <span key={i} className="text-4xl md:text-6xl leading-none">{item}</span>
+      ))}
+    </div>
+  );
+}
+
+function ScaledEmoji({ emoji, label, size }: { emoji: string; label?: string; size: number }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="leading-none" style={{ fontSize: 30 + size * 16 }}>{emoji}</span>
+      {label && <span className="text-[10px] font-black text-ink-soft">{label}</span>}
+    </div>
+  );
+}
+
+function GroupBox({ label, group }: { label: string; group?: { item: string; count: number } }) {
+  return (
+    <div className="rounded-3xl bg-cream p-3 min-h-32 flex flex-col items-center justify-center gap-2">
+      <div className="text-[10px] font-black text-ink-mute tracking-widest">{label}</div>
+      <div className="flex flex-wrap justify-center gap-1">
+        {Array.from({ length: group?.count ?? 0 }).map((_, i) => (
+          <span key={i} className="text-3xl md:text-4xl leading-none">{group?.item}</span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function NumberCard({ n, placeholder = false }: { n?: number; placeholder?: boolean }) {

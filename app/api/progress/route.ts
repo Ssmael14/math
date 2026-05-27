@@ -2,6 +2,7 @@
 // POST /api/progress — el niño completó una lección.
 // El servidor calcula estrellas, XP y streak — el cliente NO los manda.
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { computeStars, mondayOfWeek } from "@/lib/gamification/scoring";
@@ -62,7 +63,17 @@ export async function POST(req: Request) {
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    include: {
+      unit: {
+        select: {
+          slug: true,
+          learningPath: { select: { slug: true } },
+        },
+      },
+    },
+  });
   if (!lesson) return NextResponse.json({ error: "lesson not found" }, { status: 404 });
 
   // Los pasos TEACH (enseñanza) no se califican: no cuentan para estrellas.
@@ -122,6 +133,12 @@ export async function POST(req: Request) {
   ]);
 
   const newAchievements = await checkAchievements(childId);
+
+  revalidatePath("/home");
+  revalidatePath("/profile");
+  revalidatePath("/achievements");
+  revalidatePath(`/units/${lesson.unit.slug}`);
+  revalidatePath(`/paths/${lesson.unit.learningPath.slug}`);
 
   return NextResponse.json({
     stars,

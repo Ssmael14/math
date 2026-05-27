@@ -28,6 +28,17 @@ describe("evaluateAttempt · DRAG_DROP", () => {
     expect(evaluateAttempt("DRAG_DROP", { answer: 5 }, 5)).toBe(true);
     expect(evaluateAttempt("DRAG_DROP", { answer: 5 }, 3)).toBe(false);
   });
+
+  it("compara grupos de clasificación sin depender del orden", () => {
+    const solution = { groups: { red: ["apple", "cherry"], yellow: ["banana"] } };
+    expect(evaluateAttempt("DRAG_DROP", solution, { groups: { red: ["cherry", "apple"], yellow: ["banana"] } })).toBe(true);
+    expect(evaluateAttempt("DRAG_DROP", solution, { groups: { red: ["apple"], yellow: ["banana", "cherry"] } })).toBe(false);
+  });
+
+  it("compara partes como multiset", () => {
+    expect(evaluateAttempt("DRAG_DROP", { total: 5, parts: [2, 3] }, { parts: [3, 2] })).toBe(true);
+    expect(evaluateAttempt("DRAG_DROP", { total: 5, parts: [2, 3] }, { parts: [1, 4] })).toBe(false);
+  });
 });
 
 describe("evaluateAttempt · DRAW", () => {
@@ -50,6 +61,9 @@ describe("evaluateAttempt · SORT", () => {
   });
   it("rechaza no-array", () => {
     expect(evaluateAttempt("SORT", { sequence: [1, 2] }, "1,2")).toBe(false);
+  });
+  it("acepta secuencias de ids string", () => {
+    expect(evaluateAttempt("SORT", { sequence: ["small", "medium", "big"] }, ["small", "medium", "big"])).toBe(true);
   });
 });
 

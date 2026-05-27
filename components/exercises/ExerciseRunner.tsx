@@ -27,6 +27,10 @@ import { DragInput } from "@/components/exercises/inputs/DragInput";
 import { TakeAwayInput } from "@/components/exercises/inputs/TakeAwayInput";
 import { CountTapInput } from "@/components/exercises/inputs/CountTapInput";
 import { ChoiceButtonsInput } from "@/components/exercises/inputs/ChoiceButtonsInput";
+import { ObjectOrderInput } from "@/components/exercises/inputs/ObjectOrderInput";
+import { PartWholeInput } from "@/components/exercises/inputs/PartWholeInput";
+import { SameMatchInput } from "@/components/exercises/inputs/SameMatchInput";
+import { SortAttributeInput } from "@/components/exercises/inputs/SortAttributeInput";
 import type { ExerciseDTO, TeachContent } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
 import { postOrQueue } from "@/lib/offline-queue";
@@ -314,6 +318,7 @@ export function ExerciseRunner({
               showSolution={hintLevel === "solution"}
               onSelectNumeric={(n) => select(n)}
               onSelectString={(s) => select(s)}
+              onSelectStructured={(value) => select(value)}
               onTraceResult={onTraceResult}
               onMatchComplete={(pairs) => select(pairs)}
               onOrderComplete={(seq) => select(seq)}
@@ -349,7 +354,7 @@ export function ExerciseRunner({
 
 function KindBody({
   ex, state, selectedValue, options, disabled, resetSignal, showSolution,
-  onSelectNumeric, onSelectString, onTraceResult, onMatchComplete, onOrderComplete,
+  onSelectNumeric, onSelectString, onSelectStructured, onTraceResult, onMatchComplete, onOrderComplete,
 }: {
   ex: ExerciseDTO;
   state: RunnerState;
@@ -360,9 +365,10 @@ function KindBody({
   showSolution: boolean;
   onSelectNumeric: (n: number) => void;
   onSelectString: (s: string) => void;
+  onSelectStructured: (value: unknown) => void;
   onTraceResult: (r: { correct: boolean; stars: 0 | 1 | 2 | 3 }) => void;
   onMatchComplete: (pairs: number[][]) => void;
-  onOrderComplete: (seq: number[]) => void;
+  onOrderComplete: (seq: (number | string)[]) => void;
 }) {
   const numericPicked = typeof selectedValue === "number" ? selectedValue : null;
   const stringPicked = typeof selectedValue === "string" ? selectedValue : null;
@@ -388,6 +394,24 @@ function KindBody({
   }
 
   if (ex.kind === "MATCH") {
+    if (visual === "same-match") {
+      const payload = ex.payload as {
+        left?: { id: string; emoji: string; label?: string }[];
+        right?: { id: string; emoji: string; label?: string }[];
+      };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-8">
+          <SameMatchInput
+            key={resetSignal}
+            left={Array.isArray(payload.left) ? payload.left : []}
+            right={Array.isArray(payload.right) ? payload.right : []}
+            disabled={disabled}
+            onComplete={onMatchComplete}
+          />
+        </div>
+      );
+    }
+
     const payload = ex.payload as { groups?: { item: string; count: number }[]; options?: number[] };
     const groups = Array.isArray(payload.groups) ? payload.groups : [];
     const opts = Array.isArray(payload.options) ? payload.options : [];
@@ -405,6 +429,20 @@ function KindBody({
   }
 
   if (ex.kind === "SORT") {
+    if (visual === "order-objects") {
+      const payload = ex.payload as { objects?: { id: string; emoji: string; label?: string; size?: number }[] };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-8">
+          <ObjectOrderInput
+            key={resetSignal}
+            objects={Array.isArray(payload.objects) ? payload.objects : []}
+            disabled={disabled}
+            onComplete={onOrderComplete}
+          />
+        </div>
+      );
+    }
+
     const payload = ex.payload as { numbers?: number[] };
     const numbers = Array.isArray(payload.numbers) ? payload.numbers : [];
     return (
@@ -420,6 +458,39 @@ function KindBody({
   }
 
   if (ex.kind === "DRAG_DROP") {
+    if (visual === "sort-attribute") {
+      const payload = ex.payload as {
+        items?: { id: string; emoji: string; label?: string }[];
+        categories?: { id: string; label: string; emoji?: string }[];
+      };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <SortAttributeInput
+            key={resetSignal}
+            items={Array.isArray(payload.items) ? payload.items : []}
+            categories={Array.isArray(payload.categories) ? payload.categories : []}
+            disabled={disabled}
+            onComplete={onSelectStructured}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "part-whole") {
+      const payload = ex.payload as { total?: number; item?: string };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <PartWholeInput
+            key={resetSignal}
+            total={payload.total ?? 0}
+            item={payload.item ?? "⭐"}
+            disabled={disabled}
+            onComplete={onSelectStructured}
+          />
+        </div>
+      );
+    }
+
     // Drag real con canasto. El ExerciseVisual no se monta — los items son
     // el visual.
     const payload = ex.payload as { a?: number; b?: number; item?: string };

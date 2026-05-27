@@ -22,6 +22,9 @@ const prisma = new PrismaClient();
 type Beat = { emoji: string; repeat?: number; text: string };
 type TryIt = { emoji: string; count: number; text: string; successText: string };
 type Ex = Prisma.ExerciseCreateManyInput;
+type Card = { id: string; emoji: string; label?: string; size?: number };
+type SortItem = Card & { category: string };
+type SortCategory = { id: string; label: string; emoji?: string };
 
 // --- Builders: un ejercicio correcto por intención, sin repetir 18 líneas ---
 
@@ -52,7 +55,7 @@ function count(item: string, n: number, hint: string): Omit<Ex, "lessonId" | "or
 function add(a: number, b: number, item: string): Omit<Ex, "lessonId" | "order"> {
   return {
     kind: ExerciseKind.DRAG_DROP,
-    prompt: `Llevá todo al canasto y contá: ${a} + ${b}`,
+    prompt: `Juntá ${a} y ${b} en el canasto. ¿Cuántos hay en total?`,
     payload: { visual: "drag", a, b, item },
     solution: { answer: a + b },
     hints: [`Juntá los ${a} y los ${b} en el canasto.`, "Después contá todo lo que hay adentro."],
@@ -142,6 +145,165 @@ function match(
   };
 }
 
+function sameMatch(
+  prompt: string,
+  left: Card[],
+  right: Card[],
+  explanation: string,
+): Omit<Ex, "lessonId" | "order"> {
+  const pairs = left.map((l, i) => [i, right.findIndex((r) => r.id === l.id)]);
+  return {
+    kind: ExerciseKind.MATCH,
+    prompt,
+    payload: { visual: "same-match", left, right },
+    solution: { pairs },
+    hints: ["Buscá el mismo dibujo.", "Tocá una tarjeta y después su pareja."],
+    explanation,
+    difficulty: 1,
+    xpReward: 6,
+  };
+}
+
+function sortByAttribute(
+  attribute: string,
+  items: SortItem[],
+  categories: SortCategory[],
+  prompt = "Poné cada cosa en su canasta.",
+  difficulty = 1,
+): Omit<Ex, "lessonId" | "order"> {
+  const groups = Object.fromEntries(categories.map((c) => [c.id, items.filter((i) => i.category === c.id).map((i) => i.id)]));
+  return {
+    kind: ExerciseKind.DRAG_DROP,
+    prompt,
+    payload: { visual: "sort-attribute", attribute, items, categories },
+    solution: { groups },
+    hints: ["Mirá una característica a la vez.", "Si se parece a la canasta, va ahí."],
+    explanation: "Clasificar es juntar las cosas que comparten una característica.",
+    difficulty,
+    xpReward: difficulty === 1 ? 6 : 7,
+  };
+}
+
+function compareObjects(
+  attribute: string,
+  left: Card,
+  right: Card,
+  answer: "izquierda" | "derecha" | "igual",
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt: attribute === "same" ? "¿Son iguales?" : "Tocá el que corresponde.",
+    payload: { visual: "compare-attribute", attribute, left, right, options: ["izquierda", "derecha", "igual"] },
+    solution: { answer },
+    hints: ["Miralos despacio.", "Compará solo lo que Lumi pidió."],
+    explanation:
+      answer === "igual"
+        ? "Son iguales en esta comparación."
+        : answer === "izquierda"
+          ? "El de la izquierda cumple la pista."
+          : "El de la derecha cumple la pista.",
+    difficulty: 1,
+    xpReward: 6,
+  };
+}
+
+function orderObjects(
+  attribute: string,
+  objects: Card[],
+  sequence: string[],
+  difficulty = 1,
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.SORT,
+    prompt: "Ordená las tarjetas.",
+    payload: { visual: "order-objects", attribute, objects },
+    solution: { sequence },
+    hints: ["Empezá por el más pequeño o corto.", "Después buscá el que sigue."],
+    explanation: "Ordenar es poner las cosas en una secuencia.",
+    difficulty,
+    xpReward: difficulty === 1 ? 7 : 8,
+  };
+}
+
+function patternNext(
+  sequence: string[],
+  options: string[],
+  answer: string,
+  difficulty = 1,
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt: "¿Qué sigue en el patrón?",
+    payload: { visual: "pattern-next", sequence, options },
+    solution: { answer },
+    hints: ["Decí el patrón en voz baja.", "Buscá qué parte se repite."],
+    explanation: `El patrón se repite. Sigue ${answer}.`,
+    difficulty,
+    xpReward: difficulty === 1 ? 6 : 8,
+  };
+}
+
+function subitise(
+  item: string,
+  n: number,
+  arrangement: string,
+  options: number[],
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt: "Mirá rápido. ¿Cuántos viste?",
+    payload: { visual: "flash-quantity", item, count: n, arrangement, durationMs: 1200, options },
+    solution: { answer: n },
+    hints: ["No cuentes uno por uno. Mirá el grupo completo."],
+    explanation: `Viste ${n}. A veces podés reconocer el grupo completo.`,
+    difficulty: n <= 3 ? 1 : 2,
+    xpReward: 7,
+  };
+}
+
+function conservation(item: string, n: number, beforeLayout: string, afterLayout: string): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt: "El mago movió las cosas. ¿Ahora hay más, menos o igual?",
+    payload: { visual: "conservation", item, count: n, beforeLayout, afterLayout, options: ["más", "menos", "igual"] },
+    solution: { answer: "igual" },
+    hints: ["No desapareció nada.", "Contá si querés comprobar."],
+    explanation: "Mover las cosas no cambia cuántas hay.",
+    difficulty: n <= 4 ? 1 : 2,
+    xpReward: 7,
+  };
+}
+
+function compareGroups(
+  left: { item: string; count: number },
+  right: { item: string; count: number },
+): Omit<Ex, "lessonId" | "order"> {
+  const answer = left.count === right.count ? "igual" : left.count > right.count ? "izquierda" : "derecha";
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt: "¿Dónde hay más?",
+    payload: { visual: "compare-groups", left, right, options: ["izquierda", "derecha", "igual"] },
+    solution: { answer },
+    hints: ["Mirá los dos grupos.", "Podés tocar y contar para comprobar."],
+    explanation: answer === "igual" ? "Hay la misma cantidad." : `Hay más en la ${answer}.`,
+    difficulty: Math.max(left.count, right.count) <= 5 ? 1 : 2,
+    xpReward: 7,
+  };
+}
+
+function partWhole(total: number, item: string, parts: number[]): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.DRAG_DROP,
+    prompt: `Separá el grupo en ${parts[0]} y ${parts[1]}.`,
+    payload: { visual: "part-whole", total, item, parts },
+    solution: { total, parts },
+    hints: ["Poné algunas cosas en una parte y otras en la otra.", "Las dos partes juntas forman el grupo completo."],
+    explanation: `${parts[0]} y ${parts[1]} forman ${total}. Un grupo puede separarse en partes.`,
+    difficulty: total <= 4 ? 1 : 2,
+    xpReward: 8,
+  };
+}
+
 async function lesson(
   unitId: string,
   data: { slug: string; title: string; order: number; xpReward: number; minutes: number },
@@ -186,7 +348,7 @@ async function main() {
   const mathSubject = await prisma.subject.create({
     data: {
       slug: "math", name: "Matemáticas",
-      description: "Contar, comparar, sumar y restar — paso a paso con Lumi.",
+      description: "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — con juegos visuales.",
       icon: "🧮", color: "sun", order: 1, isActive: true,
     },
   });
@@ -205,260 +367,267 @@ async function main() {
   });
 
   // ============================================================
-  // MATH · Primero · Aventura con Lumi
+  // MATH · Inicial · Aventura con Lumi
   // ============================================================
   const primary1 = await prisma.learningPath.create({
     data: {
       subjectId: mathSubject.id,
       slug: "math-primary-1",
-      name: "Primero · Aventura con Lumi",
-      description: "Contar del 1 al 10, comparar, ordenar, y las primeras sumas y restas.",
-      level: EducationLevel.PRIMARY,
-      grade: 1,
+      name: "Inicial · Aventura con Lumi",
+      description: "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Lumi.",
+      level: EducationLevel.INITIAL,
       difficulty: 1,
       isPremium: false,
       order: 1,
     },
   });
 
-  // ---------- Unidad 1 · Números 1 al 5 ----------
   const u1 = await prisma.unit.create({
     data: {
-      learningPathId: primary1.id, slug: "numeros-1-5",
-      title: "Números 1 al 5",
-      description: "Contar tocando, comparar y ordenar hasta 5",
-      order: 1, color: "peach", icon: "🔢",
+      learningPathId: primary1.id, slug: "antes-de-contar",
+      title: "Antes de contar",
+      description: "Emparejar, clasificar, comparar, ordenar y descubrir patrones.",
+      order: 1, color: "peach", icon: "🧩",
     },
   });
 
-  await lesson(u1.id, { slug: "contar-1-2-3", title: "Contar 1, 2, 3", order: 1, xpReward: 20, minutes: 5 }, [
-    lumi(
-      [
-        { emoji: "🍎", repeat: 1, text: "Esto es una manzana. ¡Una sola!" },
-        { emoji: "🍎", repeat: 2, text: "Si hay otra, son dos: uno, dos." },
-        { emoji: "🍎", repeat: 3, text: "Una más y son tres. Contar es tocar y decir el número." },
-      ],
-      { emoji: "🍎", count: 3, text: "Tocá las 3 manzanas, una por una.", successText: "¡Muy bien! Contaste hasta 3." },
-    ),
-    count("🐟", 2, "Son menos que tu mano."),
-    count("⭐", 3, "Una, dos, y una más."),
+  await lesson(u1.id, { slug: "emparejar-iguales", title: "Emparejar iguales", order: 1, xpReward: 22, minutes: 5 }, [
+    lumi([{ emoji: "🍎", repeat: 2, text: "En el mercado de los monitos, las cosas iguales pueden ir juntas." }], { emoji: "🍌", count: 2, text: "Tocá las dos bananas iguales.", successText: "¡Son pareja!" }),
+    sameMatch("Uní cada fruta con su pareja.", [{ id: "apple", emoji: "🍎" }, { id: "banana", emoji: "🍌" }, { id: "grape", emoji: "🍇" }], [{ id: "banana", emoji: "🍌" }, { id: "grape", emoji: "🍇" }, { id: "apple", emoji: "🍎" }], "Cada fruta encontró otra igual."),
+    sameMatch("Uní cada animal con su pareja.", [{ id: "cat", emoji: "🐱" }, { id: "dog", emoji: "🐶" }, { id: "fish", emoji: "🐟" }], [{ id: "fish", emoji: "🐟" }, { id: "cat", emoji: "🐱" }, { id: "dog", emoji: "🐶" }], "Emparejar es buscar lo que es igual."),
+    sortByAttribute("type", [{ id: "apple", emoji: "🍎", category: "fruits" }, { id: "cat", emoji: "🐱", category: "animals" }, { id: "banana", emoji: "🍌", category: "fruits" }, { id: "dog", emoji: "🐶", category: "animals" }], [{ id: "fruits", label: "Frutas", emoji: "🍎" }, { id: "animals", label: "Animales", emoji: "🐱" }], "Poné frutas con frutas y animales con animales."),
+  ]);
+
+  await lesson(u1.id, { slug: "clasificar-por-color", title: "Canastas de colores", order: 2, xpReward: 24, minutes: 6 }, [
+    lumi([{ emoji: "🧺", repeat: 1, text: "Cada canasta recibe cosas de su color." }], { emoji: "🍎", count: 1, text: "Tocá la fruta roja.", successText: "¡Rojo!" }),
+    sortByAttribute("color", [{ id: "apple", emoji: "🍎", category: "red" }, { id: "banana", emoji: "🍌", category: "yellow" }, { id: "pear", emoji: "🍐", category: "green" }, { id: "cherry", emoji: "🍒", category: "red" }], [{ id: "red", label: "Rojas", emoji: "🔴" }, { id: "yellow", label: "Amarillas", emoji: "🟡" }, { id: "green", label: "Verdes", emoji: "🟢" }], "Poné cada fruta en su color."),
+    sortByAttribute("color", [{ id: "rose", emoji: "🌹", category: "red" }, { id: "sunflower", emoji: "🌻", category: "yellow" }, { id: "tulip", emoji: "🌷", category: "red" }, { id: "blossom", emoji: "🌼", category: "yellow" }], [{ id: "red", label: "Rojas", emoji: "🔴" }, { id: "yellow", label: "Amarillas", emoji: "🟡" }], "Poné cada flor en su canasta."),
+    sortByAttribute("color", [{ id: "strawberry", emoji: "🍓", category: "red" }, { id: "lemon", emoji: "🍋", category: "yellow" }, { id: "tomato", emoji: "🍅", category: "red" }, { id: "leaf", emoji: "🍃", category: "other" }], [{ id: "red", label: "Rojas", emoji: "🔴" }, { id: "yellow", label: "Amarillas", emoji: "🟡" }, { id: "other", label: "Otra", emoji: "✨" }], "Hay un objeto que no va con los dos colores.", 2),
+  ]);
+
+  await lesson(u1.id, { slug: "clasificar-por-tamano-forma", title: "Pequeños, grandes y formas", order: 3, xpReward: 24, minutes: 6 }, [
+    lumi([{ emoji: "🔍", repeat: 1, text: "Miramos una característica a la vez: tamaño, forma o color." }], { emoji: "⭐", count: 1, text: "Tocá la estrella para mirar mejor.", successText: "¡Detective listo!" }),
+    sortByAttribute("size", [{ id: "small-star", emoji: "⭐", label: "pequeña", category: "small" }, { id: "big-star", emoji: "🌟", label: "grande", category: "big" }, { id: "small-flower", emoji: "🌸", label: "pequeña", category: "small" }, { id: "big-flower", emoji: "🌺", label: "grande", category: "big" }], [{ id: "small", label: "Pequeños" }, { id: "big", label: "Grandes" }]),
+    sortByAttribute("shape", [{ id: "circle", emoji: "🔵", category: "circle" }, { id: "triangle", emoji: "🔺", category: "triangle" }, { id: "square", emoji: "🟩", category: "square" }, { id: "circle2", emoji: "🟡", category: "circle" }], [{ id: "circle", label: "Círculos" }, { id: "triangle", label: "Triángulos" }, { id: "square", label: "Cuadrados" }], "Poné cada forma con su familia."),
+    compareObjects("size", { id: "small", emoji: "🧸", label: "pequeño", size: 1 }, { id: "big", emoji: "🧸", label: "grande", size: 2 }, "derecha"),
+  ]);
+
+  await lesson(u1.id, { slug: "ordenar-objetos", title: "El tren de los tamaños", order: 4, xpReward: 26, minutes: 6 }, [
+    lumi([{ emoji: "🚂", repeat: 1, text: "El tren sale si los vagones están ordenados." }], { emoji: "🚃", count: 3, text: "Tocá los vagones del tren.", successText: "¡A ordenar!" }),
+    orderObjects("size", [{ id: "small", emoji: "🚃", size: 1 }, { id: "big", emoji: "🚃", size: 3 }, { id: "medium", emoji: "🚃", size: 2 }], ["small", "medium", "big"]),
+    orderObjects("height", [{ id: "one", emoji: "🌱", size: 1 }, { id: "four", emoji: "🌳", size: 4 }, { id: "two", emoji: "🌿", size: 2 }, { id: "three", emoji: "🌲", size: 3 }], ["one", "two", "three", "four"], 2),
+    orderObjects("length", [{ id: "s", emoji: "✏️", size: 1 }, { id: "xl", emoji: "✏️", size: 5 }, { id: "m", emoji: "✏️", size: 3 }, { id: "l", emoji: "✏️", size: 4 }, { id: "xs", emoji: "✏️", size: 2 }], ["s", "xs", "m", "l", "xl"], 2),
+  ]);
+
+  await lesson(u1.id, { slug: "detectives-de-patrones", title: "Detectives de patrones", order: 5, xpReward: 28, minutes: 7 }, [
+    lumi([{ emoji: "🧩", repeat: 1, text: "Un patrón es algo que se repite." }], { emoji: "🍎", count: 2, text: "Tocá el patrón: manzana, banana.", successText: "¡Patrón encontrado!" }),
+    patternNext(["🍎", "🍌", "🍎", "🍌"], ["🍎", "🍌", "🍇"], "🍎"),
+    patternNext(["🔴", "🔴", "🟡", "🟡", "🔴", "🔴"], ["🔴", "🟡", "🔵"], "🟡"),
+    patternNext(["🐱", "🐶", "🐟", "🐱", "🐶", "🐟"], ["🐱", "🐶", "🐟"], "🐱", 2),
+    patternNext(["⭐", "⭐", "🌙", "🌙", "⭐", "⭐", "🌙"], ["⭐", "🌙", "☀️"], "🌙", 2),
+  ]);
+
+  const u2 = await prisma.unit.create({
+    data: {
+      learningPathId: primary1.id, slug: "contar-tocando-1-5",
+      title: "Contar tocando 1-5",
+      description: "Contar uno por uno, en orden, y descubrir que el último número dice cuántos hay.",
+      order: 2, color: "mint", icon: "🔢",
+    },
+  });
+
+  await lesson(u2.id, { slug: "uno-a-uno", title: "Un toque, un número", order: 1, xpReward: 22, minutes: 5 }, [
+    lumi([{ emoji: "☝️", repeat: 1, text: "Tocamos una cosa y decimos un número. Una cosa, un toque." }], { emoji: "🍎", count: 2, text: "Tocá dos manzanas, una por una.", successText: "¡Un toque para cada una!" }),
+    count("🐟", 2, "Tocá un pez y decí uno. Tocá otro y decí dos."),
+    count("⭐", 3, "Una estrella, un número."),
     match([{ item: "🍎", count: 1 }, { item: "⭐", count: 2 }, { item: "🐟", count: 3 }], [2, 3, 1]),
   ]);
 
-  await lesson(u1.id, { slug: "contar-4-5", title: "Contar 4 y 5", order: 2, xpReward: 22, minutes: 5 }, [
-    lumi(
-      [
-        { emoji: "🐟", repeat: 4, text: "Mirá: cuatro pececitos. Uno, dos, tres, cuatro." },
-        { emoji: "🖐️", repeat: 1, text: "Una más y son cinco — ¡como los dedos de una mano!" },
-      ],
-      { emoji: "🐟", count: 5, text: "Tocá los 5 peces, uno por uno.", successText: "¡Genial! Llegaste a 5." },
-    ),
-    count("⭐", 4, "Es uno más que tres."),
-    count("🍎", 5, "Como los dedos de una mano."),
-    trace(5),
-  ]);
-
-  await lesson(u1.id, { slug: "cual-tiene-mas", title: "¿Cuál tiene más?", order: 3, xpReward: 24, minutes: 6 }, [
-    lumi(
-      [
-        { emoji: "🐊", repeat: 1, text: "Este es el cocodrilo comelón." },
-        { emoji: "🐊", repeat: 1, text: "Su boca siempre se abre hacia donde hay MÁS." },
-        { emoji: "🟰", repeat: 1, text: "Si hay lo mismo de los dos lados, son iguales." },
-      ],
-      { emoji: "🐊", count: 1, text: "Tocá al cocodrilo para saludarlo.", successText: "¡Listo! Ya sabés su truco." },
-    ),
-    compare(2, 5),
-    compare(5, 3),
-    compare(4, 4),
-  ]);
-
-  await lesson(u1.id, { slug: "ordenar-1-5", title: "Ordenar 1 a 5", order: 4, xpReward: 26, minutes: 6 }, [
-    lumi(
-      [
-        { emoji: "🪜", repeat: 1, text: "Los números son una escalera." },
-        { emoji: "1️⃣", repeat: 1, text: "Empezamos por el más chiquito y vamos subiendo." },
-        { emoji: "5️⃣", repeat: 1, text: "Cada escalón es uno más que el anterior." },
-      ],
-      { emoji: "🪜", count: 1, text: "Tocá la escalera para empezar.", successText: "¡A ordenar!" },
-    ),
+  await lesson(u2.id, { slug: "orden-estable", title: "La canción de los números", order: 2, xpReward: 22, minutes: 5 }, [
+    lumi([{ emoji: "🎵", repeat: 1, text: "La canción siempre va igual: uno, dos, tres, cuatro, cinco." }], { emoji: "🎵", count: 1, text: "Tocá la nota para cantar.", successText: "¡Cantamos en orden!" }),
     order([2, 1, 3]),
-    match([{ item: "⭐", count: 4 }, { item: "🍎", count: 5 }], [5, 4]),
-    order([3, 5, 1, 4, 2]),
+    order([3, 1, 4, 2]),
+    order([4, 2, 5, 1, 3]),
   ]);
 
-  await lesson(u1.id, { slug: "repaso-1-5", title: "Repaso 1 al 5", order: 5, xpReward: 32, minutes: 7 }, [
+  await lesson(u2.id, { slug: "cardinalidad", title: "El último dice cuántos", order: 3, xpReward: 24, minutes: 6 }, [
+    lumi([{ emoji: "🏁", repeat: 1, text: "Cuando terminás de contar, el último número dice cuántos hay." }], { emoji: "⭐", count: 4, text: "Tocá cuatro estrellas.", successText: "¡El último fue cuatro!" }),
+    count("🍎", 4, "El último número te dice la cantidad."),
+    count("🐟", 5, "Terminá de contar y escuchá el último número."),
+    match([{ item: "⭐", count: 3 }, { item: "🍎", count: 4 }, { item: "🐟", count: 5 }], [5, 3, 4]),
+  ]);
+
+  await lesson(u2.id, { slug: "contar-desde-cualquier-lado", title: "Contar desde cualquier lado", order: 4, xpReward: 24, minutes: 6 }, [
+    lumi([{ emoji: "🔄", repeat: 1, text: "Podés empezar por otro lado y sigue habiendo la misma cantidad." }], { emoji: "🍓", count: 4, text: "Tocá las frutillas en el orden que quieras.", successText: "¡Siguen siendo cuatro!" }),
+    count("🍓", 4, "Podés empezar por la izquierda."),
+    count("🍓", 4, "Podés empezar por la derecha."),
+    conservation("🍓", 4, "row", "spread"),
+  ]);
+
+  await lesson(u2.id, { slug: "repaso-contar-1-5", title: "Repaso 1 al 5", order: 5, xpReward: 28, minutes: 7 }, [
+    lumi([{ emoji: "🖐️", repeat: 1, text: "Repasamos hasta cinco con ojos, dedos y toques." }], { emoji: "⭐", count: 5, text: "Tocá cinco estrellas.", successText: "¡Llegaste a cinco!" }),
     count("🍎", 5, "Tocá uno por uno."),
-    compare(2, 4),
-    match([{ item: "🐟", count: 3 }, { item: "⭐", count: 5 }, { item: "🍎", count: 4 }], [4, 3, 5]),
+    match([{ item: "🍎", count: 1 }, { item: "🐟", count: 3 }, { item: "⭐", count: 5 }], [5, 1, 3]),
     order([3, 1, 5, 2, 4]),
+    compareGroups({ item: "🍎", count: 2 }, { item: "🍎", count: 4 }),
   ]);
 
-  // ---------- Unidad 2 · Números 6 al 10 ----------
-  const u2 = await prisma.unit.create({
+  const u3 = await prisma.unit.create({
     data: {
-      learningPathId: primary1.id, slug: "numeros-6-10",
-      title: "Números 6 al 10",
-      description: "Seguir contando, comparar y ordenar hasta 10",
-      order: 2, color: "mint", icon: "🔟",
+      learningPathId: primary1.id, slug: "contar-hasta-10",
+      title: "Contar hasta 10",
+      description: "Seguir contando, reconocer grupos y ordenar hasta 10.",
+      order: 3, color: "sky", icon: "🔟",
     },
   });
 
-  await lesson(u2.id, { slug: "contar-6-7-8", title: "Contar 6, 7, 8", order: 1, xpReward: 24, minutes: 6 }, [
-    lumi(
-      [
-        { emoji: "🐟", repeat: 5, text: "Ya sabemos contar hasta cinco." },
-        { emoji: "🐟", repeat: 6, text: "Una más es seis." },
-        { emoji: "🐟", repeat: 8, text: "Y seguimos: siete, ocho." },
-      ],
-      { emoji: "🐟", count: 6, text: "Tocá los 6 peces.", successText: "¡Seis! Vas muy bien." },
-    ),
+  await lesson(u3.id, { slug: "contar-6-7-8", title: "Contar 6, 7, 8", order: 1, xpReward: 26, minutes: 6 }, [
+    lumi([{ emoji: "🐟", repeat: 5, text: "Ya llegamos a cinco. Ahora seguimos: seis, siete, ocho." }], { emoji: "🐟", count: 6, text: "Tocá seis peces.", successText: "¡Seis!" }),
     count("🍎", 6, "Uno más que cinco."),
     count("⭐", 7, "Seguí después de seis."),
     count("🐟", 8, "Contá despacio hasta el final."),
   ]);
 
-  await lesson(u2.id, { slug: "contar-9-10", title: "Contar 9 y 10", order: 2, xpReward: 26, minutes: 6 }, [
-    lumi(
-      [
-        { emoji: "⭐", repeat: 9, text: "Nueve estrellas. ¡Casi diez!" },
-        { emoji: "🔟", repeat: 1, text: "Una más y llegamos a diez. ¡El número más grande de la unidad!" },
-      ],
-      { emoji: "⭐", count: 9, text: "Tocá las 9 estrellas.", successText: "¡Nueve! Sos un campeón." },
-    ),
+  await lesson(u3.id, { slug: "contar-9-10", title: "Contar 9 y 10", order: 2, xpReward: 26, minutes: 6 }, [
+    lumi([{ emoji: "🔟", repeat: 1, text: "Diez es como tener las dos manos llenas." }], { emoji: "⭐", count: 9, text: "Tocá nueve estrellas.", successText: "¡Nueve!" }),
     count("🐟", 9, "Uno menos que diez."),
     count("🍎", 10, "Las dos manos llenas."),
     match([{ item: "⭐", count: 7 }, { item: "🐟", count: 9 }, { item: "🍎", count: 10 }], [10, 7, 9]),
   ]);
 
-  await lesson(u2.id, { slug: "trazos-6-9", title: "Trazos 6 a 9", order: 3, xpReward: 26, minutes: 7 }, [
-    lumi(
-      [
-        { emoji: "✏️", repeat: 1, text: "Escribir un número es dibujarlo con cuidado." },
-        { emoji: "🔢", repeat: 1, text: "Seguí la guía con el dedo, sin apurarte." },
-      ],
-      { emoji: "✏️", count: 1, text: "Tocá el lápiz para empezar.", successText: "¡A trazar!" },
-    ),
-    trace(6),
-    trace(9),
-    trace(8),
+  await lesson(u3.id, { slug: "ordenar-hasta-10", title: "Ordenar hasta 10", order: 3, xpReward: 28, minutes: 7 }, [
+    lumi([{ emoji: "🪜", repeat: 1, text: "Los números suben como una escalera." }], { emoji: "🪜", count: 1, text: "Tocá la escalera.", successText: "¡Subimos!" }),
+    order([6, 7, 5]),
+    order([8, 6, 7, 9]),
+    order([10, 6, 8, 7, 9]),
   ]);
 
-  await lesson(u2.id, { slug: "comparar-ordenar-10", title: "Comparar hasta 10", order: 4, xpReward: 28, minutes: 7 }, [
-    lumi(
-      [
-        { emoji: "🐊", repeat: 1, text: "Vuelve el cocodrilo: su boca apunta al más grande." },
-        { emoji: "🪜", repeat: 1, text: "Y para ordenar, del más chico al más grande." },
-      ],
-      { emoji: "🐊", count: 1, text: "Tocá al cocodrilo.", successText: "¡Vamos!" },
-    ),
-    compare(8, 6),
-    compare(7, 9),
-    compare(10, 10),
-    order([9, 6, 8, 7, 10]),
+  await lesson(u3.id, { slug: "tarjetas-de-puntos", title: "Tarjetas de puntos", order: 4, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "🎲", repeat: 1, text: "Las tarjetas de puntos ayudan a ver cantidades." }], { emoji: "•", count: 5, text: "Tocá los puntos.", successText: "¡Puntos listos!" }),
+    match([{ item: "•", count: 6 }, { item: "•", count: 7 }, { item: "•", count: 8 }], [8, 6, 7]),
+    match([{ item: "•", count: 9 }, { item: "•", count: 10 }, { item: "•", count: 6 }], [10, 6, 9]),
+    subitise("•", 5, "dice", [4, 5, 6, 3]),
   ]);
 
-  await lesson(u2.id, { slug: "repaso-6-10", title: "Repaso 6 al 10", order: 5, xpReward: 34, minutes: 8 }, [
-    count("🐟", 7, "Contá despacio."),
-    trace(8),
-    compare(10, 8),
-    order([6, 9, 7, 10, 8]),
+  await lesson(u3.id, { slug: "repaso-hasta-10", title: "Repaso hasta 10", order: 5, xpReward: 32, minutes: 8 }, [
+    lumi([{ emoji: "🎒", repeat: 1, text: "Guardamos todo lo aprendido hasta diez." }], { emoji: "⭐", count: 10, text: "Tocá diez estrellas.", successText: "¡Diez!" }),
+    count("🍓", 8, "Contá sin saltarte ninguna."),
+    compareGroups({ item: "🍎", count: 6 }, { item: "🍎", count: 9 }),
+    order([7, 10, 6, 8, 9]),
+    match([{ item: "🐟", count: 6 }, { item: "⭐", count: 8 }, { item: "🍎", count: 10 }], [8, 10, 6]),
   ]);
 
-  // ---------- Unidad 3 · Primeras sumas ----------
-  const u3 = await prisma.unit.create({
+  const u4 = await prisma.unit.create({
     data: {
-      learningPathId: primary1.id, slug: "primeras-sumas",
-      title: "Primeras sumas",
-      description: "Juntar grupos para sumar, hasta 10",
-      order: 3, color: "sky", icon: "➕",
+      learningPathId: primary1.id, slug: "sentido-numerico",
+      title: "Sentido numérico",
+      description: "Ver cantidades, comparar grupos y descubrir partes dentro de un todo.",
+      order: 4, color: "lilac", icon: "🧠",
     },
   });
 
-  await lesson(u3.id, { slug: "juntar-grupos", title: "Juntar grupos", order: 1, xpReward: 26, minutes: 7 }, [
-    lumi(
-      [
-        { emoji: "🍓", repeat: 2, text: "Tenés 2 frutillas." },
-        { emoji: "🍓", repeat: 3, text: "Te dan 3 más." },
-        { emoji: "🍓", repeat: 5, text: "Si las juntás todas, ¡hay 5! Eso es sumar." },
-      ],
-      { emoji: "🍓", count: 5, text: "Tocá todas: 2 y 3 juntas.", successText: "¡Exacto! 2 más 3 es 5." },
-    ),
+  await lesson(u4.id, { slug: "cuantos-viste", title: "¿Cuántos viste?", order: 1, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "👀", repeat: 1, text: "A veces podés ver cuántos hay sin contar uno por uno." }], { emoji: "⭐", count: 3, text: "Mirá el grupo completo.", successText: "¡Lo viste rápido!" }),
+    subitise("●", 2, "pair", [1, 2, 3, 4]),
+    subitise("●", 3, "triangle", [2, 3, 4, 5]),
+    subitise("●", 4, "square", [3, 4, 5, 6]),
+    subitise("●", 5, "dice", [4, 5, 6, 3]),
+  ]);
+
+  await lesson(u4.id, { slug: "dados-y-dominos", title: "Dados y dominós", order: 2, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "🎲", repeat: 1, text: "Los dados y dominós muestran cantidades de muchas formas." }], { emoji: "●", count: 3, text: "Mirá tres puntos.", successText: "¡Tres!" }),
+    subitise("●", 3, "line", [2, 3, 4, 5]),
+    subitise("●", 3, "triangle", [2, 3, 4, 1]),
+    subitise("●", 4, "square", [3, 4, 5, 6]),
+    subitise("●", 5, "dice", [4, 5, 6, 7]),
+  ]);
+
+  await lesson(u4.id, { slug: "mago-de-las-cantidades", title: "El mago de las cantidades", order: 3, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "🪄", repeat: 1, text: "Mover las cosas no cambia cuántas hay." }], { emoji: "🍎", count: 3, text: "Tocá las manzanas antes y después.", successText: "¡Siguen iguales!" }),
+    conservation("🍎", 3, "close", "spread"),
+    conservation("⭐", 4, "row", "circle"),
+    conservation("🐟", 5, "compact", "spread"),
+  ]);
+
+  await lesson(u4.id, { slug: "donde-hay-mas", title: "¿Dónde hay más?", order: 4, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "⚖️", repeat: 1, text: "Primero vemos más e igual. Después vemos menos." }], { emoji: "🍎", count: 2, text: "Mirá los dos grupos.", successText: "¡Comparaste!" }),
+    compareGroups({ item: "🍎", count: 3 }, { item: "🍎", count: 5 }),
+    compareGroups({ item: "⭐", count: 4 }, { item: "⭐", count: 4 }),
+    compareGroups({ item: "🐟", count: 6 }, { item: "🐟", count: 2 }),
+    compareGroups({ item: "🍓", count: 5 }, { item: "🍓", count: 7 }),
+  ]);
+
+  await lesson(u4.id, { slug: "maquina-de-partes", title: "La máquina de partes", order: 5, xpReward: 32, minutes: 8 }, [
+    lumi([{ emoji: "⚙️", repeat: 1, text: "Un grupo puede separarse en partes." }], { emoji: "⭐", count: 4, text: "Tocá el grupo completo.", successText: "¡Ahora separalo!" }),
+    partWhole(4, "⭐", [2, 2]),
+    partWhole(5, "🍎", [1, 4]),
+    partWhole(5, "🐟", [2, 3]),
+    partWhole(6, "🍓", [2, 4]),
+  ]);
+
+  const u5 = await prisma.unit.create({
+    data: {
+      learningPathId: primary1.id, slug: "primeras-sumas",
+      title: "Primeras sumas",
+      description: "Juntar grupos para descubrir cuántos hay en total.",
+      order: 5, color: "sun", icon: "➕",
+    },
+  });
+
+  await lesson(u5.id, { slug: "juntar-grupos", title: "Juntar grupos", order: 1, xpReward: 28, minutes: 7 }, [
+    lumi([{ emoji: "🧺", repeat: 1, text: "Para sumar, juntamos grupos y contamos todo." }], { emoji: "🍓", count: 5, text: "Tocá todas las frutillas juntas.", successText: "¡Todo junto!" }),
     add(1, 1, "🍎"),
     add(2, 1, "⭐"),
     add(2, 2, "🐟"),
   ]);
 
-  await lesson(u3.id, { slug: "sumar-hasta-5", title: "Sumar hasta 5", order: 2, xpReward: 28, minutes: 7 }, [
-    lumi(
-      [
-        { emoji: "🧺", repeat: 1, text: "Para sumar, llevamos todo al canasto." },
-        { emoji: "🍓", repeat: 5, text: "Y después contamos cuánto hay en total." },
-      ],
-      { emoji: "🍓", count: 5, text: "Tocá las 5 frutillas.", successText: "¡Cinco! Listo para sumar." },
-    ),
+  await lesson(u5.id, { slug: "sumar-hasta-5", title: "Sumar hasta 5", order: 2, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "🍓", repeat: 5, text: "Juntá grupos pequeños y contá el total." }], { emoji: "🍓", count: 5, text: "Tocá cinco frutillas.", successText: "¡Cinco!" }),
     add(2, 3, "🍓"),
     add(1, 4, "🍎"),
     add(3, 2, "⭐"),
   ]);
 
-  await lesson(u3.id, { slug: "sumar-hasta-10", title: "Sumar hasta 10", order: 3, xpReward: 30, minutes: 8 }, [
-    lumi(
-      [
-        { emoji: "🐟", repeat: 3, text: "Tres peces…" },
-        { emoji: "🐟", repeat: 7, text: "…y cuatro más son siete. Sumamos números más grandes igual." },
-      ],
-      { emoji: "🐟", count: 7, text: "Tocá los 7 peces.", successText: "¡Siete! Ya sumás hasta 10." },
-    ),
+  await lesson(u5.id, { slug: "sumar-hasta-10", title: "Sumar hasta 10", order: 3, xpReward: 32, minutes: 8 }, [
+    lumi([{ emoji: "🐟", repeat: 7, text: "Con grupos más grandes hacemos lo mismo: juntamos y contamos." }], { emoji: "🐟", count: 7, text: "Tocá siete peces.", successText: "¡Siete!" }),
     add(3, 3, "⭐"),
     add(4, 3, "🐟"),
     add(5, 5, "🍎"),
   ]);
 
-  await lesson(u3.id, { slug: "repaso-sumas", title: "Repaso de sumas", order: 4, xpReward: 34, minutes: 8 }, [
+  await lesson(u5.id, { slug: "repaso-sumas", title: "Repaso de sumas", order: 4, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🧺", repeat: 1, text: "Repasamos: juntar dos grupos nos da un total." }], { emoji: "🍎", count: 4, text: "Tocá el grupo junto.", successText: "¡Listo!" }),
     add(2, 2, "🍎"),
     add(3, 2, "⭐"),
     add(5, 3, "🍓"),
     add(4, 4, "🐟"),
   ]);
 
-  // ---------- Unidad 4 · Primeras restas ----------
-  const u4 = await prisma.unit.create({
+  const u6 = await prisma.unit.create({
     data: {
       learningPathId: primary1.id, slug: "primeras-restas",
       title: "Primeras restas",
-      description: "Sacar para restar, hasta 10",
-      order: 4, color: "lilac", icon: "➖",
+      description: "Sacar objetos de un grupo y contar los que quedan.",
+      order: 6, color: "rose", icon: "➖",
     },
   });
 
-  await lesson(u4.id, { slug: "sacar-cosas", title: "Quitar y sacar", order: 1, xpReward: 28, minutes: 7 }, [
-    lumi(
-      [
-        { emoji: "🧁", repeat: 5, text: "Tenés 5 cupcakes." },
-        { emoji: "🧁", repeat: 3, text: "Te comés 2… y quedan 3." },
-        { emoji: "✋", repeat: 1, text: "Sacar cosas de un grupo es restar." },
-      ],
-      { emoji: "🧁", count: 3, text: "Tocá los 3 que quedaron.", successText: "¡Bien! 5 menos 2 es 3." },
-    ),
+  await lesson(u6.id, { slug: "sacar-cosas", title: "Sacá y contá", order: 1, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "✋", repeat: 1, text: "Restar empieza con sacar cosas de un grupo." }], { emoji: "🧁", count: 3, text: "Tocá los que quedaron.", successText: "¡Quedaron!" }),
     sub(3, 1, "🍎"),
     sub(4, 2, "⭐"),
     sub(5, 2, "🐟"),
   ]);
 
-  await lesson(u4.id, { slug: "restar-hasta-10", title: "Restar hasta 10", order: 2, xpReward: 32, minutes: 8 }, [
-    lumi(
-      [
-        { emoji: "🐟", repeat: 8, text: "Ocho peces nadando." },
-        { emoji: "🐟", repeat: 5, text: "Se van 3 y quedan 5. Restamos números más grandes igual." },
-      ],
-      { emoji: "🐟", count: 5, text: "Tocá los 5 que quedaron.", successText: "¡Cinco! Ya restás hasta 10." },
-    ),
+  await lesson(u6.id, { slug: "restar-hasta-10", title: "Restar hasta 10", order: 2, xpReward: 32, minutes: 8 }, [
+    lumi([{ emoji: "🐟", repeat: 8, text: "Si se van algunos, contamos los que quedan." }], { emoji: "🐟", count: 5, text: "Tocá cinco peces que quedan.", successText: "¡Cinco quedaron!" }),
     sub(6, 2, "🍎"),
     sub(8, 3, "⭐"),
     sub(10, 4, "🐟"),
   ]);
 
-  await lesson(u4.id, { slug: "repaso-restas", title: "Repaso de restas", order: 3, xpReward: 36, minutes: 8 }, [
+  await lesson(u6.id, { slug: "repaso-restas", title: "Repaso de restas", order: 3, xpReward: 36, minutes: 8 }, [
+    lumi([{ emoji: "➖", repeat: 1, text: "Repasamos sacar y contar lo que queda." }], { emoji: "🧁", count: 5, text: "Tocá los cupcakes.", successText: "¡A sacar!" }),
     sub(4, 1, "🍎"),
     sub(7, 3, "⭐"),
     sub(9, 4, "🐟"),
