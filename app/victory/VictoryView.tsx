@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Confetti } from "@/components/Confetti";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
@@ -18,7 +17,6 @@ export function VictoryView({
    *  unidad que estaba jugando). */
   continueHref?: string;
 }) {
-  const router = useRouter();
   // Anima el XP de 0 al valor real durante ~900ms.
   const animatedXp = useCountUp(xp, 900);
 
@@ -72,7 +70,10 @@ export function VictoryView({
         </div>
 
         <button
-          onClick={() => { playTap(); router.push(continueHref); }}
+          onClick={() => {
+            playTap();
+            window.location.replace(continueHref);
+          }}
           className="btn-chunky w-full py-4 rounded-2xl bg-ink text-white font-black uppercase tracking-wide"
           style={{ boxShadow: "0 5px 0 rgba(0,0,0,0.25)" }}
         >

@@ -28,7 +28,16 @@ export function LessonRunner({
       reviewMode={false}
       labels={{ step: "EJERCICIO", idle: "¡Tú puedes! Elegí tu respuesta." }}
       onComplete={async ({ correctCount }) => {
-        await postOrQueue("/api/progress", { childId, lessonId: lesson.id, correctCount });
+        const result = await postOrQueue("/api/progress", {
+          childId,
+          lessonId: lesson.id,
+          correctCount,
+        });
+        if (!result.delivered) {
+          router.replace("/offline");
+          return;
+        }
+
         router.push(`/victory?lessonId=${lesson.id}`);
       }}
     />

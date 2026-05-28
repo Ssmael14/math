@@ -8,6 +8,8 @@ import {
 } from "@/lib/queries";
 import { TopNav } from "@/components/TopNav";
 
+export const dynamic = "force-dynamic";
+
 const bgByColor: Record<string, string> = {
   peach: "from-peach-soft to-peach",
   mint: "from-mint-soft to-mint",

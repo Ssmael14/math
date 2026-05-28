@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { stripTeach } from "@/lib/learning/teach";
 import { LessonRunner } from "./LessonRunner";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

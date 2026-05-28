@@ -12,6 +12,8 @@ import {
 import { TopNav } from "@/components/TopNav";
 import { EnrollPathButton } from "./EnrollPathButton";
 
+export const dynamic = "force-dynamic";
+
 const nodePositions = [
   "md:ml-8",
   "md:-ml-16",
