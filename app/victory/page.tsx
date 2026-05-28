@@ -24,7 +24,12 @@ export default async function VictoryPage({
         select: {
           xpReward: true,
           title: true,
-          unit: { select: { slug: true } },
+          unit: {
+            select: {
+              slug: true,
+              learningPath: { select: { slug: true } },
+            },
+          },
         },
       },
     },
@@ -32,10 +37,9 @@ export default async function VictoryPage({
 
   if (!progress || !progress.completed) notFound();
 
-  // Volvemos al mapa de la MISMA unidad (no al home genérico) para que el
-  // niño no salga rebotado a la unidad 1 después de terminar una lección
-  // en otra unidad.
-  const continueHref = `/units/${progress.lesson.unit.slug}`;
+  // Volvemos al mapa del camino completo, donde ahora se muestran unidades y
+  // lecciones juntas. La pantalla /units/[slug] queda como detalle/fallback.
+  const continueHref = `/paths/${progress.lesson.unit.learningPath.slug}`;
 
   return (
     <VictoryView

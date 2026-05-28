@@ -163,9 +163,29 @@ export async function getUnitsWithProgress(
     },
   });
 
+  let hitCurrent = false;
   return units.map((u) => {
     const total = u.lessons.length;
     const done = u.lessons.filter((l) => l.progresses[0]?.completed).length;
+    const lessons = u.lessons.map((l) => {
+      const completed = l.progresses[0]?.completed ?? false;
+      let status: "done" | "current" | "locked" = "locked";
+      if (completed) status = "done";
+      else if (!hitCurrent) {
+        status = "current";
+        hitCurrent = true;
+      }
+
+      return {
+        id: l.id,
+        slug: l.slug,
+        title: l.title,
+        order: l.order,
+        stars: l.progresses[0]?.stars ?? 0,
+        status,
+      };
+    });
+
     return {
       id: u.id,
       slug: u.slug,
@@ -176,6 +196,7 @@ export async function getUnitsWithProgress(
       progress: total ? done / total : 0,
       lessonsTotal: total,
       lessonsDone: done,
+      lessons,
     };
   });
 }

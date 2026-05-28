@@ -3,11 +3,13 @@ import { Flame, Gem, Heart } from "lucide-react";
 import { getActiveChild } from "@/lib/queries";
 import { TopNavLinks } from "./TopNavLinks";
 
-export async function TopNav() {
+export async function TopNav({ fixed = false }: { fixed?: boolean } = {}) {
   const child = await getActiveChild();
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-ink/5">
+    <header
+      className={`${fixed ? "fixed inset-x-0 top-0" : "sticky top-0"} z-50 bg-white/95 backdrop-blur border-b border-ink/5`}
+    >
       <div className="safe-top">
         <div className="max-w-6xl mx-auto px-3 md:px-8 h-14 md:h-16 flex items-center gap-2 md:gap-6">
           <Link
