@@ -201,6 +201,50 @@ export async function getUnitsWithProgress(
   });
 }
 
+/** Catálogo de materias con caminos y progreso del child para /subjects. */
+export async function getSubjectsPathCatalog(childId: string) {
+  const subjects = await prisma.subject.findMany({
+    orderBy: { order: "asc" },
+    include: {
+      learningPaths: {
+        orderBy: { order: "asc" },
+        include: {
+          units: {
+            select: {
+              lessons: {
+                select: {
+                  progresses: {
+                    where: { childId },
+                    select: { completed: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return subjects.map((subject) => ({
+    ...subject,
+    learningPaths: subject.learningPaths.map((path) => {
+      const lessons = path.units.flatMap((unit) => unit.lessons);
+      const lessonsTotal = lessons.length;
+      const lessonsDone = lessons.filter(
+        (lesson) => lesson.progresses[0]?.completed,
+      ).length;
+
+      return {
+        ...path,
+        lessonsTotal,
+        lessonsDone,
+        progress: lessonsTotal ? lessonsDone / lessonsTotal : 0,
+      };
+    }),
+  }));
+}
+
 /** Lecciones de una unidad (unique por [learningPathId, slug]). */
 export async function getLessonsWithState(
   learningPathId: string,
