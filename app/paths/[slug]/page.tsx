@@ -11,6 +11,7 @@ import {
 } from "@/lib/queries";
 import { TopNav } from "@/components/TopNav";
 import { EnrollPathButton } from "./EnrollPathButton";
+import { ScrollToCurrentLesson } from "./ScrollToCurrentLesson";
 
 export const dynamic = "force-dynamic";
 
@@ -49,30 +50,43 @@ function lessonNodeClasses({
 }) {
   return `group relative flex items-center gap-5 self-center ${position} ${
     isCurrent ? "cursor-pointer" : "cursor-default"
-  } ${isLocked || isDone ? "select-none" : ""}`;
+  } ${isCurrent ? "scroll-mt-40 scroll-mb-56" : ""} ${
+    isLocked || isDone ? "select-none" : ""
+  }`;
 }
 
 function LessonNodeShell({
   href,
   disabled,
+  current,
   className,
   children,
 }: {
   href: string;
   disabled: boolean;
+  current: boolean;
   className: string;
   children: ReactNode;
 }) {
   if (disabled) {
     return (
-      <div aria-disabled="true" className={className}>
+      <div
+        aria-disabled="true"
+        data-current-lesson={current ? true : undefined}
+        className={className}
+      >
         {children}
       </div>
     );
   }
 
   return (
-    <Link href={href} className={className}>
+    <Link
+      href={href}
+      aria-current={current ? "step" : undefined}
+      data-current-lesson={current ? true : undefined}
+      className={className}
+    >
       {children}
     </Link>
   );
@@ -138,6 +152,7 @@ export default async function LearningPathPage({
   return (
     <div className="min-h-dvh flex flex-col bg-white">
       <TopNav fixed />
+      <ScrollToCurrentLesson />
 
       <main className="flex-1 pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-[calc(4rem+env(safe-area-inset-top))]">
         <div
@@ -245,11 +260,14 @@ export default async function LearningPathPage({
                               key={lesson.id}
                               href={href}
                               disabled={isLocked || isDone}
+                              current={isCurrent}
                               className={nodeClassName}
                             >
                               <div
-                                className={`relative flex h-[68px] w-[92px] items-center justify-center rounded-full transition-transform ${
-                                  isCurrent ? "group-hover:scale-105" : ""
+                                className={`relative flex h-[68px] w-[92px] scroll-mt-40 scroll-mb-56 items-center justify-center rounded-full transition-transform ${
+                                  isCurrent
+                                    ? "animate-pulse-soft group-hover:scale-105"
+                                    : ""
                                 }`}
                               >
                                 <div
@@ -312,7 +330,7 @@ export default async function LearningPathPage({
                                   {isDone
                                     ? "Completada"
                                     : isCurrent
-                                      ? "Lista para jugar"
+                                      ? "Continuar acá"
                                       : "Bloqueada"}
                                 </div>
                               </div>
