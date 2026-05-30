@@ -7,12 +7,43 @@
 // legacy, pero ya no deben usarse para presentar contenido huérfano.
 
 import { prisma } from "./prisma";
+import { EducationLevel } from "@prisma/client";
 import {
   getCurrentUser,
   getActiveChildId,
   getActivePathSlug,
 } from "./auth/server";
 import { MASTERY_THRESHOLD } from "./learning/srs";
+
+export type LessonStatus = "done" | "current" | "available" | "locked";
+
+function lessonStatusForLevel({
+  completed,
+  lessonId,
+  unitId,
+  firstIncomplete,
+  level,
+}: {
+  completed: boolean;
+  lessonId: string;
+  unitId: string;
+  firstIncomplete: { id: string; unitId: string } | null;
+  level: EducationLevel;
+}): LessonStatus {
+  if (completed) return "done";
+  if (!firstIncomplete) return "locked";
+  if (lessonId === firstIncomplete.id) return "current";
+
+  if (level === EducationLevel.PRIMARY && unitId === firstIncomplete.unitId) {
+    return "available";
+  }
+
+  if (level === EducationLevel.SECONDARY || level === EducationLevel.PREUNIVERSITY) {
+    return "available";
+  }
+
+  return "locked";
+}
 
 // =========================================================================
 // SUBJECTS / LEARNING PATHS / ENROLLMENTS
@@ -152,29 +183,48 @@ export async function getUnitsWithProgress(
   childId: string,
   learningPathId: string,
 ) {
-  const units = await prisma.unit.findMany({
-    where: { learningPathId },
-    orderBy: { order: "asc" },
-    include: {
-      lessons: {
+  const path = await prisma.learningPath.findUnique({
+    where: { id: learningPathId },
+    select: {
+      level: true,
+      units: {
         orderBy: { order: "asc" },
-        include: { progresses: { where: { childId } } },
+        include: {
+          lessons: {
+            orderBy: { order: "asc" },
+            include: { progresses: { where: { childId } } },
+          },
+        },
       },
     },
   });
 
-  let hitCurrent = false;
-  return units.map((u) => {
+  if (!path) return [];
+
+  const firstIncomplete = path.units
+    .flatMap((unit) =>
+      unit.lessons.map((lesson) => ({
+        id: lesson.id,
+        unitId: unit.id,
+        completed: lesson.progresses[0]?.completed ?? false,
+      })),
+    )
+    .find((lesson) => !lesson.completed);
+
+  return path.units.map((u) => {
     const total = u.lessons.length;
     const done = u.lessons.filter((l) => l.progresses[0]?.completed).length;
     const lessons = u.lessons.map((l) => {
       const completed = l.progresses[0]?.completed ?? false;
-      let status: "done" | "current" | "locked" = "locked";
-      if (completed) status = "done";
-      else if (!hitCurrent) {
-        status = "current";
-        hitCurrent = true;
-      }
+      const status = lessonStatusForLevel({
+        completed,
+        lessonId: l.id,
+        unitId: u.id,
+        firstIncomplete: firstIncomplete
+          ? { id: firstIncomplete.id, unitId: firstIncomplete.unitId }
+          : null,
+        level: path.level,
+      });
 
       return {
         id: l.id,
@@ -265,15 +315,46 @@ export async function getLessonsWithState(
   });
   if (!unit) return null;
 
-  let hitCurrent = false;
+  const allUnits = await prisma.unit.findMany({
+    where: { learningPathId },
+    orderBy: { order: "asc" },
+    select: {
+      id: true,
+      lessons: {
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          progresses: {
+            where: { childId },
+            select: { completed: true },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+  const firstIncomplete = allUnits
+    .flatMap((entry) =>
+      entry.lessons.map((lesson) => ({
+        id: lesson.id,
+        unitId: entry.id,
+        completed: lesson.progresses[0]?.completed ?? false,
+      })),
+    )
+    .find((lesson) => !lesson.completed);
+
   const lessons = unit.lessons.map((l) => {
-    const done = l.progresses[0]?.completed ?? false;
-    let status: "done" | "current" | "locked" = "locked";
-    if (done) status = "done";
-    else if (!hitCurrent) {
-      status = "current";
-      hitCurrent = true;
-    }
+    const completed = l.progresses[0]?.completed ?? false;
+    const status = lessonStatusForLevel({
+      completed,
+      lessonId: l.id,
+      unitId: unit.id,
+      firstIncomplete: firstIncomplete
+        ? { id: firstIncomplete.id, unitId: firstIncomplete.unitId }
+        : null,
+      level: unit.learningPath.level,
+    });
+
     return {
       id: l.id,
       slug: l.slug,

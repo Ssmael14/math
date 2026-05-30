@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { getActiveChild, getLessonById, getLessonExercises } from "@/lib/queries";
 import { prisma } from "@/lib/prisma";
+import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { stripTeach } from "@/lib/learning/teach";
 import { LessonRunner } from "./LessonRunner";
 
@@ -39,6 +40,11 @@ export default async function LessonPage({
 
   const lesson = await getLessonById(id);
   if (!lesson) notFound();
+
+  const access = await verifyLessonAccess(child.id, id);
+  if (!access.ok) {
+    redirect(`/paths/${lesson.unit.learningPath.slug}`);
+  }
 
   const rawExercises = await getLessonExercises(id);
   if (!rawExercises.length) notFound();

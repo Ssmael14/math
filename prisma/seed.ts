@@ -19,6 +19,12 @@ import { PrismaClient, ExerciseKind, EducationLevel, Prisma } from "@prisma/clie
 
 const prisma = new PrismaClient();
 
+if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+  throw new Error(
+    "Refusing to run destructive seed in production. Set ALLOW_PRODUCTION_SEED=true only for an intentional production content reset.",
+  );
+}
+
 type Beat = { emoji: string; repeat?: number; text: string };
 type TryIt = { emoji: string; count: number; text: string; successText: string };
 type Ex = Prisma.ExerciseCreateManyInput;

@@ -3,10 +3,12 @@
 // El servidor calcula estrellas, XP y streak — el cliente NO los manda.
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { computeStars, mondayOfWeek } from "@/lib/gamification/scoring";
 import { computeNextStreak } from "@/lib/gamification/streak";
+import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { rateLimit } from "@/lib/rate-limit";
 
 async function checkAchievements(childId: string) {
@@ -63,18 +65,17 @@ export async function POST(req: Request) {
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: {
-      unit: {
-        select: {
-          slug: true,
-          learningPath: { select: { slug: true } },
-        },
-      },
-    },
-  });
-  if (!lesson) return NextResponse.json({ error: "lesson not found" }, { status: 404 });
+  const access = await verifyLessonAccess(childId, lessonId);
+  if (!access.ok) {
+    const status =
+      access.reason === "lesson_not_found"
+        ? 404
+        : access.reason === "locked"
+          ? 409
+          : 403;
+    return NextResponse.json({ error: access.reason }, { status });
+  }
+  const { lesson } = access;
 
   // Los pasos TEACH (enseñanza) no se califican: no cuentan para estrellas.
   const totalExercises = await prisma.exercise.count({
@@ -91,48 +92,110 @@ export async function POST(req: Request) {
   const now = new Date();
   const nextStreak = computeNextStreak(child.streak, child.lastPlayAt, now);
   const weekStart = mondayOfWeek(now);
+  let firstCompletion = false;
 
-  // Si ya existía progreso, no bajamos estrellas ni bestScore por un repaso peor.
-  const existing = await prisma.progress.findUnique({
-    where: { childId_lessonId: { childId, lessonId } },
-  });
-  const finalStars = Math.max(existing?.stars ?? 0, stars);
-  const finalBestScore = Math.max(existing?.bestScore ?? 0, safeCorrect);
+  try {
+    await prisma.$transaction(async (tx) => {
+      const current = await tx.progress.findUnique({
+        where: { childId_lessonId: { childId, lessonId } },
+      });
+      const finalStars = Math.max(current?.stars ?? 0, stars);
+      const finalBestScore = Math.max(current?.bestScore ?? 0, safeCorrect);
 
-  await prisma.$transaction([
-    prisma.progress.upsert({
-      where: { childId_lessonId: { childId, lessonId } },
-      update: {
-        completed: true,
-        stars: finalStars,
-        bestScore: finalBestScore,
-        completedAt: now,
-      },
-      create: {
-        childId,
-        lessonId,
-        completed: true,
-        stars: finalStars,
-        bestScore: finalBestScore,
-        completedAt: now,
-      },
-    }),
-    prisma.child.update({
-      where: { id: childId },
-      data: {
-        xp: { increment: lesson.xpReward },
-        lastPlayAt: now,
-        streak: nextStreak,
-      },
-    }),
-    prisma.weeklyXP.upsert({
-      where: { childId_weekStart: { childId, weekStart } },
-      update: { xp: { increment: lesson.xpReward } },
-      create: { childId, weekStart, xp: lesson.xpReward, league: "DIAMOND" },
-    }),
-  ]);
+      if (current?.completed) {
+        await tx.progress.update({
+          where: { id: current.id },
+          data: {
+            stars: finalStars,
+            bestScore: finalBestScore,
+            attemptsCount: { increment: 1 },
+            completedAt: current.completedAt ?? now,
+          },
+        });
+        return;
+      }
 
-  const newAchievements = await checkAchievements(childId);
+      if (current) {
+        const claimed = await tx.progress.updateMany({
+          where: { id: current.id, completed: false },
+          data: {
+            completed: true,
+            stars: finalStars,
+            bestScore: finalBestScore,
+            attemptsCount: { increment: 1 },
+            completedAt: now,
+          },
+        });
+        firstCompletion = claimed.count === 1;
+
+        if (!firstCompletion) {
+          await tx.progress.update({
+            where: { id: current.id },
+            data: {
+              stars: finalStars,
+              bestScore: finalBestScore,
+              attemptsCount: { increment: 1 },
+            },
+          });
+        }
+      } else {
+        await tx.progress.create({
+          data: {
+            childId,
+            lessonId,
+            completed: true,
+            stars,
+            bestScore: safeCorrect,
+            attemptsCount: 1,
+            completedAt: now,
+          },
+        });
+        firstCompletion = true;
+      }
+
+      if (firstCompletion) {
+        await tx.child.update({
+          where: { id: childId },
+          data: {
+            xp: { increment: lesson.xpReward },
+            lastPlayAt: now,
+            streak: nextStreak,
+          },
+        });
+        await tx.weeklyXP.upsert({
+          where: { childId_weekStart: { childId, weekStart } },
+          update: { xp: { increment: lesson.xpReward } },
+          create: { childId, weekStart, xp: lesson.xpReward, league: "DIAMOND" },
+        });
+      }
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const current = await prisma.progress.findUnique({
+        where: { childId_lessonId: { childId, lessonId } },
+      });
+      if (!current) throw error;
+
+      await prisma.progress.update({
+        where: { id: current.id },
+        data: {
+          completed: true,
+          stars: Math.max(current.stars, stars),
+          bestScore: Math.max(current.bestScore, safeCorrect),
+          attemptsCount: { increment: 1 },
+          completedAt: current.completedAt ?? now,
+        },
+      });
+      firstCompletion = false;
+    } else {
+      throw error;
+    }
+  }
+
+  const newAchievements = firstCompletion ? await checkAchievements(childId) : [];
 
   revalidatePath("/home");
   revalidatePath("/profile");
@@ -142,10 +205,11 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     stars,
-    xp: lesson.xpReward,
+    xp: firstCompletion ? lesson.xpReward : 0,
     correct: safeCorrect,
     total: totalExercises,
-    streak: nextStreak,
+    streak: firstCompletion ? nextStreak : child.streak,
+    firstCompletion,
     newAchievements,
   });
 }

@@ -57,7 +57,7 @@ export function VictoryView({
 
         <div className="w-full grid grid-cols-3 gap-2">
           {[
-            { icon: "⭐", value: `+${animatedXp}`, label: "XP" },
+            { icon: "⭐", value: xp > 0 ? `+${animatedXp}` : "Repaso", label: "XP" },
             { icon: "🌟", value: `${stars}/3`, label: "Estrellas" },
             { icon: "🎯", value: `${accuracyPct}%`, label: "Precisión" },
           ].map((s) => (

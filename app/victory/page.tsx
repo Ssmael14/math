@@ -45,7 +45,7 @@ export default async function VictoryPage({
 
   return (
     <VictoryView
-      xp={progress.lesson.xpReward}
+      xp={progress.attemptsCount === 1 ? progress.lesson.xpReward : 0}
       stars={progress.stars}
       continueHref={continueHref}
     />

@@ -146,16 +146,17 @@ export default async function UnitPage({
           <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {lessons.map((lesson, index) => {
               const href =
-                lesson.status === "current" ? `/lesson/${lesson.id}` : "#";
+                lesson.status === "locked" ? "#" : `/lesson/${lesson.id}`;
               const isLocked = lesson.status === "locked";
               const isDone = lesson.status === "done";
+              const isAvailable = lesson.status === "available";
               return (
                 <Link
                   key={lesson.id}
                   href={href}
-                  aria-disabled={isLocked || isDone}
+                  aria-disabled={isLocked}
                   className={`btn-chunky flex items-center gap-4 p-4 md:p-5 rounded-3xl border-4 border-white bg-white ${
-                    isLocked || isDone ? "pointer-events-none opacity-80" : "hover:border-sky"
+                    isLocked ? "pointer-events-none opacity-80" : "hover:border-sky"
                   }`}
                   style={{ boxShadow: "var(--shadow-chunky)" }}
                 >
@@ -168,7 +169,9 @@ export default async function UnitPage({
                         ? "HECHA"
                         : lesson.status === "current"
                           ? "LISTA PARA JUGAR"
-                          : "BLOQUEADA"}
+                          : isAvailable
+                            ? "DISPONIBLE"
+                            : "BLOQUEADA"}
                     </div>
                     <div className="font-fredoka font-bold text-lg text-ink">
                       {lesson.title}
@@ -185,6 +188,10 @@ export default async function UnitPage({
                     ) : lesson.status === "current" ? (
                       <div className="text-[10px] font-black bg-ink text-white px-3 py-1.5 rounded-lg">
                         JUGAR
+                      </div>
+                    ) : isAvailable ? (
+                      <div className="text-[10px] font-black bg-sky text-white px-3 py-1.5 rounded-lg">
+                        ABRIR
                       </div>
                     ) : (
                       <div className="text-[10px] font-black bg-ink-mute text-white px-3 py-1.5 rounded-lg">

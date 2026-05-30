@@ -12,6 +12,7 @@
 //   2. Sino, la primera con lecciones incompletas.
 //   3. Sino, la primera disponible.
 import { redirect } from "next/navigation";
+import { EducationLevel } from "@prisma/client";
 import {
   getActiveChild,
   getActiveEnrollment,
@@ -106,11 +107,17 @@ export default async function HomePage({
   let hitCurrent = false;
   const nodes = unit.lessons.map((l) => {
     const done = l.progresses[0]?.completed ?? false;
-    let status: "done" | "current" | "locked" = "locked";
+    let status: "done" | "current" | "available" | "locked" = "locked";
     if (done) status = "done";
     else if (!hitCurrent) {
       status = "current";
       hitCurrent = true;
+    } else if (
+      activePath.level === EducationLevel.PRIMARY ||
+      activePath.level === EducationLevel.SECONDARY ||
+      activePath.level === EducationLevel.PREUNIVERSITY
+    ) {
+      status = "available";
     }
     return { id: l.id, label: l.title, status };
   });

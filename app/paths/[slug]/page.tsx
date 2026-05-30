@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import type { CSSProperties, ReactNode } from "react";
-import { Eye, Puzzle, Sparkles } from "lucide-react";
+import type { CSSProperties } from "react";
+import { Eye, Puzzle } from "lucide-react";
 import {
   getActiveChild,
   getEnrollments,
@@ -11,18 +10,9 @@ import {
 } from "@/lib/queries";
 import { TopNav } from "@/components/TopNav";
 import { EnrollPathButton } from "./EnrollPathButton";
-import { ScrollToCurrentLesson } from "./ScrollToCurrentLesson";
+import { PathLessonMap } from "./PathLessonMap";
 
 export const dynamic = "force-dynamic";
-
-const nodePositions = [
-  "md:ml-8",
-  "md:-ml-16",
-  "md:ml-12",
-  "md:-ml-4",
-  "md:ml-20",
-  "md:-ml-12",
-];
 
 const pathLayoutVars = {
   "--path-gutter": "max(2rem, calc((100vw - 80rem) / 2 + 2rem))",
@@ -36,61 +26,6 @@ const pathLayoutVars = {
   "--path-map-center":
     "calc(var(--path-map-left) + (var(--path-map-width) / 2))",
 } as CSSProperties;
-
-function lessonNodeClasses({
-  isDone,
-  isCurrent,
-  isLocked,
-  position,
-}: {
-  isDone: boolean;
-  isCurrent: boolean;
-  isLocked: boolean;
-  position: string;
-}) {
-  return `group relative flex items-center gap-5 self-center ${position} ${
-    isCurrent ? "cursor-pointer" : "cursor-default"
-  } ${isCurrent ? "scroll-mt-40 scroll-mb-56" : ""} ${
-    isLocked || isDone ? "select-none" : ""
-  }`;
-}
-
-function LessonNodeShell({
-  href,
-  disabled,
-  current,
-  className,
-  children,
-}: {
-  href: string;
-  disabled: boolean;
-  current: boolean;
-  className: string;
-  children: ReactNode;
-}) {
-  if (disabled) {
-    return (
-      <div
-        aria-disabled="true"
-        data-current-lesson={current ? true : undefined}
-        className={className}
-      >
-        {children}
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      href={href}
-      aria-current={current ? "step" : undefined}
-      data-current-lesson={current ? true : undefined}
-      className={className}
-    >
-      {children}
-    </Link>
-  );
-}
 
 export async function generateMetadata({
   params,
@@ -147,12 +82,10 @@ export default async function LearningPathPage({
     (sum, unit) => sum + unit.lessonsDone,
     0,
   );
-  const startHref = currentLesson ? `/lesson/${currentLesson.id}` : "#";
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
       <TopNav fixed />
-      <ScrollToCurrentLesson />
 
       <main className="flex-1 pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-[calc(4rem+env(safe-area-inset-top))]">
         <div
@@ -222,148 +155,13 @@ export default async function LearningPathPage({
               </div>
             </section>
 
-            <section className="relative pb-56 lg:w-[var(--path-map-width)] lg:justify-self-center">
-              <div
-                className="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-linear-to-b from-transparent via-slate-200 to-transparent md:block"
-                aria-hidden
-              />
-
-              <div className="relative px-1 pb-8 pt-1">
-                <div className="relative mx-auto flex max-w-[620px] flex-col">
-                  {units.map((unit) => (
-                    <section
-                      key={unit.id}
-                      className="relative min-h-[calc(100dvh-5rem)] scroll-mt-28 pb-36 pt-2 first:pt-0 last:pb-64"
-                    >
-                      <div className="sticky top-[calc(5rem+env(safe-area-inset-top))] -mx-4 mb-10 bg-linear-to-b from-white via-white to-white/0 px-4 pb-5 pt-3">
-                        <Link
-                          href={`/units/${unit.slug}`}
-                          className="mx-auto flex min-h-17.5 max-w-115 items-center justify-center rounded-2xl border-2 border-[#6d86ff] bg-white/95 px-6 text-center font-fredoka text-lg font-bold text-[#2445d8] shadow-[0_5px_0_#6d86ff] backdrop-blur"
-                        >
-                          {unit.title}
-                        </Link>
-                      </div>
-
-                      <div className="relative flex flex-col gap-10 md:gap-14">
-                        {unit.lessons.map((lesson, lessonIndex) => {
-                          const isDone = lesson.status === "done";
-                          const isCurrent = lesson.status === "current";
-                          const isLocked = lesson.status === "locked";
-                          const href = `/lesson/${lesson.id}`;
-                          const position =
-                            nodePositions[lessonIndex % nodePositions.length];
-                          const nodeClassName = lessonNodeClasses({
-                            isDone,
-                            isCurrent,
-                            isLocked,
-                            position,
-                          });
-
-                          return (
-                            <LessonNodeShell
-                              key={lesson.id}
-                              href={href}
-                              disabled={isLocked || isDone}
-                              current={isCurrent}
-                              className={nodeClassName}
-                            >
-                              <div
-                                className={`relative flex h-[68px] w-[92px] scroll-mt-40 scroll-mb-56 items-center justify-center rounded-full transition-transform ${
-                                  isCurrent
-                                    ? "animate-pulse-soft group-hover:scale-105"
-                                    : ""
-                                }`}
-                              >
-                                <div
-                                  className={`absolute inset-x-3 bottom-0 h-12 rounded-[50%] ${
-                                    isLocked
-                                      ? "bg-slate-300"
-                                      : isDone
-                                        ? "bg-[#5d7cf5]"
-                                        : "bg-[#4669ff]"
-                                  }`}
-                                />
-                                <div
-                                  className={`absolute inset-x-5 bottom-2 h-9 rounded-[50%] border-[6px] ${
-                                    isLocked
-                                      ? "border-slate-200 bg-slate-100"
-                                      : "border-[#dce4ff] bg-[#97aaff]"
-                                  }`}
-                                />
-                                <div
-                                  className={`absolute bottom-4 flex h-8 w-12 items-center justify-center rounded-[50%] ${
-                                    isLocked
-                                      ? "bg-slate-200 text-slate-500"
-                                      : "bg-white text-[#4867f5]"
-                                  }`}
-                                >
-                                  {isDone ? (
-                                    <span className="text-lg font-black">
-                                      ✓
-                                    </span>
-                                  ) : isLocked ? (
-                                    <span className="text-base" aria-hidden>
-                                      🔒
-                                    </span>
-                                  ) : (
-                                    <Sparkles className="h-5 w-5" aria-hidden />
-                                  )}
-                                </div>
-                                {isCurrent && (
-                                  <div className="absolute -top-5 left-1/2 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-[#34c759] text-white shadow-[0_10px_20px_rgba(52,199,89,0.25)]">
-                                    <span className="text-2xl" aria-hidden>
-                                      {unit.icon ?? "🧩"}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div
-                                className={`min-w-[190px] text-sm font-bold leading-6 ${
-                                  isLocked
-                                    ? "text-slate-300"
-                                    : isDone
-                                      ? "text-slate-400"
-                                      : "text-slate-950"
-                                }`}
-                              >
-                                <div className="font-fredoka text-base">
-                                  {lesson.title}
-                                </div>
-                                <div className="text-xs font-black uppercase tracking-wider text-slate-300">
-                                  {isDone
-                                    ? "Completada"
-                                    : isCurrent
-                                      ? "Continuar acá"
-                                      : "Bloqueada"}
-                                </div>
-                              </div>
-                            </LessonNodeShell>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              </div>
-
-              {currentLesson && (
-                <div className="fixed inset-x-4 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-30 mx-auto max-w-[460px] rounded-[30px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(72,103,245,0.16)] lg:inset-x-auto lg:left-[var(--path-map-center)] lg:w-[min(460px,var(--path-map-width))] lg:-translate-x-1/2">
-                  <div className="mb-4 text-center font-fredoka text-xl font-bold text-slate-950">
-                    {currentLesson.title}
-                  </div>
-                  <div className="-mt-2 mb-4 text-center text-xs font-black uppercase tracking-wider text-slate-300">
-                    {currentLesson.unitTitle}
-                  </div>
-                  <Link
-                    href={startHref}
-                    className="btn-chunky block w-full rounded-2xl bg-[#4867f5] px-6 py-4 text-center text-base font-black text-white shadow-[0_5px_0_#2445d8] hover:bg-[#3d5df0]"
-                  >
-                    Start
-                  </Link>
-                </div>
-              )}
-            </section>
+            <PathLessonMap
+              units={units}
+              initialLessonId={currentLesson?.id ?? null}
+              childId={child.id}
+              learningPathSlug={path.slug}
+              enrolled={enrolled}
+            />
           </div>
 
           {!currentUnit && (

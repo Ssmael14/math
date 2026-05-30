@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
+import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { rateLimit } from "@/lib/rate-limit";
 import { applyReview, gradeQuality, INITIAL_SRS, nextReviewDate } from "@/lib/learning/srs";
 
@@ -41,8 +42,22 @@ export async function POST(req: Request) {
   const child = await prisma.child.findFirst({ where: { id: childId, parentId: user.id } });
   if (!child) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+  const exercise = await prisma.exercise.findUnique({
+    where: { id: exerciseId },
+    select: { id: true, lessonId: true },
+  });
   if (!exercise) return NextResponse.json({ error: "exercise_not_found" }, { status: 404 });
+
+  const access = await verifyLessonAccess(childId, exercise.lessonId);
+  if (!access.ok) {
+    const status =
+      access.reason === "lesson_not_found"
+        ? 404
+        : access.reason === "locked"
+          ? 409
+          : 403;
+    return NextResponse.json({ error: access.reason }, { status });
+  }
 
   const attempt = await prisma.attempt.create({
     data: { childId, exerciseId, correct, response: body.response ?? {}, timeMs, hintsUsed },

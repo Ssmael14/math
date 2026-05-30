@@ -2,14 +2,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getActiveChild } from "@/lib/queries";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const child = await getActiveChild();
   if (!child) return NextResponse.json({ error: "no child" }, { status: 401 });
 
-  const { itemId } = await req.json();
+  const limited = rateLimit(`shop:buy:${child.id}`, 20, 60_000);
+  if (!limited.ok) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object" || !("itemId" in body) || typeof body.itemId !== "string") {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+
+  const itemId = body.itemId;
   const item = await prisma.shopItem.findUnique({ where: { id: itemId } });
   if (!item) return NextResponse.json({ error: "no item" }, { status: 404 });
+  if (!item.isActive) return NextResponse.json({ error: "item_inactive" }, { status: 404 });
 
   // Ya lo tiene
   const owned = await prisma.inventory.findUnique({

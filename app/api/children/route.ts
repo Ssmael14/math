@@ -4,7 +4,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getCurrentUser, ACTIVE_CHILD_COOKIE } from "@/lib/auth/server";
+import {
+  birthDateFromAge,
+  MAX_CHILD_PROFILES,
+  normalizeChildAvatar,
+  normalizeChildName,
+} from "@/lib/children";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -21,24 +28,36 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { name, age, avatar } = await req.json();
-  if (!name || !age) {
-    return NextResponse.json({ error: "name & age required" }, { status: 400 });
+  const limited = rateLimit(`children:create:${user.id}`, 10, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+
+  const profilesCount = await prisma.child.count({ where: { parentId: user.id } });
+  if (profilesCount >= MAX_CHILD_PROFILES) {
+    return NextResponse.json({ error: "profile_limit_reached" }, { status: 409 });
   }
 
   // El cliente todavía manda `age` (número entero de años). Lo convertimos a
   // `birthDate` aproximado (1 de enero del año correspondiente). Fase 3 va a
   // exponer un date-picker real.
-  const ageNum = Math.max(0, Math.min(120, Number(age)));
-  const birthYear = new Date().getUTCFullYear() - ageNum;
-  const birthDate = new Date(Date.UTC(birthYear, 0, 1));
+  const name = normalizeChildName(body.name);
+  const birthDate = birthDateFromAge(body.age);
+  if (!name || !birthDate) {
+    return NextResponse.json({ error: "invalid_child_profile" }, { status: 400 });
+  }
 
   const child = await prisma.child.create({
     data: {
       parentId: user.id,
       name,
       birthDate,
-      avatar: avatar ?? "🦁",
+      avatar: normalizeChildAvatar(body.avatar),
     },
   });
 

@@ -7,7 +7,7 @@ import { TutorialOverlay } from "@/components/TutorialOverlay";
 type Node = {
   id: string;
   label: string;
-  status: "done" | "current" | "locked";
+  status: "done" | "current" | "available" | "locked";
 };
 
 export function HomeClient({
@@ -111,6 +111,7 @@ export function HomeClient({
           <div className="flex flex-col items-center md:items-start gap-4 md:gap-5">
             {nodes.map((n, i) => {
               const isCurrent = n.status === "current";
+              const isPlayable = n.status !== "locked";
               const isOdd = i % 2 === 1;
               return (
                 <div
@@ -119,7 +120,7 @@ export function HomeClient({
                 >
                   <Link
                     data-tour={isCurrent ? "current-lesson" : undefined}
-                    href={isCurrent ? `/lesson/${n.id}` : "#"}
+                    href={isPlayable ? `/lesson/${n.id}` : "#"}
                     className={`btn-chunky relative w-20 h-20 rounded-full flex items-center justify-center border-4 border-white flex-shrink-0 ${isCurrent ? "animate-pulse-soft" : ""}`}
                     style={{
                       background:
@@ -127,7 +128,9 @@ export function HomeClient({
                           ? "#68C886"
                           : n.status === "current"
                             ? "#FFC94A"
-                            : "#E5DFED",
+                            : n.status === "available"
+                              ? "#8ED8FF"
+                              : "#E5DFED",
                       boxShadow: "0 5px 0 rgba(61,46,79,0.2)",
                       opacity: n.status === "locked" ? 0.7 : 1,
                     }}
@@ -137,6 +140,9 @@ export function HomeClient({
                     )}
                     {n.status === "current" && (
                       <Lumi variant={variant} size={60} animate={false} />
+                    )}
+                    {n.status === "available" && (
+                      <span className="text-white text-2xl">▶</span>
                     )}
                     {n.status === "locked" && (
                       <span className="text-2xl">🔒</span>
@@ -149,6 +155,11 @@ export function HomeClient({
                     {isCurrent && (
                       <div className="text-xs font-bold text-sun-deep mt-0.5">
                         ¡Seguí acá! →
+                      </div>
+                    )}
+                    {n.status === "available" && (
+                      <div className="text-xs font-bold text-sky mt-0.5">
+                        Disponible
                       </div>
                     )}
                   </div>
