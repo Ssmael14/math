@@ -243,6 +243,7 @@ export async function getUnitsWithProgress(
       description: u.description,
       color: u.color,
       icon: u.icon,
+      order: u.order,
       progress: total ? done / total : 0,
       lessonsTotal: total,
       lessonsDone: done,

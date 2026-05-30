@@ -7,11 +7,6 @@ const featuredRoutes = [
     href: "/auth/login",
   },
   {
-    title: "Onboarding",
-    description: "Bienvenida, motivación y recompensas.",
-    href: "/onboarding/1",
-  },
-  {
     title: "Lección",
     description: "El core del MVP en una sola ruta.",
     href: "/lesson",

@@ -1,60 +1,32 @@
-// app/home/page.tsx — Mapa de unidades del LearningPath activo.
-//
-// Selección del path:
-//   1. Si vino ?path=<slug>, el caller fuerza ese (y se setea la cookie
-//      `lm_path` vía /api/enrollments cuando se inscribe).
-//   2. Sino, el path activo del child (cookie `lm_path` o enrollment más
-//      reciente — ver getActiveEnrollment).
-//   3. Sino → redirect a /subjects (el child todavía no eligió materia).
-//
-// Selección de unidad dentro del path:
-//   1. Si vino ?unit=<slug>, esa.
-//   2. Sino, la primera con lecciones incompletas.
-//   3. Sino, la primera disponible.
+// app/home/page.tsx - Daily learning dashboard for the active path.
 import { redirect } from "next/navigation";
-import { EducationLevel } from "@prisma/client";
 import {
   getActiveChild,
   getActiveEnrollment,
+  getLeaderboard,
   getLearningPathBySlug,
   getMasteryStats,
+  getUnitsWithProgress,
 } from "@/lib/queries";
+import { mondayOfWeek } from "@/lib/gamification/scoring";
+import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
 
-type UnitWithLessons = NonNullable<
-  Awaited<ReturnType<typeof loadUnits>>
->[number];
-
-async function loadUnits(childId: string, learningPathId: string) {
-  return prisma.unit.findMany({
-    where: { learningPathId },
-    orderBy: { order: "asc" },
-    include: {
-      lessons: {
-        orderBy: { order: "asc" },
-        include: { progresses: { where: { childId } } },
-      },
-    },
-  });
-}
+type UnitWithProgress = Awaited<ReturnType<typeof getUnitsWithProgress>>[number];
 
 function pickActiveUnit(
-  units: UnitWithLessons[],
+  units: UnitWithProgress[],
   requestedSlug: string | undefined,
-): UnitWithLessons | null {
+) {
   if (units.length === 0) return null;
   if (requestedSlug) {
-    const found = units.find((u) => u.slug === requestedSlug);
+    const found = units.find((unit) => unit.slug === requestedSlug);
     if (found) return found;
   }
-  const incomplete = units.find(
-    (u) =>
-      u.lessons.length === 0 ||
-      u.lessons.some((l) => !l.progresses[0]?.completed),
-  );
-  return incomplete ?? units[0];
+
+  return units.find((unit) => unit.progress < 1) ?? units[0];
 }
 
 export default async function HomePage({
@@ -64,39 +36,51 @@ export default async function HomePage({
 }) {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
 
   const { unit: requestedUnitSlug, path: requestedPathSlug } =
     await searchParams;
 
-  // Elegir LearningPath: query > enrollment activo. Sin enrollment → /subjects.
   let activePath = null;
   if (requestedPathSlug) {
     activePath = await getLearningPathBySlug(requestedPathSlug);
   }
   if (!activePath) {
     const enrollment = await getActiveEnrollment(child.id);
-    if (!enrollment) {
-      redirect("/subjects");
-    }
+    if (!enrollment) redirect("/subjects");
     activePath = enrollment.learningPath;
   }
 
-  const [units, masteryStats] = await Promise.all([
-    loadUnits(child.id, activePath.id),
-    getMasteryStats(child.id),
-  ]);
+  const weekStart = mondayOfWeek();
+  const [units, masteryStats, weeklyXp, activeDaysThisWeek] =
+    await Promise.all([
+      getUnitsWithProgress(child.id, activePath.id),
+      getMasteryStats(child.id),
+      prisma.weeklyXP.findUnique({
+        where: { childId_weekStart: { childId: child.id, weekStart } },
+      }),
+      prisma.progress.findMany({
+        where: {
+          childId: child.id,
+          completed: true,
+          completedAt: { gte: weekStart },
+        },
+        select: { completedAt: true },
+      }),
+    ]);
 
   const unit = pickActiveUnit(units, requestedUnitSlug);
 
   if (!unit) {
     return (
-      <div className="min-h-[100dvh] flex flex-col bg-cream">
+      <div className="flex min-h-[100dvh] flex-col bg-white">
         <TopNav />
         <div className="p-8 text-center">
           <h1 className="font-fredoka text-2xl font-bold text-ink">
             Path sin unidades
           </h1>
-          <p className="text-ink-soft mt-2">
+          <p className="mt-2 text-ink-soft">
             El path "{activePath.name}" no tiene unidades cargadas.
           </p>
         </div>
@@ -104,37 +88,51 @@ export default async function HomePage({
     );
   }
 
-  let hitCurrent = false;
-  const nodes = unit.lessons.map((l) => {
-    const done = l.progresses[0]?.completed ?? false;
-    let status: "done" | "current" | "available" | "locked" = "locked";
-    if (done) status = "done";
-    else if (!hitCurrent) {
-      status = "current";
-      hitCurrent = true;
-    } else if (
-      activePath.level === EducationLevel.PRIMARY ||
-      activePath.level === EducationLevel.SECONDARY ||
-      activePath.level === EducationLevel.PREUNIVERSITY
-    ) {
-      status = "available";
-    }
-    return { id: l.id, label: l.title, status };
-  });
-
-  const totalDone = unit.lessons.filter(
-    (l) => l.progresses[0]?.completed,
-  ).length;
-  const progressPct = unit.lessons.length ? totalDone / unit.lessons.length : 0;
+  const activeDayKeys = new Set(
+    activeDaysThisWeek
+      .map((progress) => progress.completedAt)
+      .filter((date): date is Date => Boolean(date))
+      .map((date) => date.toISOString().slice(0, 10)),
+  );
+  const currentLeague = weeklyXp?.league ?? "DIAMOND";
+  const leaderboard = await getLeaderboard(child.id, currentLeague);
+  const pathHref = `/paths/${activePath.slug}`;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-cream">
+    <div className="flex min-h-[100dvh] flex-col bg-white">
       <TopNav />
       <HomeClient
-        unit={{ title: unit.title, order: unit.order, progressPct }}
-        nodes={nodes}
+        pathName={activePath.name}
+        pathHref={pathHref}
+        initialUnitSlug={unit.slug}
+        units={units.map((entry) => ({
+          slug: entry.slug,
+          title: entry.title,
+          order: entry.order,
+          icon: entry.icon,
+          description: entry.description,
+          progressPct: entry.progress,
+          lessons: entry.lessons.map((lesson) => ({
+            id: lesson.id,
+            label: lesson.title,
+            status: lesson.status,
+            stars: lesson.stars,
+          })),
+        }))}
         reviewsDue={masteryStats.dueToday}
-        pathHref={`/paths/${activePath.slug}`}
+        stats={{
+          childName: child.name,
+          streak: child.streak,
+          hearts: child.hearts,
+          gems: child.gems,
+          xp: child.xp,
+          weeklyXp: weeklyXp?.xp ?? 0,
+          league: leaderboard.league,
+          myRank: leaderboard.myRank,
+          activeDaysThisWeek: Math.min(activeDayKeys.size, 5),
+          isPremium: user.plan !== "FREE",
+        }}
+        leaderboardRows={leaderboard.rows.slice(0, 5)}
       />
     </div>
   );

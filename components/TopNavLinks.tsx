@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, GraduationCap, Trophy, ShoppingBag, User } from "lucide-react";
+import { Home, GraduationCap, ShoppingBag, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Item = { href: string; label: string; Icon: LucideIcon; mobile: boolean };
@@ -9,7 +9,6 @@ type Item = { href: string; label: string; Icon: LucideIcon; mobile: boolean };
 const items: Item[] = [
   { href: "/home", label: "Inicio", Icon: Home, mobile: true },
   { href: "/subjects", label: "Materias", Icon: GraduationCap, mobile: true },
-  { href: "/league", label: "Liga", Icon: Trophy, mobile: false },
   { href: "/shop", label: "Tienda", Icon: ShoppingBag, mobile: false },
   { href: "/profile", label: "Perfil", Icon: User, mobile: true },
 ];

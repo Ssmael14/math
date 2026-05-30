@@ -89,15 +89,12 @@ export default async function ProfilePage() {
               ))}
             </div>
 
-            <div className="mt-6 grid md:grid-cols-3 gap-3">
+            <div className="mt-6 grid md:grid-cols-2 gap-3">
               <Link href="/achievements" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
                 <span>🏆 Medallas</span><span className="text-ink-mute">›</span>
               </Link>
               <Link href="/shop" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
                 <span>🛍️ Tienda de Lumi</span><span className="text-ink-mute">›</span>
-              </Link>
-              <Link href="/league" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
-                <span>🏅 Liga</span><span className="text-ink-mute">›</span>
               </Link>
             </div>
           </section>
