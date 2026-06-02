@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function EnrollPathButton({
   childId,
@@ -26,7 +27,7 @@ export function EnrollPathButton({
       });
 
       if (response.status === 402) {
-        setError("Este nivel es premium. Activá tu suscripción.");
+        setError("premium_required");
         return;
       }
 
@@ -50,7 +51,20 @@ export function EnrollPathButton({
       >
         {enrolled ? "Continuar" : "Empezar este camino"}
       </button>
-      {error && <div className="text-sm font-bold text-pink">{error}</div>}
+      {error && (
+        <div className="text-sm font-bold text-pink">
+          {error === "premium_required" ? (
+            <>
+              Este camino es Premium.{" "}
+              <Link href="/premium" className="underline">
+                Ver activación
+              </Link>
+            </>
+          ) : (
+            error
+          )}
+        </div>
+      )}
     </div>
   );
 }

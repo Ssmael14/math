@@ -42,6 +42,9 @@ type HomeStats = {
   myRank: number | null;
   activeDaysThisWeek: number;
   isPremium: boolean;
+  premiumUntil: string | null;
+  premiumStatus: "free" | "active" | "expiring_soon" | "expired";
+  premiumUntilLabel: string | null;
 };
 
 type LeaderboardRow = {
@@ -168,7 +171,7 @@ export function HomeClient({
           </section>
 
           <Link
-            href="/settings"
+            href="/premium"
             className={`block overflow-hidden rounded-2xl border border-slate-200 p-3 shadow-[0_2px_0_rgba(15,23,42,0.06)] md:rounded-3xl md:p-5 ${
               stats.isPremium
                 ? "bg-[#f7fff9]"
@@ -183,12 +186,18 @@ export function HomeClient({
                 <div className="font-fredoka text-sm font-bold text-slate-950 md:text-lg">
                   {stats.isPremium
                     ? "Premium activo"
-                    : "Desbloqueá todo con Premium"}
+                    : stats.premiumStatus === "expired"
+                      ? "Premium vencido"
+                      : "Desbloqueá todo con Premium"}
                 </div>
                 <div className="line-clamp-1 text-xs font-semibold text-slate-700 md:line-clamp-none md:text-sm md:leading-6">
                   {stats.isPremium
-                    ? "Tu cuenta ya tiene acceso a caminos premium."
-                    : "Más caminos, repasos y retos para avanzar mejor."}
+                    ? stats.premiumUntilLabel
+                      ? `Acceso hasta ${stats.premiumUntilLabel}.`
+                      : "Tu cuenta ya tiene acceso a caminos premium."
+                    : stats.premiumStatus === "expired"
+                      ? "Renová para volver a entrar a caminos premium."
+                      : "Más caminos, repasos y retos para avanzar mejor."}
                 </div>
               </div>
             </div>

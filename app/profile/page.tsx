@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getActiveChild, getMasteryStats } from "@/lib/queries";
 import { requireUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
+import { hasPremiumAccess, premiumStatus } from "@/lib/premium";
 import { ageFromBirthDate } from "@/lib/age";
 import { TopNav } from "@/components/TopNav";
 import { ChildSwitcher } from "./ChildSwitcher";
@@ -20,6 +21,8 @@ export default async function ProfilePage() {
     getMasteryStats(child.id),
   ]);
   const accuracy = totalAttempts ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
+  const isPremium = hasPremiumAccess(user);
+  const premiumState = premiumStatus(user);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-cream md:bg-cream md:bg-none">
@@ -89,12 +92,15 @@ export default async function ProfilePage() {
               ))}
             </div>
 
-            <div className="mt-6 grid md:grid-cols-2 gap-3">
+            <div className="mt-6 grid md:grid-cols-3 gap-3">
               <Link href="/achievements" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
                 <span>🏆 Medallas</span><span className="text-ink-mute">›</span>
               </Link>
               <Link href="/shop" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
                 <span>🛍️ Tienda de Lumi</span><span className="text-ink-mute">›</span>
+              </Link>
+              <Link href="/premium" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
+                <span>{isPremium ? "👑 Premium activo" : premiumState === "expired" ? "👑 Premium vencido" : "👑 Activar Premium"}</span><span className="text-ink-mute">›</span>
               </Link>
             </div>
           </section>

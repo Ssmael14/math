@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { getActiveChild, getLessonById, getLessonExercises } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/auth/server";
+import { hasPremiumAccess } from "@/lib/premium";
 import { prisma } from "@/lib/prisma";
 import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { stripTeach } from "@/lib/learning/teach";
@@ -37,9 +39,15 @@ export default async function LessonPage({
   const { id } = await params;
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
 
   const lesson = await getLessonById(id);
   if (!lesson) notFound();
+
+  if (lesson.unit.learningPath.isPremium && !hasPremiumAccess(user)) {
+    redirect("/premium");
+  }
 
   const access = await verifyLessonAccess(child.id, id);
   if (!access.ok) {

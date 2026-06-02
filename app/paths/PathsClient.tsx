@@ -38,7 +38,7 @@ export function PathsClient({
         body: JSON.stringify({ childId, learningPathSlug: slug }),
       });
       if (r.status === 402) {
-        setError("Este nivel es premium. Activá tu suscripción.");
+        setError("premium_required");
         return;
       }
       if (!r.ok) {
@@ -98,7 +98,16 @@ export function PathsClient({
 
       {error && (
         <div className="mt-4 text-pink text-sm font-bold text-center">
-          {error}
+          {error === "premium_required" ? (
+            <>
+              Este camino es Premium.{" "}
+              <Link href="/premium" className="underline">
+                Ver activación
+              </Link>
+            </>
+          ) : (
+            error
+          )}
         </div>
       )}
 

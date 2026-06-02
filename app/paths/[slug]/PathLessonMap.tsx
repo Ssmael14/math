@@ -119,7 +119,7 @@ export function PathLessonMap({
         });
 
         if (response.status === 402) {
-          setError("Este nivel es premium. Activá tu suscripción.");
+          setError("premium_required");
           return;
         }
 
@@ -302,7 +302,16 @@ export function PathLessonMap({
           </div>
           {error && (
             <div className="mb-3 text-center text-sm font-bold text-pink">
-              {error}
+              {error === "premium_required" ? (
+                <>
+                  Este camino es Premium.{" "}
+                  <Link href="/premium" className="underline">
+                    Ver activación
+                  </Link>
+                </>
+              ) : (
+                error
+              )}
             </div>
           )}
           <button

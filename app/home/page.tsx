@@ -10,6 +10,7 @@ import {
 } from "@/lib/queries";
 import { mondayOfWeek } from "@/lib/gamification/scoring";
 import { getCurrentUser } from "@/lib/auth/server";
+import { formatPremiumDate, hasPremiumAccess, premiumStatus } from "@/lib/premium";
 import { prisma } from "@/lib/prisma";
 import { TopNav } from "@/components/TopNav";
 import { HomeClient } from "./HomeClient";
@@ -130,7 +131,10 @@ export default async function HomePage({
           league: leaderboard.league,
           myRank: leaderboard.myRank,
           activeDaysThisWeek: Math.min(activeDayKeys.size, 5),
-          isPremium: user.plan !== "FREE",
+          isPremium: hasPremiumAccess(user),
+          premiumUntil: user.premiumUntil?.toISOString() ?? null,
+          premiumStatus: premiumStatus(user),
+          premiumUntilLabel: formatPremiumDate(user.premiumUntil),
         }}
         leaderboardRows={leaderboard.rows.slice(0, 5)}
       />

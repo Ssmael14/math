@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "prisma migrate deploy && tsx prisma/seed.ts",
+    "db:seed:content": "prisma migrate deploy && tsx prisma/seed-content.ts",
     "db:reset": "prisma migrate reset",
     "gen:audio": "tsx scripts/gen-audio.ts",
     "test": "vitest run",

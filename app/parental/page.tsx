@@ -219,7 +219,7 @@ export default async function ParentalPage() {
             <Link href="/settings" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
               <span>⚙️ Ajustes de la app</span><span className="text-ink-mute">›</span>
             </Link>
-            <Link href="/shop" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
+            <Link href="/premium" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
               <span>✨ Ir a Premium</span><span className="text-ink-mute">›</span>
             </Link>
           </div>

@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getCurrentUser, ACTIVE_PATH_COOKIE } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
+import { hasPremiumAccess } from "@/lib/premium";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
   });
   if (!path) return NextResponse.json({ error: "path_not_found" }, { status: 404 });
 
-  if (path.isPremium && user.plan === "FREE") {
+  if (path.isPremium && !hasPremiumAccess(user)) {
     return NextResponse.json({ error: "premium_required", subject: path.subject.slug }, { status: 402 });
   }
 

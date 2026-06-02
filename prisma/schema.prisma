@@ -39,10 +39,15 @@ model User {
   // Extensiones propias.
   parentalPin   String?
   plan          SubscriptionPlan @default(FREE)
+  premiumUntil      DateTime?
+  premiumAssignedAt DateTime?
+  premiumNote       String?
 
   sessions Session[]
   accounts Account[]
   children Child[]
+  premiumGrants         PremiumGrant[] @relation("PremiumGrantsForUser")
+  premiumGrantsAssigned PremiumGrant[] @relation("PremiumGrantsAssignedBy")
 
   @@map("user")
 }
@@ -99,6 +104,24 @@ enum SubscriptionPlan {
   FREE
   PREMIUM
   FAMILY
+}
+
+model PremiumGrant {
+  id          String           @id @default(cuid())
+  userId      String
+  adminUserId String?
+  plan        SubscriptionPlan
+  startsAt    DateTime         @default(now())
+  endsAt      DateTime?
+  note        String?
+  createdAt   DateTime         @default(now())
+
+  user      User  @relation("PremiumGrantsForUser", fields: [userId], references: [id], onDelete: Cascade)
+  adminUser User? @relation("PremiumGrantsAssignedBy", fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([adminUserId])
+  @@map("premium_grants")
 }
 
 // =========================================================================

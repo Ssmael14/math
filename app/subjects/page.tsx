@@ -180,6 +180,11 @@ export default async function SubjectsPage() {
                                     New
                                   </span>
                                 )}
+                                {path.isPremium && (
+                                  <span className="absolute left-3 top-3 rounded-full bg-[#ffc94a] px-2.5 py-1 text-[11px] font-black uppercase text-slate-950">
+                                    Premium
+                                  </span>
+                                )}
                                 <PathIllustration
                                   variant={
                                     pathIllustrations[

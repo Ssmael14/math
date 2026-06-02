@@ -641,7 +641,7 @@ async function main() {
   ]);
 
   // ============================================================
-  // READING · Inicial (sin cambios — valida el motor multi-materia)
+  // READING · Inicial (premium en dev para validar el bloqueo de paths)
   // ============================================================
   const readingInitial = await prisma.learningPath.create({
     data: {
@@ -651,7 +651,7 @@ async function main() {
       description: "Letras, sonidos y primeras palabras.",
       level: EducationLevel.INITIAL,
       difficulty: 1,
-      isPremium: false,
+      isPremium: true,
       order: 1,
     },
   });
