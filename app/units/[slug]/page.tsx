@@ -6,6 +6,7 @@ import {
   getLessonsWithState,
   getUnitBySlug,
 } from "@/lib/queries";
+import { brand } from "@/lib/brand";
 import { TopNav } from "@/components/TopNav";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +29,11 @@ export async function generateMetadata({
   const unit = await getUnitBySlug(slug);
 
   if (!unit) {
-    return { title: "Unidad no encontrada · LearnMath" };
+    return { title: `Unidad no encontrada · ${brand.appName}` };
   }
 
   return {
-    title: `${unit.title} · ${unit.learningPath.subject.name} · LearnMath`,
+    title: `${unit.title} · ${unit.learningPath.subject.name} · ${brand.appName}`,
     description:
       unit.description ??
       `Explorá ${unit.title} dentro de ${unit.learningPath.name}.`,

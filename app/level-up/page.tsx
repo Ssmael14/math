@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
+import { brand } from "@/lib/brand";
 
 export default function LevelUpPage() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function LevelUpPage() {
           <span className="absolute -top-1 right-5 text-2xl">⭐</span>
         </div>
         <div className="font-fredoka text-2xl font-bold text-white mt-3 drop-shadow">Explorador 🌟</div>
-        <p className="text-white/90 font-bold text-sm mt-1 px-4">Desbloqueaste <b>Restas hasta 20</b> y un sombrero nuevo para Lumi.</p>
+        <p className="text-white/90 font-bold text-sm mt-1 px-4">Desbloqueaste <b>Restas hasta 20</b> y un sombrero nuevo para {brand.mascotName}.</p>
         <div className="grid grid-cols-2 gap-3 mt-5">
           {[{ icon: "📖", title: "Nueva unidad", sub: "Restas hasta 20" }, { icon: "🎩", title: "Sombrero", sub: "Gratis para ti" }].map((c) => (
             <div key={c.title} className="bg-white/95 rounded-2xl p-3 border-2 border-white text-center" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>

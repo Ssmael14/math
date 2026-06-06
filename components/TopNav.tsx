@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Flame, Gem, Heart } from "lucide-react";
 import { getActiveChild } from "@/lib/queries";
+import { brand } from "@/lib/brand";
 import { TopNavLinks } from "./TopNavLinks";
 
 export async function TopNav({ fixed = false }: { fixed?: boolean } = {}) {
@@ -15,10 +16,17 @@ export async function TopNav({ fixed = false }: { fixed?: boolean } = {}) {
           <Link
             href="/home"
             className="flex items-center gap-2 font-fredoka font-bold text-ink whitespace-nowrap"
-            aria-label="LearnMath"
+            aria-label={brand.appName}
           >
-            <span className="text-2xl leading-none" aria-hidden>🦙</span>
-            <span className="hidden md:inline text-[19px] tracking-tight">LearnMath</span>
+            <img
+              src={brand.assets.mark}
+              alt=""
+              className="h-8 w-8 rounded-xl"
+              aria-hidden
+            />
+            <span className="hidden md:inline text-[19px] tracking-tight">
+              {brand.appName}
+            </span>
           </Link>
 
           <TopNavLinks/>

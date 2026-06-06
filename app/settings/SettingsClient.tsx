@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
+import { brand } from "@/lib/brand";
 import {
   isSoundsEnabled,
   isHapticsEnabled,
@@ -156,7 +157,7 @@ export function SettingsClient({
           </Section>
 
           <div className="text-center text-xs font-bold text-ink-mute pt-4">
-            LearnMath v0.1 · Hecho con 🦙 y matemática
+            {brand.appName} v0.1 · Hecho con {brand.mascotName} y matemática
           </div>
         </div>
       </main>

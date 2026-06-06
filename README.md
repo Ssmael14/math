@@ -1,109 +1,88 @@
-# LearnMath — Next.js + Prisma + Supabase
+# Paskalito - Plan de continuidad
 
-App gamificada de matemáticas para niños de 4-6 años con Lumi la llama 🦙.
-**MVP técnico funcional** con auth real, DB y progreso persistente.
+Este README queda como nota operativa del proyecto para no perder el hilo entre iteraciones.
 
-## Stack
-- Next.js 15 (App Router, Server Components)
-- TypeScript
-- Tailwind CSS v4
-- **Prisma 6** (ORM type-safe)
-- **Supabase** (Auth + Postgres en prod)
-- Postgres local via Docker (dev)
+## Estado actual
 
-## 🚀 Setup local (5 min)
+- Producto: `Paskalito`.
+- Personaje publico: `Paskalito`.
+- Configuracion central de marca: `lib/brand.ts`.
+- Assets editables base: `public/brand/`.
+- Iconos PWA actualizados: `public/icon-192.svg`, `public/icon-512.svg`.
+- Manifest actualizado: `public/manifest.webmanifest`.
+- El codigo interno todavia conserva nombres como `Lumi.tsx`, `use-lumi-variant.ts` y builder `lumi(...)` para evitar un refactor grande.
 
-```bash
-# 1. Instalar deps
-cd learnmath-nextjs
-npm install
+## Plan inmediato
 
-# 2. Levantar Postgres local
-docker compose up -d
-
-# 3. Configurar env
-cp .env.example .env.local
-# → editar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY
-#   con los valores de tu proyecto Supabase (o dejá vacío para solo mockear)
-
-# 4. Migraciones + seed
-npm run db:migrate -- --name init
-npm run db:seed
-
-# 5. Correr
-npm run dev
-```
-
-Abrí http://localhost:3000 → `/auth/login`.
-
-## 📦 Scripts
-
-| Script | Qué hace |
-|---|---|
-| `npm run dev` | Server de desarrollo |
-| `npm run db:migrate` | Aplicar cambios de schema |
-| `npm run db:seed` | Cargar contenido (1 unidad · 3 lecciones · 10 ejercicios) |
-| `npm run db:studio` | Abrir Prisma Studio (GUI para la DB) |
-| `npm run db:reset` | Limpiar DB y reseedear |
-
-## 🗺️ Arquitectura
-
-```
-learnmath-nextjs/
-├── prisma/
-│   ├── schema.prisma    # 7 modelos (User, Child, Unit, Lesson, Exercise, Attempt, Progress)
-│   └── seed.ts          # Contenido inicial
-├── lib/
-│   ├── prisma.ts        # Singleton PrismaClient
-│   ├── auth.ts          # Abstracción de auth (portable)
-│   ├── queries.ts       # Queries de alto nivel
-│   └── supabase/        # Clientes SSR
-├── middleware.ts        # Protege rutas privadas
-├── app/
-│   ├── api/             # Route handlers (progress, attempts, children)
-│   ├── auth/            # login, signup, forgot, callback
-│   ├── home/            # Mapa de aventura (Server Component → datos reales)
-│   ├── units/           # Lista de unidades
-│   ├── lesson/[id]/     # Runner dinámico de ejercicios
-│   └── ...              # Otras 20+ pantallas
-└── components/          # Lumi, PhoneFrame, BottomNav, etc.
-```
-
-## 🔑 Pantallas conectadas a datos reales
-
-- ✅ `/home` — lee unidad activa + progreso del child
-- ✅ `/units` — lista todas las unidades con progreso
-- ✅ `/lesson/[id]` — corre ejercicios reales, guarda attempts + progress
-- ✅ `/victory` — recibe XP y estrellas reales via query params
-- ✅ `/auth/*` — login, signup, forgot con Supabase Auth
-- ✅ `/profile/create` — crea child via `/api/children`
-
-## 🔄 Portabilidad (irte de Supabase algún día)
-
-Toda la lógica de datos vive en **Prisma** — Supabase solo hace auth + Postgres hosting.
-
-Para migrar a Neon / Railway / Render:
-1. Cambiar `DATABASE_URL` a la nueva DB
-2. Correr `npx prisma migrate deploy`
-3. Reemplazar `lib/auth.ts` con NextAuth/Clerk/Lucia
-
-**Cero refactor en pantallas ni API routes.**
-
-## 🚢 Deploy
+1. Hacer commit del cambio de identidad visual.
+2. Ejecutar el seed de contenido no destructivo:
 
 ```bash
-npx vercel
-# + pegar env vars en el dashboard
+npm run db:seed:content
 ```
 
-## 📋 Próximos pasos
+3. Revisar manualmente:
 
-- [ ] PWA con `next-pwa` (instalable en el home del cel)
-- [ ] Más unidades / ejercicios
-- [ ] Panel padres con queries reales (hoy es mock)
-- [ ] Analytics (PostHog)
-- [ ] Stripe / RevenueCat para premium
+- `/auth/login`
+- `/auth/signup`
+- `/home`
+- `/subjects`
+- `/paths/math-initial-nel`
+- `/lesson/[id]`
+- `/victory`
+- `/profile`
+- `/shop`
+- `/premium`
 
-## 🔐 COPPA
+4. Confirmar que no queden textos visibles con `Lumi`:
 
-La app pide consentimiento de padre/madre en signup. Los datos del niño nunca están asociados a email directo del niño, solo al padre.
+```bash
+rg "Aventura con Lumi|Tienda de Lumi|Aprendamos con Lumi|Mirá y escuchá a Lumi|Lumi te|Lumi quiere|Lumi se|Lumi está|🦙" app components lib prisma public
+```
+
+## Assets pendientes
+
+Los SVG actuales son placeholders editables. Falta diseñar la identidad final:
+
+- Logo horizontal `Paskalito + isotipo`.
+- Isotipo solo.
+- Mascota happy.
+- Mascota celebrate.
+- Mascota sad.
+- Mascota sleepy.
+- Mascota teaching/thinking.
+- Iconos PWA finales en SVG/PNG.
+- Favicon y Apple touch icon.
+- Iconos UI: premium, gemas, corazones, racha, nodos de leccion, materias.
+
+## Refactor interno opcional
+
+Cuando la identidad visual este aprobada, hacer una fase tecnica para renombrar internamente:
+
+- `components/Lumi.tsx` -> `components/Mascot.tsx` o `components/Paskalito.tsx`.
+- `lib/use-lumi-variant.ts` -> `lib/use-mascot-variant.ts`.
+- `lumi(...)` en seeds -> `teach(...)` o `mascotTeach(...)`.
+- Comentarios internos "Momento Lumi" -> "Momento Paskalito" o "Momento del personaje".
+
+Esto no es urgente. Primero conviene estabilizar la marca visible.
+
+## Validacion antes de commit/deploy
+
+```bash
+npx tsc --noEmit
+npm run test
+npm run build
+```
+
+Ultima validacion del cambio de identidad:
+
+- TypeScript: paso.
+- Tests: 19 archivos, 211 tests pasaron.
+- Build: paso.
+
+## Notas importantes
+
+- `npm run db:seed` es destructivo y solo debe usarse para desarrollo/reset.
+- `npm run db:seed:content` actualiza contenido sin borrar usuarios ni progreso.
+- Si se cambia el dominio final, actualizar `lib/brand.ts` y verificar Resend/DNS.
+- El email actual de sistema usa `noreply@paskalito.com`; ese dominio debe verificarse antes de produccion.

@@ -3,11 +3,12 @@ import { useRouter } from "next/navigation";
 import { use } from "react";
 import { Lumi } from "@/components/Lumi";
 import { useLumiVariant } from "@/lib/use-lumi-variant";
+import { brand } from "@/lib/brand";
 
 const slides = [
-  { title: "¡Hola! Soy Lumi", sub: "Vamos a jugar con los números juntos", bg: "linear-gradient(180deg, #FFE5A3 0%, #FFC9D9 100%)", cta: "Empezar" },
+  { title: `¡Hola! Soy ${brand.mascotName}`, sub: "Vamos a jugar con los números juntos", bg: "linear-gradient(180deg, #FFE5A3 0%, #FFC9D9 100%)", cta: "Empezar" },
   { title: "Aprender jugando", sub: "Sumá, restá y contá con animalitos, frutas y estrellas", bg: "linear-gradient(180deg, #B8E0F5 0%, #DDC9F0 100%)", cta: "Siguiente" },
-  { title: "Ganá recompensas", sub: "Coleccioná gemas, medallas y accesorios para Lumi", bg: "linear-gradient(180deg, #C5EED0 0%, #FFE5A3 100%)", cta: "¡A jugar!" },
+  { title: "Ganá recompensas", sub: `Coleccioná gemas, medallas y accesorios para ${brand.mascotName}`, bg: "linear-gradient(180deg, #C5EED0 0%, #FFE5A3 100%)", cta: "¡A jugar!" },
 ];
 
 export default function OnboardingPage({ params }: { params: Promise<{ step: string }> }) {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getActiveChild, getSubjectBySlug } from "@/lib/queries";
+import { brand } from "@/lib/brand";
 import { TopNav } from "@/components/TopNav";
 
 const bgByColor: Record<string, string> = {
@@ -22,11 +23,11 @@ export async function generateMetadata({
   const subject = await getSubjectBySlug(slug);
 
   if (!subject) {
-    return { title: "Materia no encontrada · LearnMath" };
+    return { title: `Materia no encontrada · ${brand.appName}` };
   }
 
   return {
-    title: `${subject.name} · LearnMath`,
+    title: `${subject.name} · ${brand.appName}`,
     description:
       subject.description ??
       `Explorá ${subject.name} y sus caminos de aprendizaje.`,

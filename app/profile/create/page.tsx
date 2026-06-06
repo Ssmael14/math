@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
+import { brand } from "@/lib/brand";
 
 const AVATARS = ["🦁","🐯","🦊","🐼","🐻","🐸","🦄","🐙","🦖"];
 
@@ -40,7 +41,7 @@ export default function CreateProfilePage() {
 
       <main className="flex-1 flex items-center justify-center px-4 py-6 md:py-12">
         <div className="w-full max-w-md bg-white md:border-4 md:border-white rounded-3xl p-6 md:p-10" style={{ boxShadow: "var(--shadow-chunky)" }}>
-          {/* Lumi saluda */}
+          {/* El personaje saluda */}
           <div className="flex flex-col items-center -mt-16 md:-mt-20 mb-2">
             <div className="bg-sun-soft rounded-full p-3 border-4 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
               <Lumi size={80} mood="happy"/>
@@ -50,7 +51,7 @@ export default function CreateProfilePage() {
           <div className="text-center mb-6">
             <div className="text-[10px] font-black text-pink tracking-widest">PERFIL DEL NIÑO</div>
             <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink mt-1">¡Hola! Contame de vos</h1>
-            <p className="text-sm text-ink-soft font-bold mt-1">Lumi quiere conocerte 🦙</p>
+            <p className="text-sm text-ink-soft font-bold mt-1">{brand.mascotName} quiere conocerte</p>
           </div>
 
           <div>

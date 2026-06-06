@@ -8,6 +8,7 @@ import {
   getLearningPathBySlug,
   getUnitsWithProgress,
 } from "@/lib/queries";
+import { brand } from "@/lib/brand";
 import { TopNav } from "@/components/TopNav";
 import { EnrollPathButton } from "./EnrollPathButton";
 import { PathLessonMap } from "./PathLessonMap";
@@ -36,11 +37,11 @@ export async function generateMetadata({
   const path = await getLearningPathBySlug(slug);
 
   if (!path) {
-    return { title: "Camino no encontrado · LearnMath" };
+    return { title: `Camino no encontrado · ${brand.appName}` };
   }
 
   return {
-    title: `${path.subject.name} · ${path.name} · LearnMath`,
+    title: `${path.subject.name} · ${path.name} · ${brand.appName}`,
     description:
       path.description ??
       `Explorá ${path.name} dentro de ${path.subject.name}.`,

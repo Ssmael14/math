@@ -3,6 +3,7 @@ import { Crown, LockKeyhole, Sparkles } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/server";
 import { formatPremiumDate, hasPremiumAccess, premiumStatus } from "@/lib/premium";
 import { TopNav } from "@/components/TopNav";
+import { brand } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function PremiumPage() {
             </h1>
             <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-slate-500">
               Premium desbloquea caminos marcados como premium. Por ahora el
-              acceso se activa manualmente por el equipo de LearnMath, sin pagos
+              acceso se activa manualmente por el equipo de {brand.appName}, sin pagos
               dentro de la app.
             </p>
 

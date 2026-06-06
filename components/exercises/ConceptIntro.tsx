@@ -11,6 +11,7 @@ import { Lumi } from "@/components/Lumi";
 import { speak, stopSpeaking } from "@/lib/tts";
 import { playTap, playCorrect, vibrate } from "@/lib/gamification/audio";
 import { numberWord } from "@/lib/learning/number-words";
+import { brand } from "@/lib/brand";
 import type { TeachContent } from "@/components/exercises/types";
 
 export function ConceptIntro({
@@ -104,7 +105,9 @@ export function ConceptIntro({
       <header className="sticky top-0 z-20 bg-cream/80 backdrop-blur">
         <div className="max-w-2xl mx-auto h-14 flex items-center justify-center">
           <span className="text-xs font-black text-ink-mute tracking-widest uppercase">
-            {isReteach ? "🔁 Repasemos juntos" : "✨ Aprendamos con Lumi"}
+            {isReteach
+              ? "🔁 Repasemos juntos"
+              : `✨ Aprendamos con ${brand.mascotName}`}
           </span>
         </div>
       </header>
@@ -171,7 +174,7 @@ export function ConceptIntro({
             <Lumi size={48} mood={tryDone ? "celebrate" : "happy"} />
             <span className="text-sm font-bold text-ink-soft">
               {phase === "beats"
-                ? "Mirá y escuchá a Lumi"
+                ? `Mirá y escuchá a ${brand.mascotName}`
                 : tryDone
                 ? "¡Lo lograste!"
                 : `Tocá los ${tryIt?.emoji}`}

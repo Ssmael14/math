@@ -5,6 +5,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getActiveChild, getReviewQueue } from "@/lib/queries";
+import { brand } from "@/lib/brand";
 import { ReviewRunner } from "./ReviewRunner";
 
 export default async function ReviewPage() {
@@ -50,7 +51,7 @@ function NothingToReview() {
         Nada por repasar hoy
       </h1>
       <p className="text-ink-soft max-w-sm mb-6">
-        Volvé mañana — Lumi te avisa cuándo hay ejercicios para refrescar.
+        Volvé mañana — {brand.mascotName} te avisa cuándo hay ejercicios para refrescar.
       </p>
       <Link
         href="/home"

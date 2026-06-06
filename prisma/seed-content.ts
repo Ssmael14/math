@@ -46,9 +46,9 @@ const paths = [
   {
     subjectSlug: "math",
     slug: "math-initial-nel",
-    name: "Inicial · Aventura con Lumi",
+    name: "Inicial · Aventura con Paskalito",
     description:
-      "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Lumi.",
+      "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Paskalito.",
     level: EducationLevel.INITIAL,
     difficulty: 1,
     isPremium: false,

@@ -1,5 +1,6 @@
 "use client";
 import type { LumiVariant } from "@/lib/use-lumi-variant";
+import { brand } from "@/lib/brand";
 
 interface Props {
   variant?: LumiVariant;
@@ -17,6 +18,7 @@ export function Lumi({ variant = "fluffy", size = 120, animate = true, mood = "h
     <div
       className={animate ? "animate-bob" : ""}
       style={{ width: size, height: size, position: "relative" }}
+      aria-label={brand.mascotName}
     >
       <svg viewBox="0 0 120 120" width={size} height={size}>
         {/* Cuerpo */}
@@ -38,8 +40,16 @@ export function Lumi({ variant = "fluffy", size = 120, animate = true, mood = "h
         <ellipse cx="38" cy="34" rx="4" ry="7" fill="#FFB199" transform="rotate(-15 38 34)" />
         <ellipse cx="82" cy="34" rx="4" ry="7" fill="#FFB199" transform="rotate(15 82 34)" />
 
+        {/* Gorrito de Paskalito */}
+        <rect x="39" y="22" width="42" height="22" rx="8" fill="#4867F5" />
+        <path
+          d="M49 37L57 28V35H72L63 45V37H49Z"
+          fill="#FFC94A"
+        />
+        {hasSparkles && <circle cx="82" cy="24" r="4" fill="#9BE7B0" />}
+
         {/* Flequillo */}
-        <path d="M 40 38 Q 50 28, 60 34 Q 70 28, 80 38 Q 70 42, 60 40 Q 50 42, 40 38 Z" fill="#FFE0C4" />
+        <path d="M 40 42 Q 50 32, 60 38 Q 70 32, 80 42 Q 70 46, 60 44 Q 50 46, 40 42 Z" fill="#FFE0C4" />
 
         {/* Ojos */}
         {isSleepy ? (

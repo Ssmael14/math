@@ -9,6 +9,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
 import { prisma } from "../prisma";
+import { brand } from "@/lib/brand";
 
 // El cliente de Resend sólo se construye si hay API key — así en dev sin
 // SMTP la app sigue funcionando y el link de reset se loguea por consola.
@@ -39,12 +40,12 @@ export const auth = betterAuth({
         return;
       }
       await resend.emails.send({
-        from: "noreply@psskal.com",
+        from: `noreply@${brand.domain}`,
         to: user.email,
-        subject: "Recuperá tu contraseña 🦙",
+        subject: `Recuperá tu contraseña · ${brand.appName}`,
         html: `
           <div style="font-family: system-ui, sans-serif; max-width: 480px; margin: 0 auto;">
-            <h1 style="font-size: 24px; color: #3D2E4F;">Hola 🦙</h1>
+            <h1 style="font-size: 24px; color: #3D2E4F;">Hola, soy ${brand.mascotName}</h1>
             <p style="color: #555;">Hacé click acá para elegir una nueva contraseña:</p>
             <p style="margin: 24px 0;">
               <a href="${url}"

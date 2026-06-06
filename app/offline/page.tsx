@@ -1,6 +1,7 @@
 // app/offline/page.tsx — fallback que muestra el service worker cuando el
 // niño está sin conexión y la URL pedida no está en cache.
 import Link from "next/link";
+import { brand } from "@/lib/brand";
 
 export const dynamic = "force-static";
 
@@ -10,7 +11,7 @@ export default function OfflinePage() {
       <div className="text-7xl mb-4">📡</div>
       <h1 className="font-fredoka text-3xl md:text-4xl font-bold text-ink mb-2">Sin internet</h1>
       <p className="text-ink-soft max-w-sm mb-6">
-        Lumi necesita conexión para cargar lecciones nuevas. Tus respuestas
+        {brand.mascotName} necesita conexión para cargar lecciones nuevas. Tus respuestas
         de hoy se van a guardar y subir cuando vuelva el wifi.
       </p>
       <Link

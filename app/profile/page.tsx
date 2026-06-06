@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { hasPremiumAccess, premiumStatus } from "@/lib/premium";
 import { ageFromBirthDate } from "@/lib/age";
+import { brand } from "@/lib/brand";
 import { TopNav } from "@/components/TopNav";
 import { ChildSwitcher } from "./ChildSwitcher";
 
@@ -97,7 +98,7 @@ export default async function ProfilePage() {
                 <span>🏆 Medallas</span><span className="text-ink-mute">›</span>
               </Link>
               <Link href="/shop" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
-                <span>🛍️ Tienda de Lumi</span><span className="text-ink-mute">›</span>
+                <span>🛍️ Tienda de {brand.mascotName}</span><span className="text-ink-mute">›</span>
               </Link>
               <Link href="/premium" className="btn-chunky flex items-center justify-between bg-white rounded-2xl p-4 font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
                 <span>{isPremium ? "👑 Premium activo" : premiumState === "expired" ? "👑 Premium vencido" : "👑 Activar Premium"}</span><span className="text-ink-mute">›</span>

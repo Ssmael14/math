@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
+import { brand } from "@/lib/brand";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -22,13 +23,13 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "LearnMath — Aventura con Lumi",
-  description: "Matemáticas gamificadas para niños de 4–6 años",
+  title: `${brand.appName} — Aventura con ${brand.mascotName}`,
+  description: brand.tagline,
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "LearnMath",
+    title: brand.appName,
   },
 };
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lumi } from "@/components/Lumi";
 import { authClient } from "@/lib/auth/client";
+import { brand } from "@/lib/brand";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function LoginPage() {
             ¡Hola de nuevo!
           </h1>
           <p className="text-ink-soft text-sm font-bold">
-            Lumi te estaba esperando 🦙
+            {brand.mascotName} te estaba esperando
           </p>
         </div>
 

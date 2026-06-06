@@ -5,6 +5,7 @@ import { getActiveChild, getLessonById, getLessonExercises } from "@/lib/queries
 import { getCurrentUser } from "@/lib/auth/server";
 import { hasPremiumAccess } from "@/lib/premium";
 import { prisma } from "@/lib/prisma";
+import { brand } from "@/lib/brand";
 import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { stripTeach } from "@/lib/learning/teach";
 import { LessonRunner } from "./LessonRunner";
@@ -20,11 +21,11 @@ export async function generateMetadata({
   const lesson = await getLessonById(id);
 
   if (!lesson) {
-    return { title: "Lección no encontrada · LearnMath" };
+    return { title: `Lección no encontrada · ${brand.appName}` };
   }
 
   return {
-    title: `${lesson.title} · ${lesson.unit.learningPath.subject.name} · LearnMath`,
+    title: `${lesson.title} · ${lesson.unit.learningPath.subject.name} · ${brand.appName}`,
     description:
       lesson.description ??
       `Lección de ${lesson.unit.title} dentro de ${lesson.unit.learningPath.name}.`,

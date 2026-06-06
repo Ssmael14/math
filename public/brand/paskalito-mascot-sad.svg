@@ -1,0 +1,12 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Paskalito triste</title>
+  <desc id="desc">Mascota Paskalito en estado triste.</desc>
+  <circle cx="120" cy="120" r="88" fill="#FFF0E0"/>
+  <circle cx="120" cy="125" r="66" fill="#FFE0C4"/>
+  <circle cx="96" cy="116" r="8" fill="#3D2E4F"/>
+  <circle cx="144" cy="116" r="8" fill="#3D2E4F"/>
+  <path d="M102 151C113 140 127 140 138 151" stroke="#3D2E4F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M154 124C159 135 154 145 148 150" stroke="#6FBEE8" stroke-width="5" stroke-linecap="round"/>
+  <rect x="85" y="34" width="70" height="36" rx="12" fill="#4867F5"/>
+  <path d="M104 57L116 43V53H136L123 68V57H104Z" fill="#FFC94A"/>
+</svg>

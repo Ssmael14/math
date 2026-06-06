@@ -4,7 +4,7 @@
 // Currículo CURADO estilo Brilliant para Matemáticas "Primero" (4-6 años,
 // pre-lectores). Principios:
 //  - Un concepto por lección.
-//  - Intuición primero: cada lección abre con un Momento Lumi (TEACH).
+//  - Intuición primero: cada lección abre con un momento del personaje (TEACH).
 //  - Concreto → pictórico → abstracto; solo interacciones concretas
 //    (contar tocando, arrastrar, sacar, comparar, trazar, emparejar,
 //    ordenar). Se difiere el teclado numérico a niveles avanzados.
@@ -201,7 +201,7 @@ function compareObjects(
     prompt: attribute === "same" ? "¿Son iguales?" : "Tocá el que corresponde.",
     payload: { visual: "compare-attribute", attribute, left, right, options: ["izquierda", "derecha", "igual"] },
     solution: { answer },
-    hints: ["Miralos despacio.", "Compará solo lo que Lumi pidió."],
+    hints: ["Miralos despacio.", "Compará solo lo que Paskalito pidió."],
     explanation:
       answer === "igual"
         ? "Son iguales en esta comparación."
@@ -373,14 +373,14 @@ async function main() {
   });
 
   // ============================================================
-  // MATH · Inicial · Aventura con Lumi
+  // MATH · Inicial · Aventura con Paskalito
   // ============================================================
   const primary1 = await prisma.learningPath.create({
     data: {
       subjectId: mathSubject.id,
       slug: "math-initial-nel",
-      name: "Inicial · Aventura con Lumi",
-      description: "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Lumi.",
+      name: "Inicial · Aventura con Paskalito",
+      description: "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Paskalito.",
       level: EducationLevel.INITIAL,
       difficulty: 1,
       isPremium: false,

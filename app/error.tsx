@@ -2,6 +2,7 @@
 // Boundary global de errores no capturados en cualquier ruta del App Router.
 // Next renderiza este componente en lugar de mostrar la pantalla en blanco.
 import { useEffect } from "react";
+import { brand } from "@/lib/brand";
 
 export default function GlobalError({
   error,
@@ -17,9 +18,9 @@ export default function GlobalError({
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 py-8 bg-cream text-center">
-      <div className="text-7xl mb-4">🦙</div>
+      <img src={brand.assets.mascotSad} alt="" className="mb-4 h-28 w-28" />
       <h1 className="font-fredoka text-3xl md:text-4xl font-bold text-ink mb-2">
-        Lumi se tropezó
+        {brand.mascotName} se tropezó
       </h1>
       <p className="text-ink-soft max-w-sm mb-6">
         Algo salió mal. Probá de nuevo en un ratito — los datos están a salvo.

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Confetti } from "@/components/Confetti";
 import { playTap, playVictory } from "@/lib/gamification/audio";
 import { Lumi } from "@/components/Lumi";
+import { brand } from "@/lib/brand";
 import { ExerciseRunner } from "@/components/exercises/ExerciseRunner";
 import type { ExerciseDTO } from "@/components/exercises/types";
 
@@ -58,7 +59,7 @@ function ReviewDoneScreen({
       <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-6">
         <div className="text-center">
           <div className="font-fredoka text-sm font-semibold tracking-widest text-ink/70">¡REPASO COMPLETO!</div>
-          <h1 className="font-fredoka text-4xl md:text-5xl font-bold text-ink mt-1">Lumi está orgulloso 🦙</h1>
+          <h1 className="font-fredoka text-4xl md:text-5xl font-bold text-ink mt-1">{brand.mascotName} está orgulloso</h1>
         </div>
 
         <div className="animate-bob">

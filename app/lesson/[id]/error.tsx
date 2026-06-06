@@ -4,6 +4,7 @@
 // (en vez de perder al niño en una página rota).
 import { useEffect } from "react";
 import Link from "next/link";
+import { brand } from "@/lib/brand";
 
 export default function LessonError({
   error,
@@ -18,7 +19,7 @@ export default function LessonError({
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 py-8 bg-white text-center">
-      <div className="text-7xl mb-4">🦙</div>
+      <img src={brand.assets.mascotSad} alt="" className="mb-4 h-28 w-28" />
       <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink mb-2">
         Esta lección se cayó
       </h1>

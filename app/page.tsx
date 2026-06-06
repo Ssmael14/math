@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { brand } from "@/lib/brand";
 
 const featuredRoutes = [
   {
@@ -54,11 +55,13 @@ export default function Index() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-10 pt-5 sm:px-10 lg:px-12">
         <header className="flex items-center justify-between gap-4">
           <Link href="/" className="inline-flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-lg font-black text-ink shadow-[0_12px_30px_rgba(61,46,79,0.08)]">
-              L
-            </span>
+            <img
+              src={brand.assets.mark}
+              alt=""
+              className="h-11 w-11 rounded-2xl shadow-[0_12px_30px_rgba(61,46,79,0.08)]"
+            />
             <span className="text-xl font-semibold tracking-tight text-black sm:text-2xl">
-              LearnMath
+              {brand.appName}
             </span>
           </Link>
 

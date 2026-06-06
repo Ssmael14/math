@@ -1,4 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
-  <rect width="192" height="192" rx="42" fill="#FFC94A"/>
-  <text x="96" y="130" font-size="120" text-anchor="middle" font-family="system-ui, sans-serif">🦙</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-labelledby="title desc">
+  <title id="title">Paskalito app icon</title>
+  <desc id="desc">Icono de aplicación de Paskalito.</desc>
+  <rect width="192" height="192" rx="44" fill="#4867F5"/>
+  <circle cx="62" cy="62" r="27" fill="#FFC94A"/>
+  <path d="M62 36C62 36 70 16 90 14C82 28 82 38 82 38" stroke="#2445D8" stroke-width="10" stroke-linecap="round"/>
+  <path d="M64 144V62H110C130 62 144 76 144 96C144 116 130 130 110 130H88V144H64Z" fill="white"/>
+  <path d="M88 106H108C116 106 120 102 120 96C120 88 116 84 108 84H88V106Z" fill="#4867F5"/>
+  <circle cx="134" cy="48" r="10" fill="#9BE7B0"/>
+  <circle cx="150" cy="64" r="6" fill="white"/>
 </svg>
