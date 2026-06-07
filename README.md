@@ -7,8 +7,8 @@ Este README queda como nota operativa del proyecto para no perder el hilo entre 
 - Producto: `Paskalito`.
 - Personaje publico: `Paskalito`.
 - Configuracion central de marca: `lib/brand.ts`.
-- Assets editables base: `public/brand/`.
-- Iconos PWA actualizados: `public/icon-192.svg`, `public/icon-512.svg`.
+- Assets generados base: `public/brand/`.
+- Iconos PWA actualizados: `public/icon-192.png`, `public/icon-512.png`.
 - Manifest actualizado: `public/manifest.webmanifest`.
 - El codigo interno todavia conserva nombres como `Lumi.tsx`, `use-lumi-variant.ts` y builder `lumi(...)` para evitar un refactor grande.
 
@@ -42,7 +42,7 @@ rg "Aventura con Lumi|Tienda de Lumi|Aprendamos con Lumi|Mirá y escuchá a Lumi
 
 ## Assets pendientes
 
-Los SVG actuales son placeholders editables. Falta diseñar la identidad final:
+Los PNG actuales son la primera version generada de Paskalito. Falta pulir la identidad final:
 
 - Logo horizontal `Paskalito + isotipo`.
 - Isotipo solo.

@@ -8,14 +8,14 @@
 //
 // Cuando subimos una versión nueva, bumpeamos CACHE_VERSION para invalidar.
 
-const CACHE_VERSION = "v1";
-const CACHE_NAME = `learnmath-${CACHE_VERSION}`;
+const CACHE_VERSION = "v2";
+const CACHE_NAME = `paskalito-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 
 const PRECACHE = [
   "/manifest.webmanifest",
-  "/icon-192.svg",
-  "/icon-512.svg",
+  "/icon-192.png",
+  "/icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
