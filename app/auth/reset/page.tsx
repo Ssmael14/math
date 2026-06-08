@@ -49,7 +49,7 @@ function ResetForm() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col md:items-center md:justify-center bg-gradient-to-b from-mint-soft to-cream md:bg-cream">
+    <div className="min-h-[100dvh] flex flex-col md:items-center md:justify-center bg-gradient-to-b from-sky-soft via-white to-cream md:bg-cream">
       <Link
         href="/auth/login"
         className="absolute top-4 left-4 text-ink-soft text-sm font-bold z-10"
@@ -79,7 +79,7 @@ function ResetForm() {
               placeholder="Nueva contraseña"
               value={pass}
               onChange={(e) => setPass(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
             <input
               type="password"
@@ -87,7 +87,7 @@ function ResetForm() {
               placeholder="Repetir contraseña"
               value={pass2}
               onChange={(e) => setPass2(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-mint outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
             {err && (
               <div className="text-pink text-xs font-bold text-center">{err}</div>
@@ -95,8 +95,8 @@ function ResetForm() {
             <button
               onClick={save}
               disabled={loading || !pass || !pass2}
-              className="btn-chunky w-full py-4 rounded-2xl bg-mint text-white font-fredoka text-lg font-bold disabled:opacity-50"
-              style={{ boxShadow: "0 5px 0 #4DA86A" }}
+              className="btn-chunky w-full py-4 rounded-2xl bg-sky text-white font-fredoka text-lg font-bold disabled:opacity-50"
+              style={{ boxShadow: "0 5px 0 #2445D8" }}
             >
               {loading ? "Guardando..." : "Guardar contraseña"}
             </button>

@@ -49,7 +49,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col md:items-center md:justify-center bg-linear-to-b from-lilac-soft to-cream md:bg-cream">
+    <div className="min-h-dvh flex flex-col md:items-center md:justify-center bg-linear-to-b from-sky-soft via-white to-cream md:bg-cream">
       <Link
         href="/"
         className="absolute top-4 left-4 md:top-6 md:left-6 text-ink-soft text-sm font-bold z-10"
@@ -80,14 +80,14 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
             <input
               placeholder="Contraseña"
               type="password"
               value={pass}
               onChange={(e) => setPass(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
             <Link
               href="/auth/forgot"
@@ -106,22 +106,22 @@ export default function LoginPage() {
           <button
             onClick={handleLogin}
             disabled={loading || !email || !pass}
-            className="btn-chunky mt-4 w-full py-4 rounded-2xl bg-mint text-white font-fredoka text-lg font-bold disabled:opacity-50"
-            style={{ boxShadow: "0 5px 0 #4DA86A" }}
+            className="btn-chunky mt-4 w-full py-4 rounded-2xl bg-sky text-white font-fredoka text-lg font-bold disabled:opacity-50"
+            style={{ boxShadow: "0 5px 0 #2445D8" }}
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>
 
           <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-lilac-soft" />
+            <div className="flex-1 h-px bg-sky-soft" />
             <span className="text-xs text-ink-mute font-bold">O</span>
-            <div className="flex-1 h-px bg-lilac-soft" />
+            <div className="flex-1 h-px bg-sky-soft" />
           </div>
 
           <div className="space-y-2">
             <button
               onClick={() => handleOAuth("google")}
-              className="btn-chunky w-full py-3 rounded-2xl bg-white border-2 border-cream font-bold text-ink flex items-center justify-center gap-2 hover:border-ink/20"
+              className="btn-chunky w-full py-3 rounded-2xl bg-white border-2 border-sky-soft font-bold text-ink flex items-center justify-center gap-2 hover:border-sky"
             >
               <svg
                 className="inline-block"
@@ -155,7 +155,7 @@ export default function LoginPage() {
 
         <div className="mt-6 text-center text-sm text-ink-soft font-bold">
           ¿Nuevo?{" "}
-          <Link href="/auth/signup" className="text-pink">
+          <Link href="/auth/signup" className="text-sky">
             Crear cuenta
           </Link>
         </div>

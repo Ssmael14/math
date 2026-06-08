@@ -16,7 +16,7 @@ export function BackButton({ href, className = "" }: Props) {
       aria-label="Volver"
     >
       <svg width="14" height="14" viewBox="0 0 24 24">
-        <path d="M15 6l-8 6 8 6" stroke="#3D2E4F" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M15 6l-8 6 8 6" stroke="#102042" strokeWidth="3" fill="none" strokeLinecap="round" />
       </svg>
     </button>
   );

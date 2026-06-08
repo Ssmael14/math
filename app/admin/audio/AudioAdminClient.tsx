@@ -71,7 +71,7 @@ export function AudioAdminClient({
           disabled={busy || !!missingConfig || missing === 0}
           onClick={() => run(false)}
           className="btn-chunky py-2.5 px-5 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm disabled:opacity-40"
-          style={{ boxShadow: "0 4px 0 #4DA86A" }}
+          style={{ boxShadow: "0 4px 0 #1F9E46" }}
         >
           {busy ? "Generando…" : `Generar faltantes (${missing})`}
         </button>

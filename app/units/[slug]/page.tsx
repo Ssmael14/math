@@ -182,7 +182,7 @@ export default async function UnitPage({
                     {lesson.status === "done" ? (
                       <div
                         className="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-white font-bold"
-                        style={{ boxShadow: "0 2px 0 #4DA86A" }}
+                        style={{ boxShadow: "0 2px 0 #1F9E46" }}
                       >
                         ✓
                       </div>

@@ -31,7 +31,7 @@ export function VictoryView({
   return (
     <div
       className="relative min-h-[100dvh] flex flex-col items-center justify-center px-6 py-8 overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at center, #FFE5A3 0%, #FFC9D9 100%)" }}
+      style={{ background: "radial-gradient(ellipse at center, #EAF0FF 0%, #FFFFFF 58%, #F7FAFF 100%)" }}
     >
       <Confetti/>
 
@@ -74,8 +74,8 @@ export function VictoryView({
             playTap();
             window.location.replace(continueHref);
           }}
-          className="btn-chunky w-full py-4 rounded-2xl bg-ink text-white font-black uppercase tracking-wide"
-          style={{ boxShadow: "0 5px 0 rgba(0,0,0,0.25)" }}
+          className="btn-chunky w-full py-4 rounded-2xl bg-sky text-white font-black uppercase tracking-wide"
+          style={{ boxShadow: "0 5px 0 #2445D8" }}
         >
           Continuar
         </button>

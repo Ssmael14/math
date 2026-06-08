@@ -13,13 +13,13 @@ export default async function ShopPage() {
   const items = await getShopWithOwnership(child.id);
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-lilac-soft to-cream md:bg-cream">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-sky-soft via-white to-cream md:bg-cream">
       <TopNav/>
 
       <main className="flex-1 w-full">
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10">
           <div className="mb-4 md:mb-6">
-            <div className="text-[10px] md:text-xs font-black text-pink tracking-widest">🛍️ TIENDA DE {brand.mascotName.toUpperCase()}</div>
+            <div className="text-[10px] md:text-xs font-black text-sky tracking-widest">🛍️ TIENDA DE {brand.mascotName.toUpperCase()}</div>
             <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink leading-tight">Tienda</h1>
           </div>
           <div className="md:grid md:grid-cols-[280px_1fr] md:gap-10">

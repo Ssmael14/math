@@ -51,7 +51,7 @@ export default function EditChildPage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-cream">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-sky-soft via-white to-cream">
       <div className="px-5 pt-4">
         <Link href="/profile" className="text-ink-soft text-sm font-bold">← Volver</Link>
       </div>
@@ -59,33 +59,33 @@ export default function EditChildPage({ params }: { params: Promise<{ id: string
       <main className="flex-1 flex items-center justify-center px-4 py-6">
         <div className="w-full max-w-md bg-white rounded-3xl p-6 md:p-10" style={{ boxShadow: "var(--shadow-chunky)" }}>
           <div className="text-center mb-5">
-            <div className="text-[10px] font-black text-pink tracking-widest">EDITAR PERFIL</div>
+            <div className="text-[10px] font-black text-sky tracking-widest">EDITAR PERFIL</div>
             <h1 className="font-fredoka text-2xl font-bold text-ink mt-1">Cambiá lo que quieras</h1>
           </div>
 
           <label className="text-xs font-black text-ink-soft tracking-wider">NOMBRE</label>
           <input value={name} onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-cream bg-cream font-fredoka text-xl font-bold text-ink text-center focus:border-sun outline-none"/>
+            className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-fredoka text-xl font-bold text-ink text-center focus:border-sky outline-none"/>
 
           <label className="block mt-4 text-xs font-black text-ink-soft tracking-wider">EDAD</label>
           <div className="mt-1 grid grid-cols-4 gap-2">
             {[4,5,6,7].map((a) => (
-              <button key={a} onClick={() => setAge(a)} className={`py-3 rounded-2xl font-fredoka text-xl font-bold border-2 ${age===a?"bg-sun border-sun-deep text-ink":"bg-cream border-cream text-ink-soft"}`} style={{ boxShadow: "var(--shadow-chunky)" }}>{a}</button>
+              <button key={a} onClick={() => setAge(a)} className={`py-3 rounded-2xl font-fredoka text-xl font-bold border-2 ${age===a?"bg-sky border-sky text-white":"bg-sky-soft border-sky-soft text-ink-soft"}`} style={{ boxShadow: "var(--shadow-chunky)" }}>{a}</button>
             ))}
           </div>
 
           <label className="block mt-4 text-xs font-black text-ink-soft tracking-wider">AVATAR</label>
           <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-2">
             {AVATARS.map((a) => (
-              <button key={a} onClick={() => setAvatar(a)} className={`aspect-square rounded-2xl text-3xl flex items-center justify-center border-2 ${avatar===a?"bg-sun border-sun-deep":"bg-cream border-cream"}`} style={{ boxShadow: "var(--shadow-chunky)" }}>{a}</button>
+              <button key={a} onClick={() => setAvatar(a)} className={`aspect-square rounded-2xl text-3xl flex items-center justify-center border-2 ${avatar===a?"bg-sky border-sky":"bg-sky-soft border-sky-soft"}`} style={{ boxShadow: "var(--shadow-chunky)" }}>{a}</button>
             ))}
           </div>
 
           {err && <div className="mt-3 text-pink text-xs font-bold text-center">{err}</div>}
 
           <button onClick={save} disabled={pending || !name.trim()}
-            className="btn-chunky mt-6 w-full py-4 rounded-2xl bg-mint text-white font-fredoka text-lg font-bold disabled:opacity-50"
-            style={{ boxShadow: "0 5px 0 #4DA86A" }}>
+            className="btn-chunky mt-6 w-full py-4 rounded-2xl bg-sky text-white font-fredoka text-lg font-bold disabled:opacity-50"
+            style={{ boxShadow: "0 5px 0 #2445D8" }}>
             {pending ? "Guardando..." : "Guardar cambios"}
           </button>
 
@@ -98,7 +98,7 @@ export default function EditChildPage({ params }: { params: Promise<{ id: string
               <div className="text-center">
                 <p className="text-sm font-bold text-ink mb-3">¿Seguro? Se borra el progreso, gemas, medallas y todo.</p>
                 <div className="flex gap-2">
-                  <button onClick={() => setConfirmDel(false)} className="flex-1 py-3 rounded-2xl bg-cream font-bold text-ink-soft">Cancelar</button>
+                  <button onClick={() => setConfirmDel(false)} className="flex-1 py-3 rounded-2xl bg-sky-soft font-bold text-ink-soft">Cancelar</button>
                   <button onClick={destroy} disabled={pending} className="flex-1 py-3 rounded-2xl bg-pink text-white font-bold disabled:opacity-50">
                     Sí, borrar
                   </button>

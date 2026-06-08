@@ -9,7 +9,7 @@ export default function LevelUpPage() {
   const [variant] = useLumiVariant();
 
   return (
-    <div className="relative min-h-[100dvh] flex flex-col items-center justify-center p-6 overflow-hidden" style={{ background: "radial-gradient(ellipse at center, #FFC94A 0%, #FF8FB1 70%, #B088DB 100%)" }}>
+    <div className="relative min-h-[100dvh] flex flex-col items-center justify-center p-6 overflow-hidden" style={{ background: "radial-gradient(ellipse at center, #4867F5 0%, #7C6CFF 62%, #102042 100%)" }}>
       <svg viewBox="0 0 300 600" className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" preserveAspectRatio="xMidYMid slice">
         {Array.from({ length: 14 }).map((_, i) => {
           const angle = ((i * 360) / 14) * (Math.PI / 180);
@@ -18,7 +18,7 @@ export default function LevelUpPage() {
       </svg>
       <div className="relative z-10 w-full max-w-md text-center">
         <div className="font-fredoka text-lg font-semibold tracking-[3px] text-white drop-shadow">¡SUBISTE DE NIVEL!</div>
-        <div className="mx-auto mt-4 w-44 h-44 rounded-full flex items-center justify-center relative animate-pulse-soft" style={{ background: "radial-gradient(circle, #FFE5A3 0%, #FFC94A 70%, #E8A500 100%)", border: "8px solid white", boxShadow: "0 8px 0 #3D2E4F, 0 0 40px rgba(255,255,255,0.8)" }}>
+        <div className="mx-auto mt-4 w-44 h-44 rounded-full flex items-center justify-center relative animate-pulse-soft" style={{ background: "radial-gradient(circle, #FFF5D6 0%, #FFC94A 70%, #D99A00 100%)", border: "8px solid white", boxShadow: "0 8px 0 #102042, 0 0 40px rgba(255,255,255,0.8)" }}>
           <span className="font-fredoka text-7xl font-bold text-ink leading-none">5</span>
           <span className="absolute -top-1 right-5 text-2xl">⭐</span>
         </div>
@@ -34,7 +34,7 @@ export default function LevelUpPage() {
           ))}
         </div>
         <div className="flex justify-center mt-5 opacity-90"><Lumi variant={variant} size={110} mood="celebrate"/></div>
-        <button onClick={() => router.push("/home")} className="btn-chunky mt-5 w-full py-4 rounded-2xl bg-white text-ink font-black uppercase tracking-wide" style={{ boxShadow: "0 5px 0 #3D2E4F" }}>¡Seguir!</button>
+        <button onClick={() => router.push("/home")} className="btn-chunky mt-5 w-full py-4 rounded-2xl bg-white text-ink font-black uppercase tracking-wide" style={{ boxShadow: "0 5px 0 #102042" }}>¡Seguir!</button>
       </div>
     </div>
   );

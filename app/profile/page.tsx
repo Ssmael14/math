@@ -26,12 +26,12 @@ export default async function ProfilePage() {
   const premiumState = premiumStatus(user);
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-cream md:bg-cream md:bg-none">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-sky-soft via-white to-cream md:bg-cream md:bg-none">
       <TopNav/>
 
       <main className="flex-1 w-full">
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-6 md:pt-10 flex items-center justify-between">
-          <div className="text-[10px] md:text-xs font-black text-pink tracking-widest">MI PERFIL</div>
+          <div className="text-[10px] md:text-xs font-black text-sky tracking-widest">MI PERFIL</div>
           <div className="flex items-center gap-2">
             <Link href="/parental" className="w-9 h-9 rounded-xl bg-white flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }} aria-label="Modo padres">👨‍👩‍👧</Link>
             <Link href="/settings" className="w-9 h-9 rounded-xl bg-white flex items-center justify-center font-bold text-ink" style={{ boxShadow: "var(--shadow-chunky-sm)" }} aria-label="Ajustes">⚙️</Link>
@@ -78,7 +78,7 @@ export default async function ProfilePage() {
             <div className="mt-3 grid grid-cols-3 gap-3">
               {[
                 { icon: "🏅", value: masteryStats.mastered, label: "DOMINADOS", tone: "bg-mint-soft border-mint" },
-                { icon: "📖", value: masteryStats.learning, label: "APRENDIENDO", tone: "bg-sun-soft border-sun" },
+                { icon: "📖", value: masteryStats.learning, label: "APRENDIENDO", tone: "bg-sky-soft border-sky" },
                 { icon: "🔁", value: masteryStats.dueToday, label: "REPASAR HOY", tone: "bg-peach-soft border-pink" },
               ].map((s) => (
                 <div

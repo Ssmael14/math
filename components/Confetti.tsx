@@ -1,6 +1,6 @@
 export function Confetti() {
   const pieces = Array.from({ length: 30 });
-  const colors = ["#FFC94A", "#FF8FB1", "#6FBEE8", "#68C886", "#B088DB", "#FFB199"];
+  const colors = ["#4867F5", "#7C6CFF", "#34C759", "#FFC94A", "#FF5A78", "#102042"];
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {pieces.map((_, i) => {

@@ -53,7 +53,7 @@ function ReviewDoneScreen({
   return (
     <div
       className="relative min-h-[100dvh] flex flex-col items-center justify-center px-6 py-8 overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at center, #E5DFED 0%, #FFE5A3 100%)" }}
+      style={{ background: "radial-gradient(ellipse at center, #EAF0FF 0%, #FFFFFF 58%, #F7FAFF 100%)" }}
     >
       <Confetti/>
       <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-6">
@@ -81,8 +81,8 @@ function ReviewDoneScreen({
 
         <button
           onClick={onContinue}
-          className="btn-chunky w-full py-4 rounded-2xl bg-ink text-white font-black uppercase tracking-wide"
-          style={{ boxShadow: "0 5px 0 rgba(0,0,0,0.25)" }}
+          className="btn-chunky w-full py-4 rounded-2xl bg-sky text-white font-black uppercase tracking-wide"
+          style={{ boxShadow: "0 5px 0 #2445D8" }}
         >
           Volver al inicio
         </button>

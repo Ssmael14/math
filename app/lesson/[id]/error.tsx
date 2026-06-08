@@ -29,8 +29,8 @@ export default function LessonError({
       <div className="flex gap-3">
         <button
           onClick={() => reset()}
-          className="btn-chunky py-3 px-6 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm"
-          style={{ boxShadow: "0 4px 0 #4DA86A" }}
+          className="btn-chunky py-3 px-6 rounded-full bg-sky text-white font-black uppercase tracking-wide text-sm"
+          style={{ boxShadow: "0 4px 0 #2445D8" }}
         >
           Reintentar
         </button>

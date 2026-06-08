@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Colores base */
-  --color-cream: #fff9f0;
-  --color-ink: #3d2e4f;
-  --color-ink-soft: #6b5a7d;
-  --color-ink-mute: #9688a8;
+  /* Paskalito brand palette */
+  --color-cream: #f7faff;
+  --color-ink: #102042;
+  --color-ink-soft: #475569;
+  --color-ink-mute: #94a3b8;
 
-  /* Primarios (pasteles) */
-  --color-peach: #ffb199;
-  --color-peach-soft: #ffc9d9;
-  --color-pink: #ff8fb1;
-  --color-lilac: #b088db;
-  --color-lilac-soft: #ddc9f0;
-  --color-sky: #6fbee8;
-  --color-sky-soft: #b8e0f5;
-  --color-mint: #68c886;
-  --color-mint-soft: #c5eed0;
+  /* UI roles */
+  --color-peach: #ffb6c8;
+  --color-peach-soft: #fff1f5;
+  --color-pink: #ff5a78;
+  --color-lilac: #7c6cff;
+  --color-lilac-soft: #eef0ff;
+  --color-sky: #4867f5;
+  --color-sky-soft: #eaf0ff;
+  --color-mint: #34c759;
+  --color-mint-soft: #e8fff0;
   --color-sun: #ffc94a;
-  --color-sun-soft: #ffe5a3;
-  --color-sun-deep: #e8a500;
+  --color-sun-soft: #fff5d6;
+  --color-sun-deep: #d99a00;
 
   /* Fuentes */
   --font-fraunces: var(--font-display);
@@ -32,7 +32,7 @@
 
   /* Sombras 3D chunky */
   --shadow-chunky: 0 4px 0 rgba(61, 46, 79, 0.12);
-  --shadow-chunky-lg: 0 5px 0 #3d2e4f;
+  --shadow-chunky-lg: 0 5px 0 #102042;
   --shadow-chunky-sm: 0 2px 0 rgba(61, 46, 79, 0.12);
 }
 

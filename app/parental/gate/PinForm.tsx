@@ -59,7 +59,7 @@ export function PinForm({ mode }: { mode: "create" | "verify" }) {
       <div className="flex justify-center gap-2 mb-3">
         {[0,1,2,3].map((i) => (
           <div key={i} className={`w-12 h-14 rounded-2xl border-2 flex items-center justify-center font-fredoka text-2xl font-bold ${
-            value.length > i ? "bg-lilac border-lilac-deep text-white" : "bg-cream border-cream text-ink-mute"
+            value.length > i ? "bg-sky border-sky text-white" : "bg-sky-soft border-sky-soft text-ink-mute"
           }`} style={{ boxShadow: "var(--shadow-chunky-sm)" }}>
             {value[i] ? "•" : ""}
           </div>
@@ -77,8 +77,8 @@ export function PinForm({ mode }: { mode: "create" | "verify" }) {
       {err && <div className="mt-3 text-pink text-xs font-bold">{err}</div>}
 
       <button onClick={submit} disabled={loading || value.length !== 4}
-        className="btn-chunky mt-4 w-full py-3.5 rounded-2xl bg-lilac text-white font-fredoka text-lg font-bold disabled:opacity-50"
-        style={{ boxShadow: "0 5px 0 #7B5CC4" }}>
+        className="btn-chunky mt-4 w-full py-3.5 rounded-2xl bg-sky text-white font-fredoka text-lg font-bold disabled:opacity-50"
+        style={{ boxShadow: "0 5px 0 #2445D8" }}>
         {loading ? "..." : mode === "verify" ? "Entrar" : (step === "first" ? "Siguiente" : "Crear PIN")}
       </button>
     </div>

@@ -64,7 +64,7 @@ export function TraceCanvas({
     drawGuide(g, size, digit, tpl);
     // Re-dibujar toda la tinta acumulada (multi-trazo).
     g.save();
-    g.strokeStyle = "#3D2E4F";
+    g.strokeStyle = "#102042";
     g.lineWidth = size * STROKE_FRAC * 0.55;
     g.lineCap = "round";
     g.lineJoin = "round";
@@ -210,7 +210,7 @@ export function TraceCanvas({
             onClick={finish}
             disabled={!hasInk || disabled}
             className="btn-chunky py-2.5 px-7 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm disabled:opacity-40"
-            style={{ boxShadow: "0 4px 0 #4DA86A" }}
+            style={{ boxShadow: "0 4px 0 #1F9E46" }}
           >
             ✓ Terminé
           </button>
@@ -237,7 +237,7 @@ function drawGuide(g: CanvasRenderingContext2D, size: number, digit: number, tpl
   // Contorno punteado a seguir.
   if (!tpl) return;
   g.save();
-  g.strokeStyle = "#E8A500";
+  g.strokeStyle = "#D99A00";
   g.globalAlpha = 0.5;
   g.lineWidth = Math.max(2, size * 0.012);
   g.lineCap = "round";
@@ -261,7 +261,7 @@ function drawSolution(
   g.clearRect(0, 0, size, size);
   drawGuide(g, size, digit, tpl);
   g.save();
-  g.strokeStyle = "#3D2E4F";
+  g.strokeStyle = "#102042";
   g.lineWidth = size * STROKE_FRAC * 0.55;
   g.lineCap = "round";
   g.lineJoin = "round";

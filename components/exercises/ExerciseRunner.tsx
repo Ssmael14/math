@@ -722,7 +722,7 @@ function Footer({
             </div>
             <button onClick={() => { playTap(); onContinue(); }}
               className="btn-chunky py-3 px-8 md:px-10 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm"
-              style={{ boxShadow: "0 4px 0 #4DA86A" }}>
+              style={{ boxShadow: "0 4px 0 #1F9E46" }}>
               Continuar
             </button>
           </>
@@ -744,7 +744,7 @@ function Footer({
             <button
               onClick={() => { playTap(); (mustAdvance ? onAcknowledgeSolution : onContinue)(); }}
               className="btn-chunky py-3 px-8 md:px-10 rounded-full bg-pink text-white font-black uppercase tracking-wide text-sm"
-              style={{ boxShadow: "0 4px 0 #D14A6A" }}
+              style={{ boxShadow: "0 4px 0 #C93658" }}
             >
               {mustAdvance ? "Entendido" : "Reintentar"}
             </button>

@@ -200,7 +200,7 @@ export function ConceptIntro({
                 onDone();
               }}
               className="btn-chunky w-full md:w-auto md:min-w-[200px] ml-auto py-3 px-8 rounded-full bg-mint text-white font-black uppercase tracking-wide text-sm disabled:opacity-40"
-              style={{ boxShadow: "0 4px 0 #4DA86A" }}
+              style={{ boxShadow: "0 4px 0 #1F9E46" }}
             >
               ¡Empecemos!
             </button>

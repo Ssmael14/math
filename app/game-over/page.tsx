@@ -8,7 +8,7 @@ export default function GameOverPage() {
   const [variant] = useLumiVariant();
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-lilac-soft">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-sky-soft via-white to-peach-soft">
       <main className="flex-1 w-full max-w-md mx-auto flex flex-col items-center justify-between px-6 pt-16 pb-10 md:py-16 gap-6">
         <div className="text-center">
           <div className="font-fredoka text-sm font-semibold tracking-widest text-ink/60">SIN CORAZONES</div>
@@ -23,7 +23,7 @@ export default function GameOverPage() {
           <div className="font-fredoka text-3xl font-bold text-pink mt-1">23:45</div>
         </div>
         <div className="w-full flex flex-col gap-3">
-          <button onClick={() => router.push("/home")} className="btn-chunky w-full py-4 rounded-2xl bg-sun text-ink font-black uppercase tracking-wide flex items-center justify-center gap-2" style={{ boxShadow: "0 5px 0 #E8A500" }}>
+          <button onClick={() => router.push("/home")} className="btn-chunky w-full py-4 rounded-2xl bg-sky text-white font-black uppercase tracking-wide flex items-center justify-center gap-2" style={{ boxShadow: "0 5px 0 #2445D8" }}>
             <span>💎</span> Comprar corazón · 10
           </button>
           <button onClick={() => router.push("/home")} className="btn-chunky w-full py-4 rounded-2xl bg-white text-ink font-black uppercase tracking-wide border-2 border-ink/10" style={{ boxShadow: "0 4px 0 rgba(61,46,79,0.15)" }}>

@@ -32,7 +32,7 @@ export default function CreateProfilePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-peach-soft to-cream md:from-cream md:to-cream"
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-sky-soft via-white to-cream md:from-cream md:to-cream"
       style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
       {/* Header mobile */}
       <div className="px-5 pt-4 md:hidden">
@@ -43,13 +43,13 @@ export default function CreateProfilePage() {
         <div className="w-full max-w-md bg-white md:border-4 md:border-white rounded-3xl p-6 md:p-10" style={{ boxShadow: "var(--shadow-chunky)" }}>
           {/* El personaje saluda */}
           <div className="flex flex-col items-center -mt-16 md:-mt-20 mb-2">
-            <div className="bg-sun-soft rounded-full p-3 border-4 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
+            <div className="bg-sky-soft rounded-full p-3 border-4 border-white" style={{ boxShadow: "var(--shadow-chunky)" }}>
               <Lumi size={80} mood="happy"/>
             </div>
           </div>
 
           <div className="text-center mb-6">
-            <div className="text-[10px] font-black text-pink tracking-widest">PERFIL DEL NIÑO</div>
+            <div className="text-[10px] font-black text-sky tracking-widest">PERFIL DEL NIÑO</div>
             <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink mt-1">¡Hola! Contame de vos</h1>
             <p className="text-sm text-ink-soft font-bold mt-1">{brand.mascotName} quiere conocerte</p>
           </div>
@@ -57,7 +57,7 @@ export default function CreateProfilePage() {
           <div>
             <label className="text-xs font-black text-ink-soft tracking-wider">TU NOMBRE</label>
             <input value={name} onChange={e => setName(e.target.value)}
-              className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-cream bg-cream font-fredoka text-xl font-bold text-ink text-center focus:border-sun outline-none transition"/>
+              className="mt-1 w-full px-4 py-3 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-fredoka text-xl font-bold text-ink text-center focus:border-sky outline-none transition"/>
           </div>
 
           <div className="mt-4">
@@ -65,7 +65,7 @@ export default function CreateProfilePage() {
             <div className="mt-1 grid grid-cols-4 gap-2">
               {[4, 5, 6, 7].map(a => (
                 <button key={a} onClick={() => setAge(a)} className={`btn-chunky py-3 rounded-2xl font-fredoka text-xl font-bold border-2 ${
-                  age === a ? "bg-sun border-sun-deep text-ink" : "bg-cream border-cream text-ink-soft"
+                  age === a ? "bg-sky border-sky text-white" : "bg-sky-soft border-sky-soft text-ink-soft"
                 }`} style={{ boxShadow: "var(--shadow-chunky)" }}>{a}</button>
               ))}
             </div>
@@ -76,7 +76,7 @@ export default function CreateProfilePage() {
             <div className="mt-2 grid grid-cols-3 md:grid-cols-5 gap-2">
               {AVATARS.map((a, i) => (
                 <button key={i} onClick={() => setAvatar(i)} className={`btn-chunky aspect-square rounded-2xl text-3xl md:text-4xl flex items-center justify-center border-2 ${
-                  avatar === i ? "bg-sun border-sun-deep" : "bg-cream border-cream"
+                  avatar === i ? "bg-sky border-sky" : "bg-sky-soft border-sky-soft"
                 }`} style={{ boxShadow: "var(--shadow-chunky)" }}>{a}</button>
               ))}
             </div>
@@ -84,8 +84,8 @@ export default function CreateProfilePage() {
 
           {error && <div className="mt-3 text-pink text-xs font-bold text-center">{error}</div>}
           <button onClick={handleCreate} disabled={loading || !name.trim()}
-            className="btn-chunky mt-6 w-full py-4 rounded-2xl bg-mint text-white text-center font-fredoka text-lg font-bold disabled:opacity-50"
-            style={{ boxShadow: "0 5px 0 #4DA86A" }}>
+            className="btn-chunky mt-6 w-full py-4 rounded-2xl bg-sky text-white text-center font-fredoka text-lg font-bold disabled:opacity-50"
+            style={{ boxShadow: "0 5px 0 #2445D8" }}>
             {loading ? "Creando..." : "¡Empezar! 🚀"}
           </button>
         </div>

@@ -34,7 +34,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col md:items-center md:justify-center bg-gradient-to-b from-peach-soft to-cream md:bg-cream">
+    <div className="min-h-[100dvh] flex flex-col md:items-center md:justify-center bg-gradient-to-b from-sky-soft via-white to-cream md:bg-cream">
       <Link
         href="/auth/login"
         className="absolute top-4 left-4 md:top-6 md:left-6 text-ink-soft text-sm font-bold z-10"
@@ -62,21 +62,21 @@ export default function SignupPage() {
               placeholder="Tu nombre"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-sun outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
             <input
               placeholder="Email"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-sun outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
             <input
               placeholder="Contraseña (mín 8)"
               type="password"
               value={form.pass}
               onChange={(e) => setForm({ ...form, pass: e.target.value })}
-              className="w-full px-4 py-3.5 rounded-2xl border-2 border-cream bg-cream font-bold text-ink placeholder:text-ink-mute focus:border-sun outline-none transition"
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-sky-soft bg-sky-soft/45 font-bold text-ink placeholder:text-ink-mute focus:border-sky outline-none transition"
             />
           </div>
 
@@ -90,7 +90,7 @@ export default function SignupPage() {
             <input
               type="checkbox"
               defaultChecked
-              className="mt-0.5 accent-mint"
+              className="mt-0.5 accent-sky"
             />
             <span>
               Acepto los <span className="text-sky">Términos</span> y la{" "}
@@ -101,8 +101,8 @@ export default function SignupPage() {
           <button
             onClick={handleSignup}
             disabled={loading || !form.email || !form.pass || !form.name}
-            className="btn-chunky mt-5 w-full py-4 rounded-2xl bg-sun text-ink font-fredoka text-lg font-bold disabled:opacity-50"
-            style={{ boxShadow: "0 5px 0 #E8A500" }}
+            className="btn-chunky mt-5 w-full py-4 rounded-2xl bg-sky text-white font-fredoka text-lg font-bold disabled:opacity-50"
+            style={{ boxShadow: "0 5px 0 #2445D8" }}
           >
             {loading ? "Creando..." : "Crear cuenta →"}
           </button>
@@ -110,7 +110,7 @@ export default function SignupPage() {
 
         <div className="mt-6 text-center text-sm text-ink-soft font-bold">
           ¿Ya tenés cuenta?{" "}
-          <Link href="/auth/login" className="text-pink">
+          <Link href="/auth/login" className="text-sky">
             Iniciar sesión
           </Link>
         </div>

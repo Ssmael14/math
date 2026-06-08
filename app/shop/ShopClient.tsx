@@ -63,11 +63,11 @@ export function ShopClient({ items, gems }: { items: Item[]; gems: number }) {
               <div className="font-fredoka font-bold text-ink mt-1">{it.name}</div>
               <div className="text-[10px] font-bold text-ink-mute uppercase">{RARITY_LABEL[it.rarity]}</div>
               {it.owned ? (
-                <button disabled={pending} onClick={() => equip(it.id)} className="btn-chunky mt-2 w-full py-2 rounded-xl bg-mint text-white font-bold" style={{ boxShadow: "0 3px 0 #4DA86A" }}>
+                <button disabled={pending} onClick={() => equip(it.id)} className="btn-chunky mt-2 w-full py-2 rounded-xl bg-sky text-white font-bold" style={{ boxShadow: "0 3px 0 #2445D8" }}>
                   {it.equipped ? "✓ En uso" : "Usar"}
                 </button>
               ) : (
-                <button disabled={pending || gems < it.price} onClick={() => buy(it.id)} className="btn-chunky mt-2 w-full py-2 rounded-xl bg-sun text-ink font-bold flex items-center justify-center gap-1 disabled:opacity-50" style={{ boxShadow: "0 3px 0 #E8A500" }}>
+                <button disabled={pending || gems < it.price} onClick={() => buy(it.id)} className="btn-chunky mt-2 w-full py-2 rounded-xl bg-sun text-ink font-bold flex items-center justify-center gap-1 disabled:opacity-50" style={{ boxShadow: "0 3px 0 #D99A00" }}>
                   💎 {it.price}
                 </button>
               )}
@@ -81,7 +81,7 @@ export function ShopClient({ items, gems }: { items: Item[]; gems: number }) {
               {i === 1 && <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-pink text-white text-[10px] font-black px-2 py-0.5 rounded-full">MÁS POPULAR</div>}
               <div className="text-3xl">{p.icon}</div>
               <div className="font-fredoka text-2xl font-bold text-ink mt-1">{p.name}</div>
-              <button className="btn-chunky mt-2 w-full py-2 rounded-xl bg-mint text-white font-bold" style={{ boxShadow: "0 3px 0 #4DA86A" }}>
+              <button className="btn-chunky mt-2 w-full py-2 rounded-xl bg-sky text-white font-bold" style={{ boxShadow: "0 3px 0 #2445D8" }}>
                 ${(p.price / 100).toFixed(2)}
               </button>
             </div>

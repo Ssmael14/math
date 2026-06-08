@@ -34,7 +34,7 @@ export async function TopNav({ fixed = false }: { fixed?: boolean } = {}) {
           {child && (
             <div className="flex items-center gap-3 md:gap-4">
               <Stat
-                icon={<Flame className="w-[18px] h-[18px]" strokeWidth={2.2} fill="#FFC94A" stroke="#E8A500"/>}
+                icon={<Flame className="w-[18px] h-[18px]" strokeWidth={2.2} fill="#FFC94A" stroke="#D99A00"/>}
                 value={child.streak}
                 label="Racha"
               />
@@ -45,7 +45,7 @@ export async function TopNav({ fixed = false }: { fixed?: boolean } = {}) {
                 hideOnMobile
               />
               <Stat
-                icon={<Gem className="w-[18px] h-[18px]" strokeWidth={2.2} fill="#6FBEE8" stroke="#3A8FBF"/>}
+                icon={<Gem className="w-[18px] h-[18px]" strokeWidth={2.2} fill="#4867F5" stroke="#2445D8"/>}
                 value={child.gems}
                 label="Gemas"
               />
