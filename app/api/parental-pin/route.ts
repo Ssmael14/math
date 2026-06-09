@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 // Next 15 no permite re-exportar constantes desde un route.ts. La canonical
 // vive en app/parental/session.ts.
@@ -17,7 +18,15 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { pin, currentPin } = await req.json();
+  const limited = rateLimit(`parental-pin:set:${user.id}`, 10, 60_000);
+  if (!limited.ok) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+
+  const body = await req.json().catch(() => null);
+  const data =
+    body && typeof body === "object" ? (body as Record<string, unknown>) : null;
+  const pin = typeof data?.pin === "string" ? data.pin : "";
+  const currentPin =
+    typeof data?.currentPin === "string" ? data.currentPin : null;
   if (!/^\d{4}$/.test(pin)) return NextResponse.json({ error: "PIN debe tener 4 dígitos" }, { status: 400 });
 
   // Si ya tiene PIN, requerir el actual para cambiarlo
@@ -37,7 +46,13 @@ export async function PUT(req: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (!user.parentalPin) return NextResponse.json({ error: "no-pin-set" }, { status: 400 });
 
-  const { pin } = await req.json();
+  const limited = rateLimit(`parental-pin:verify:${user.id}`, 5, 60_000);
+  if (!limited.ok) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+
+  const body = await req.json().catch(() => null);
+  const data =
+    body && typeof body === "object" ? (body as Record<string, unknown>) : null;
+  const pin = typeof data?.pin === "string" ? data.pin : "";
   const ok = await bcrypt.compare(pin ?? "", user.parentalPin);
   if (!ok) return NextResponse.json({ error: "PIN incorrecto" }, { status: 403 });
 

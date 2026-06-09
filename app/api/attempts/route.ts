@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { rateLimit } from "@/lib/rate-limit";
+import { hasPremiumAccess } from "@/lib/premium";
 import { applyReview, gradeQuality, INITIAL_SRS, nextReviewDate } from "@/lib/learning/srs";
 
 export async function POST(req: Request) {
@@ -57,6 +58,9 @@ export async function POST(req: Request) {
           ? 409
           : 403;
     return NextResponse.json({ error: access.reason }, { status });
+  }
+  if (access.lesson.unit.learningPath.isPremium && !hasPremiumAccess(user)) {
+    return NextResponse.json({ error: "premium_required" }, { status: 402 });
   }
 
   const attempt = await prisma.attempt.create({

@@ -13,7 +13,11 @@ export type LessonAccessResult =
           id: string;
           slug: string;
           learningPathId: string;
-          learningPath: { slug: string; level: EducationLevel };
+          learningPath: {
+            slug: string;
+            level: EducationLevel;
+            isPremium: boolean;
+          };
         };
       };
     }
@@ -47,7 +51,7 @@ export async function verifyLessonAccess(
           id: true,
           slug: true,
           learningPathId: true,
-          learningPath: { select: { slug: true, level: true } },
+          learningPath: { select: { slug: true, level: true, isPremium: true } },
         },
       },
     },

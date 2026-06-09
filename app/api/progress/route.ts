@@ -10,6 +10,7 @@ import { computeStars, mondayOfWeek } from "@/lib/gamification/scoring";
 import { computeNextStreak } from "@/lib/gamification/streak";
 import { verifyLessonAccess } from "@/lib/learning/lesson-access";
 import { rateLimit } from "@/lib/rate-limit";
+import { hasPremiumAccess } from "@/lib/premium";
 
 async function checkAchievements(childId: string) {
   const [child, lessonsDone, correct, defs, already] = await Promise.all([
@@ -74,6 +75,9 @@ export async function POST(req: Request) {
           ? 409
           : 403;
     return NextResponse.json({ error: access.reason }, { status });
+  }
+  if (access.lesson.unit.learningPath.isPremium && !hasPremiumAccess(user)) {
+    return NextResponse.json({ error: "premium_required" }, { status: 402 });
   }
   const { lesson } = access;
 
