@@ -10,8 +10,35 @@ export function PwaProvider() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Registrar SW (sólo en navegadores que lo soportan; en dev se registra
-    // igual — Next sirve /public/sw.js como estático).
+    if (!("serviceWorker" in navigator)) return;
+
+    // En desarrollo, un service worker viejo puede servir chunks de Webpack
+    // cacheados y romper el runtime con errores tipo "undefined.call".
+    if (process.env.NODE_ENV !== "production") {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) =>
+          Promise.all(registrations.map((registration) => registration.unregister())),
+        )
+        .catch(() => {});
+
+      if ("caches" in window) {
+        caches
+          .keys()
+          .then((keys) =>
+            Promise.all(
+              keys
+                .filter((key) => key.startsWith("paskalito-"))
+                .map((key) => caches.delete(key)),
+            ),
+          )
+          .catch(() => {});
+      }
+      return;
+    }
+
+    // Registrar SW sólo en producción. Next/Vite dev necesitan control directo
+    // sobre sus chunks para evitar inconsistencias durante hot reload.
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch((err) => {
         console.warn("[PWA] sw register failed", err);

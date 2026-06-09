@@ -8,7 +8,7 @@
 //
 // Cuando subimos una versión nueva, bumpeamos CACHE_VERSION para invalidar.
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `paskalito-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 
@@ -40,6 +40,10 @@ self.addEventListener("fetch", (event) => {
 
   // APIs: directo al network. El cliente decide qué hacer si falla.
   if (url.pathname.startsWith("/api/")) return;
+
+  // Next maneja sus propios chunks versionados. No los cacheamos en el SW:
+  // servir un chunk viejo puede romper Webpack con "undefined.call".
+  if (url.pathname.startsWith("/_next/")) return;
 
   // Navegación HTML: network-first con fallback a cache, y a /offline si nada.
   if (req.mode === "navigate") {

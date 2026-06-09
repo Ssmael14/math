@@ -2,7 +2,8 @@
 // Catalogo de rutas de aprendizaje agrupadas por materia.
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Lock } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Lock, Play } from "lucide-react";
 import { getActiveChild, getSubjectsPathCatalog } from "@/lib/queries";
 import { TopNav } from "@/components/TopNav";
 
@@ -23,6 +24,15 @@ const pathIllustrations = [
   "book",
   "spark",
 ] as const;
+
+type SubjectCatalog = Awaited<ReturnType<typeof getSubjectsPathCatalog>>[number];
+type PathCatalog = SubjectCatalog["learningPaths"][number];
+type PathEntry = {
+  subject: SubjectCatalog;
+  path: PathCatalog;
+  accent: string;
+  illustration: (typeof pathIllustrations)[number];
+};
 
 function PathIllustration({
   variant,
@@ -102,6 +112,203 @@ function PathIllustration({
   );
 }
 
+function CatalogIcon({
+  entry,
+  className = "h-20 w-20",
+}: {
+  entry: PathEntry;
+  className?: string;
+}) {
+  if (entry.path.level === "INITIAL" && entry.subject.slug === "math") {
+    return (
+      <Image
+        src="/brand/path-math-initial-icon.png"
+        alt=""
+        width={180}
+        height={180}
+        className={`${className} object-contain`}
+        aria-hidden
+      />
+    );
+  }
+
+  if (entry.path.level === "INITIAL" && entry.subject.slug === "reading") {
+    return (
+      <Image
+        src="/brand/path-reading-initial-icon.png"
+        alt=""
+        width={180}
+        height={180}
+        className={`${className} object-contain`}
+        aria-hidden
+      />
+    );
+  }
+
+  return <PathIllustration variant={entry.illustration} />;
+}
+
+function SubjectIcon({
+  subject,
+}: {
+  subject: SubjectCatalog;
+}) {
+  if (subject.slug === "math") {
+    return (
+      <Image
+        src="/brand/subject-math-icon.png"
+        alt=""
+        width={160}
+        height={160}
+        className="h-20 w-20 object-contain md:h-24 md:w-24"
+        aria-hidden
+      />
+    );
+  }
+
+  if (subject.slug === "reading") {
+    return (
+      <Image
+        src="/brand/subject-reading-icon.png"
+        alt=""
+        width={160}
+        height={160}
+        className="h-20 w-20 object-contain md:h-24 md:w-24"
+        aria-hidden
+      />
+    );
+  }
+
+  return (
+    <PathIllustration
+      variant={subject.slug === "reading" ? "book" : "spark"}
+    />
+  );
+}
+
+function pathActionLabel(progress: number) {
+  if (progress >= 1) return "Repasar";
+  if (progress > 0) return "Continuar";
+  return "Empezar";
+}
+
+function pathProgressText(path: PathCatalog) {
+  if (path.lessonsTotal === 0) return "Sin lecciones";
+  return `${path.lessonsDone}/${path.lessonsTotal} lecciones`;
+}
+
+function RecommendedPathCard({ entry }: { entry: PathEntry }) {
+  const progressPct = Math.round(entry.path.progress * 100);
+  const actionLabel = pathActionLabel(entry.path.progress);
+
+  return (
+    <Link
+      href={`/paths/${entry.path.slug}`}
+      className="group mb-10 block rounded-[30px] border-2 border-[#dce4ff] bg-[#f7f9ff] p-4 shadow-[0_5px_0_#dce4ff] transition-transform active:scale-[0.99] md:mb-14 md:p-6 md:hover:-translate-y-1"
+      aria-label={`${actionLabel} ${entry.path.name}`}
+    >
+      <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-7">
+        <div className="grid h-28 w-full place-items-center rounded-[26px] bg-white shadow-inner md:h-36 md:w-40 md:shrink-0">
+          <CatalogIcon entry={entry} className="h-28 w-28" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#dfe6ff] px-3 py-1 text-[11px] font-black uppercase tracking-wide text-[#4867f5]">
+            <Play className="h-3.5 w-3.5 fill-current" aria-hidden />
+            Recomendado
+          </div>
+          <h2 className="mt-3 font-fredoka text-2xl font-bold leading-tight text-slate-950 md:text-3xl">
+            {entry.path.name}
+          </h2>
+          {entry.path.description && (
+            <p className="mt-2 line-clamp-2 max-w-xl text-sm font-semibold leading-6 text-slate-500 md:text-base">
+              {entry.path.description}
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-black uppercase tracking-wide text-slate-400">
+            <span>{entry.subject.name}</span>
+            <span>{pathProgressText(entry.path)}</span>
+            {entry.path.isPremium && (
+              <span className="rounded-full bg-[#ffc94a] px-2 py-0.5 text-slate-950">
+                Premium
+              </span>
+            )}
+          </div>
+
+          <div className="mt-4 h-2 max-w-md overflow-hidden rounded-full bg-white">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${progressPct}%`, backgroundColor: entry.accent }}
+            />
+          </div>
+        </div>
+
+        <span className="btn-chunky inline-flex items-center justify-center gap-2 rounded-2xl bg-[#4867f5] px-5 py-3.5 text-sm font-black uppercase tracking-wide text-white shadow-[0_5px_0_#2445d8] md:min-w-40">
+          {actionLabel}
+          <ArrowRight
+            className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function PathCourseCard({ entry, isNew }: { entry: PathEntry; isNew: boolean }) {
+  const progressPct = Math.round(entry.path.progress * 100);
+  const actionLabel = pathActionLabel(entry.path.progress);
+
+  return (
+    <Link
+      href={`/paths/${entry.path.slug}`}
+      className="group block rounded-[26px] border-2 border-slate-200 bg-white p-4 shadow-[0_5px_0_#e5e7eb] transition-transform active:scale-[0.98] md:w-60 md:shrink-0 md:hover:-translate-y-1"
+      aria-label={`${actionLabel} ${entry.path.name}`}
+    >
+      <div className="flex items-center gap-4 md:block">
+        <div className="relative grid h-24 w-24 shrink-0 place-items-center rounded-[22px] bg-slate-50 md:h-36 md:w-full">
+          {isNew && (
+            <span className="absolute right-2 top-2 rounded-full bg-[#16b84e] px-2.5 py-1 text-[10px] font-black uppercase text-white">
+              Nuevo
+            </span>
+          )}
+          {entry.path.isPremium && (
+            <span className="absolute left-2 top-2 rounded-full bg-[#ffc94a] px-2.5 py-1 text-[10px] font-black uppercase text-slate-950">
+              Premium
+            </span>
+          )}
+          <CatalogIcon entry={entry} />
+        </div>
+
+        <div className="min-w-0 flex-1 md:mt-4">
+          <div className="font-fredoka text-lg font-bold leading-tight text-slate-950">
+            {entry.path.name}
+          </div>
+          <div className="mt-1 text-xs font-black uppercase tracking-wide text-slate-400">
+            {pathProgressText(entry.path)}
+          </div>
+
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${progressPct}%`, backgroundColor: entry.accent }}
+            />
+          </div>
+
+          <span className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#4867f5] px-4 py-3 text-xs font-black uppercase tracking-wide text-white shadow-[0_4px_0_#2445d8]">
+            {actionLabel}
+            <ArrowRight
+              className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+              aria-hidden
+            />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default async function SubjectsPage() {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
@@ -110,6 +317,20 @@ export default async function SubjectsPage() {
   const visibleSubjects = subjects.filter(
     (subject) => subject.learningPaths.length > 0 || subject.isActive,
   );
+  const pathEntries = visibleSubjects.flatMap((subject) => {
+    const accent = accentByColor[subject.color] ?? "#4867f5";
+    return subject.learningPaths.map((path, index) => ({
+      subject,
+      path,
+      accent,
+      illustration: pathIllustrations[index % pathIllustrations.length],
+    }));
+  });
+  const recommendedPath =
+    pathEntries.find(({ path }) => path.progress > 0 && path.progress < 1) ??
+    pathEntries.find(({ path }) => path.progress === 0) ??
+    pathEntries[0] ??
+    null;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-white">
@@ -126,6 +347,8 @@ export default async function SubjectsPage() {
             </p>
           </header>
 
+          {recommendedPath && <RecommendedPathCard entry={recommendedPath} />}
+
           <div className="space-y-12">
             {visibleSubjects.map((subject) => {
               const enabled =
@@ -136,15 +359,7 @@ export default async function SubjectsPage() {
                 <section key={subject.id} aria-labelledby={`${subject.slug}-title`}>
                   <div className="mb-8 flex items-center gap-6">
                     <div className="relative h-20 w-20 shrink-0 md:h-24 md:w-24">
-                      <PathIllustration
-                        variant={
-                          subject.slug === "math"
-                            ? "artboard"
-                            : subject.slug === "reading"
-                              ? "book"
-                              : "spark"
-                        }
-                      />
+                      <SubjectIcon subject={subject} />
                     </div>
                     <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-center md:gap-8">
                       <h2
@@ -162,50 +377,24 @@ export default async function SubjectsPage() {
                   </div>
 
                   {enabled ? (
-                    <div className="overflow-x-auto rounded-2xl bg-slate-50 px-6 py-10 md:px-8">
-                      <div className="flex min-w-max gap-4 md:gap-5">
+                    <div className="rounded-[28px] bg-slate-50 p-4 md:overflow-x-auto md:px-8 md:py-10">
+                      <div className="grid gap-4 md:flex md:min-w-max md:gap-5">
                         {subject.learningPaths.map((path, index) => {
-                          const progressPct = Math.round(path.progress * 100);
                           const isNew = index === 0 && path.progress === 0;
+                          const entry = {
+                            subject,
+                            path,
+                            accent,
+                            illustration:
+                              pathIllustrations[index % pathIllustrations.length],
+                          };
 
                           return (
-                            <Link
+                            <PathCourseCard
                               key={path.id}
-                              href={`/paths/${path.slug}`}
-                              className="group block w-44 shrink-0 md:w-48"
-                            >
-                              <div className="relative flex aspect-square items-center justify-center rounded-[22px] border-2 border-slate-200 bg-white shadow-[0_5px_0_#e5e7eb] transition-transform group-hover:-translate-y-1">
-                                {isNew && (
-                                  <span className="absolute right-3 top-3 rounded-full bg-[#16b84e] px-2.5 py-1 text-[11px] font-black uppercase text-white">
-                                    New
-                                  </span>
-                                )}
-                                {path.isPremium && (
-                                  <span className="absolute left-3 top-3 rounded-full bg-[#ffc94a] px-2.5 py-1 text-[11px] font-black uppercase text-slate-950">
-                                    Premium
-                                  </span>
-                                )}
-                                <PathIllustration
-                                  variant={
-                                    pathIllustrations[
-                                      index % pathIllustrations.length
-                                    ]
-                                  }
-                                />
-                                <div className="absolute inset-x-4 bottom-5 h-1 overflow-hidden rounded-full bg-slate-100">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{
-                                      width: `${progressPct}%`,
-                                      backgroundColor: accent,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              <div className="mt-6 text-center text-base font-semibold text-slate-950">
-                                {path.name}
-                              </div>
-                            </Link>
+                              entry={entry}
+                              isNew={isNew}
+                            />
                           );
                         })}
                       </div>
