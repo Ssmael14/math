@@ -1,0 +1,16 @@
+export const brandAssets = {
+  "logo": "/brand/paskalito-logo.png",
+  "mark": "/brand/paskalito-mark.png",
+  "mascotHappy": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020182/paskalito/mascot/paskalito-mascot-happy.png",
+  "mascotCelebrate": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020184/paskalito/mascot/paskalito-mascot-celebrate.png",
+  "mascotSad": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020185/paskalito/mascot/paskalito-mascot-sad.png",
+  "mascotSleepy": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020186/paskalito/mascot/paskalito-mascot-sleepy.png",
+  "mascotTeach": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020186/paskalito/mascot/paskalito-mascot-teach.png",
+  "subjectMath": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020187/paskalito/subjects/subject-math-icon.png",
+  "subjectReading": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020188/paskalito/subjects/subject-reading-icon.png",
+  "pathMathInitial": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020189/paskalito/paths/path-math-initial-icon.png",
+  "pathNumberTracing": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020689/paskalito/paths/path-number-tracing-icon.png",
+  "pathReadingInitial": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020190/paskalito/paths/path-reading-initial-icon.png"
+} as const;
+
+export type BrandAssets = typeof brandAssets;

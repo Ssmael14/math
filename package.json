@@ -15,6 +15,7 @@
     "db:seed:content": "prisma migrate deploy && tsx prisma/seed-content.ts",
     "db:reset": "prisma migrate reset",
     "gen:audio": "tsx scripts/gen-audio.ts",
+    "cloudinary:upload-brand-assets": "tsx scripts/upload-brand-assets.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -25,6 +26,7 @@
     "@prisma/client": "^6.1.0",
     "bcryptjs": "^2.4.3",
     "better-auth": "^1.6.10",
+    "cloudinary": "^2.10.0",
     "lucide-react": "^1.11.0",
     "next": "^15.5.15",
     "react": "19.0.0",

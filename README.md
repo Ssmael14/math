@@ -37,7 +37,7 @@ npm run db:seed:content
 4. Confirmar que no queden textos visibles con `Lumi`:
 
 ```bash
-rg "Aventura con Lumi|Tienda de Lumi|Aprendamos con Lumi|Mira y escucha a Lumi|Lumi te|Lumi quiere|Lumi se|Lumi está|🦙" app components lib prisma public
+rg "Aventura con Lumi|Tienda de Lumi|Aprendamos con Lumi|Mira y escucha a Lumi|Lumi te|Lumi quiere|Lumi se|Lumi esta" app components lib prisma public
 ```
 
 ## Assets pendientes
@@ -54,6 +54,61 @@ Los PNG actuales son la primera version generada de Paskalito. Falta pulir la id
 - Iconos PWA finales en SVG/PNG.
 - Favicon y Apple touch icon.
 - Iconos UI: premium, gemas, corazones, racha, nodos de leccion, materias.
+
+## Cloudinary
+
+Regla para imagenes:
+
+- Shell minimo de marca y PWA: local en `public`.
+- `logo`, `mark`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`,
+  `og-image.png`, manifest y service worker: locales.
+- Imagenes dinamicas, generadas, subidas por admin o reemplazables sin deploy: Cloudinary.
+- Mascotas, materias, caminos, ejercicios y banners: Cloudinary.
+- No guardar imagenes subidas por usuarios en `public`.
+- No exponer `CLOUDINARY_API_SECRET` al cliente.
+
+Variables necesarias:
+
+```bash
+NEXT_PUBLIC_SITE_URL=""
+CLOUDINARY_URL=""
+# o, si no se usa CLOUDINARY_URL:
+CLOUDINARY_CLOUD_NAME=""
+CLOUDINARY_API_KEY=""
+CLOUDINARY_API_SECRET=""
+CLOUDINARY_UPLOAD_FOLDER="paskalito/uploads"
+```
+
+Endpoint server-side para firmar uploads directos:
+
+```txt
+POST /api/admin/cloudinary/sign-upload
+```
+
+Solo admins definidos en `ADMIN_EMAILS` pueden usarlo. Devuelve `cloudName`,
+`apiKey`, `timestamp`, `folder`, `signature`, `uploadUrl`, `tags` y `context`.
+Con esos datos el cliente puede subir directo a Cloudinary sin conocer el
+secret.
+
+Pantalla admin disponible:
+
+```txt
+/admin/assets
+```
+
+Permite subir una imagen, elegir carpeta dentro de `paskalito/`, previsualizar
+el resultado y copiar la URL segura de Cloudinary.
+
+Subida automatica de assets visuales:
+
+```bash
+npm run cloudinary:upload-brand-assets
+```
+
+Este comando sube los assets visuales dinamicos de `public/brand` a Cloudinary,
+mantiene `logo` y `mark` locales, actualiza `lib/brand-assets.generated.ts` y
+escribe un manifiesto solo de URLs remotas en
+`public/brand/cloudinary-assets.json`.
 
 ## Refactor interno opcional
 

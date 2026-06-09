@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowRight, Lock, Play } from "lucide-react";
 import { getActiveChild, getSubjectsPathCatalog } from "@/lib/queries";
 import { TopNav } from "@/components/TopNav";
+import { brand } from "@/lib/brand";
 
 const accentByColor: Record<string, string> = {
   peach: "#ff8f70",
@@ -120,9 +121,22 @@ function CatalogIcon({
   className?: string;
 }) {
   if (entry.path.level === "INITIAL" && entry.subject.slug === "math") {
+    if (entry.path.slug === "math-number-tracing") {
+      return (
+        <Image
+          src={brand.assets.pathNumberTracing}
+          alt=""
+          width={180}
+          height={180}
+          className={`${className} object-contain`}
+          aria-hidden
+        />
+      );
+    }
+
     return (
       <Image
-        src="/brand/path-math-initial-icon.png"
+        src={brand.assets.pathMathInitial}
         alt=""
         width={180}
         height={180}
@@ -135,7 +149,7 @@ function CatalogIcon({
   if (entry.path.level === "INITIAL" && entry.subject.slug === "reading") {
     return (
       <Image
-        src="/brand/path-reading-initial-icon.png"
+        src={brand.assets.pathReadingInitial}
         alt=""
         width={180}
         height={180}
@@ -156,7 +170,7 @@ function SubjectIcon({
   if (subject.slug === "math") {
     return (
       <Image
-        src="/brand/subject-math-icon.png"
+        src={brand.assets.subjectMath}
         alt=""
         width={160}
         height={160}
@@ -169,7 +183,7 @@ function SubjectIcon({
   if (subject.slug === "reading") {
     return (
       <Image
-        src="/brand/subject-reading-icon.png"
+        src={brand.assets.subjectReading}
         alt=""
         width={160}
         height={160}

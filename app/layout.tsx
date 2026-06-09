@@ -22,14 +22,56 @@ const fraunces = Fraunces({
   variable: "--font-display",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.BETTER_AUTH_URL ||
+  `https://${brand.domain}`;
+const defaultTitle = `${brand.appName} - Aventura con ${brand.mascotName}`;
+const ogImage = "/og-image.png";
+
 export const metadata: Metadata = {
-  title: `${brand.appName} — Aventura con ${brand.mascotName}`,
+  metadataBase: new URL(siteUrl),
+  applicationName: brand.appName,
+  title: {
+    default: defaultTitle,
+    template: `%s · ${brand.appName}`,
+  },
   description: brand.tagline,
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/icon-192.png",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: brand.appName,
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_PE",
+    url: "/",
+    siteName: brand.appName,
+    title: defaultTitle,
+    description: brand.tagline,
+    images: [
+      {
+        url: ogImage,
+        width: 1200,
+        height: 630,
+        alt: `${brand.appName} - ${brand.tagline}`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: brand.tagline,
+    images: [ogImage],
   },
 };
 

@@ -8,7 +8,7 @@
 //
 // Cuando subimos una versión nueva, bumpeamos CACHE_VERSION para invalidar.
 
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const CACHE_NAME = `paskalito-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 
@@ -16,6 +16,7 @@ const PRECACHE = [
   "/manifest.webmanifest",
   "/icon-192.png",
   "/icon-512.png",
+  "/apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (event) => {
