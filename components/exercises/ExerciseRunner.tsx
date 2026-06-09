@@ -315,7 +315,11 @@ export function ExerciseRunner({
               // elegir — el niño puede cambiar la respuesta antes de Comprobar.
               disabled={verdict !== null}
               resetSignal={resetSignal}
-              showSolution={hintLevel === "solution"}
+              showSolution={
+                ex.kind === "DRAW"
+                  ? state === "correct" || hintLevel === "solution"
+                  : hintLevel === "solution"
+              }
               onSelectNumeric={(n) => select(n)}
               onSelectString={(s) => select(s)}
               onSelectStructured={(value) => select(value)}

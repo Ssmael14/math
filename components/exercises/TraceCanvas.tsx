@@ -224,31 +224,46 @@ export function TraceCanvas({
 // Render helpers
 // =========================================================================
 
-function drawGuide(g: CanvasRenderingContext2D, size: number, digit: number, tpl: DigitTemplate | null) {
-  // Número grande tenue de fondo.
+function drawGuide(
+  g: CanvasRenderingContext2D,
+  size: number,
+  digit: number,
+  tpl: DigitTemplate | null,
+) {
+  if (!tpl) {
+    g.save();
+    g.fillStyle = "#FFE7AC";
+    g.font = `bold ${Math.floor(size * 0.82)}px system-ui, sans-serif`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(String(digit), size / 2, size / 2 + size * 0.03);
+    g.restore();
+    return;
+  }
+
+  // Fondo, guía punteada, máscara y solución usan la MISMA plantilla.
+  // Así el número grande y el trazo a seguir nunca quedan desfasados.
   g.save();
-  g.fillStyle = "#FFE7AC";
-  g.font = `bold ${Math.floor(size * 0.82)}px system-ui, sans-serif`;
-  g.textAlign = "center";
-  g.textBaseline = "middle";
-  g.fillText(String(digit), size / 2, size / 2 + size * 0.03);
+  g.strokeStyle = "#FFE7AC";
+  g.globalAlpha = 0.78;
+  g.lineWidth = size * STROKE_FRAC;
+  g.lineCap = "round";
+  g.lineJoin = "round";
+  drawTemplate(g, size, tpl);
   g.restore();
 
-  // Contorno punteado a seguir.
-  if (!tpl) return;
+  // Línea punteada central que el niño debe cubrir con el dedo.
   g.save();
   g.strokeStyle = "#D99A00";
-  g.globalAlpha = 0.5;
-  g.lineWidth = Math.max(2, size * 0.012);
+  g.globalAlpha = 0.72;
+  g.lineWidth = Math.max(3, size * 0.018);
   g.lineCap = "round";
+  g.lineJoin = "round";
   g.setLineDash([size * 0.03, size * 0.03]);
-  for (const poly of tpl) {
-    g.beginPath();
-    g.moveTo(poly[0].x * size, poly[0].y * size);
-    for (const pt of poly.slice(1)) g.lineTo(pt.x * size, pt.y * size);
-    g.stroke();
-  }
+  drawTemplate(g, size, tpl);
   g.restore();
+
+  drawStartDots(g, size, tpl);
 }
 
 function drawSolution(
@@ -261,7 +276,7 @@ function drawSolution(
   g.clearRect(0, 0, size, size);
   drawGuide(g, size, digit, tpl);
   g.save();
-  g.strokeStyle = "#102042";
+  g.strokeStyle = "#4867F5";
   g.lineWidth = size * STROKE_FRAC * 0.55;
   g.lineCap = "round";
   g.lineJoin = "round";
@@ -279,6 +294,40 @@ function drawSolution(
       g.stroke();
     }
     budget -= poly.length;
+  }
+  g.restore();
+}
+
+function drawTemplate(
+  g: CanvasRenderingContext2D,
+  size: number,
+  tpl: DigitTemplate,
+) {
+  for (const poly of tpl) {
+    if (poly.length < 2) continue;
+    g.beginPath();
+    g.moveTo(poly[0].x * size, poly[0].y * size);
+    for (const pt of poly.slice(1)) g.lineTo(pt.x * size, pt.y * size);
+    g.stroke();
+  }
+}
+
+function drawStartDots(
+  g: CanvasRenderingContext2D,
+  size: number,
+  tpl: DigitTemplate,
+) {
+  g.save();
+  for (const poly of tpl) {
+    const first = poly[0];
+    if (!first) continue;
+    g.beginPath();
+    g.fillStyle = "#34C759";
+    g.arc(first.x * size, first.y * size, size * 0.035, 0, Math.PI * 2);
+    g.fill();
+    g.lineWidth = Math.max(2, size * 0.008);
+    g.strokeStyle = "#FFFFFF";
+    g.stroke();
   }
   g.restore();
 }
