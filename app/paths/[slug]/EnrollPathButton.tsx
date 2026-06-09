@@ -32,7 +32,7 @@ export function EnrollPathButton({
       }
 
       if (!response.ok) {
-        setError("No pudimos inscribirte. Probá de nuevo.");
+        setError("No pudimos inscribirte. Prueba de nuevo.");
         return;
       }
 

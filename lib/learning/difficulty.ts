@@ -45,7 +45,7 @@ export function recommendMove(attempts: AttemptOutcome[], windowSize: number = 1
 
 /**
  * Aplica la recomendación a un nivel numérico (1-N). Clampea al rango [min,max].
- * Útil cuando los ejercicios tienen un campo `difficulty` y querés filtrar.
+ * Útil cuando los ejercicios tienen un campo `difficulty` y quieres filtrar.
  */
 export function adjustLevel(
   current: number,

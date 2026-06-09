@@ -188,7 +188,7 @@ export function HomeClient({
                     ? "Premium activo"
                     : stats.premiumStatus === "expired"
                       ? "Premium vencido"
-                      : "Desbloqueá todo con Premium"}
+                      : "Desbloquea todo con Premium"}
                 </div>
                 <div className="line-clamp-1 text-xs font-semibold text-slate-700 md:line-clamp-none md:text-sm md:leading-6">
                   {stats.isPremium
@@ -196,7 +196,7 @@ export function HomeClient({
                       ? `Acceso hasta ${stats.premiumUntilLabel}.`
                       : "Tu cuenta ya tiene acceso a caminos premium."
                     : stats.premiumStatus === "expired"
-                      ? "Renová para volver a entrar a caminos premium."
+                      ? "Renueva para volver a entrar a caminos premium."
                       : "Más caminos, repasos y retos para avanzar mejor."}
                 </div>
               </div>
@@ -251,7 +251,7 @@ export function HomeClient({
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-fredoka text-sm font-bold text-slate-950">
                         {row.name}
-                        {row.isMe ? " (vos)" : ""}
+                        {row.isMe ? " (tú)" : ""}
                       </div>
                     </div>
                     <div className="text-xs font-black text-slate-500">
@@ -265,7 +265,7 @@ export function HomeClient({
                     🏁
                   </div>
                   <p className="mt-3 text-sm font-semibold leading-6 text-slate-500">
-                    La liga aparece cuando completás tu primera lección.
+                    La liga aparece cuando completas tu primera lección.
                   </p>
                 </div>
               )}

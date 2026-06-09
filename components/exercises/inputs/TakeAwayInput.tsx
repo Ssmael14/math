@@ -113,7 +113,7 @@ export function TakeAwayInput({
         }`}
         style={{ boxShadow: !done ? undefined : "0 4px 0 rgba(0,0,0,0.2)" }}
       >
-        {done ? `Quedan ${remainingIdx.length}` : `Sacá ${removed - gone.length} más`}
+        {done ? `Quedan ${remainingIdx.length}` : `Saca ${removed - gone.length} más`}
       </button>
     </div>
   );

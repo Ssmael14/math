@@ -50,7 +50,7 @@ export default function CreateProfilePage() {
 
           <div className="text-center mb-6">
             <div className="text-[10px] font-black text-sky tracking-widest">PERFIL DEL NIÑO</div>
-            <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink mt-1">¡Hola! Contame de vos</h1>
+            <h1 className="font-fredoka text-2xl md:text-3xl font-bold text-ink mt-1">¡Hola! Cuéntame sobre ti</h1>
             <p className="text-sm text-ink-soft font-bold mt-1">{brand.mascotName} quiere conocerte</p>
           </div>
 

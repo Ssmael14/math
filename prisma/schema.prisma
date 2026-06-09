@@ -352,7 +352,7 @@ model Attempt {
 }
 
 // Mastery simplificado: masteryLevel (0-1) + repetitions + nextReviewAt.
-// El algoritmo SM-2 se aplica internamente en lib/srs.ts pero acá sólo
+// El algoritmo SM-2 se aplica internamente en lib/srs.ts pero aquí sólo
 // guardamos lo necesario para revivar y mostrar progreso.
 model Mastery {
   id           String    @id @default(cuid())

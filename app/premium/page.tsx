@@ -88,7 +88,7 @@ export default async function PremiumPage() {
                     : `Tu cuenta está en plan ${user?.plan}.`
                   : status === "expired"
                     ? "Tu acceso venció. Un admin puede asignarte una nueva vigencia."
-                  : "Solicitá la activación al equipo. Un admin actualizará tu cuenta cuando corresponda."}
+                  : "Solicita la activación al equipo. Un admin actualizará tu cuenta cuando corresponda."}
               </p>
 
               <Link

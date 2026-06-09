@@ -124,7 +124,7 @@ export function PathLessonMap({
         }
 
         if (!response.ok) {
-          setError("No pudimos empezar este camino. Probá de nuevo.");
+          setError("No pudimos empezar este camino. Prueba de nuevo.");
           return;
         }
 
@@ -277,7 +277,7 @@ export function PathLessonMap({
                           {isDone
                             ? "Completada"
                             : isCurrent
-                              ? "Continuar acá"
+                              ? "Continuar aquí"
                               : isAvailable
                                 ? "Disponible"
                                 : "Bloqueada"}

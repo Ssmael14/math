@@ -109,7 +109,7 @@ export default function SignupPage() {
         </div>
 
         <div className="mt-6 text-center text-sm text-ink-soft font-bold">
-          ¿Ya tenés cuenta?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link href="/auth/login" className="text-sky">
             Iniciar sesión
           </Link>

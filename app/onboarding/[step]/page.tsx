@@ -7,8 +7,8 @@ import { brand } from "@/lib/brand";
 
 const slides = [
   { title: `¡Hola! Soy ${brand.mascotName}`, sub: "Vamos a jugar con los números juntos", bg: "linear-gradient(180deg, #EAF0FF 0%, #FFFFFF 100%)", cta: "Empezar" },
-  { title: "Aprender jugando", sub: "Sumá, restá y contá con animalitos, frutas y estrellas", bg: "linear-gradient(180deg, #EEF0FF 0%, #EAF0FF 100%)", cta: "Siguiente" },
-  { title: "Ganá recompensas", sub: `Coleccioná gemas, medallas y accesorios para ${brand.mascotName}`, bg: "linear-gradient(180deg, #EAF0FF 0%, #FFF5D6 100%)", cta: "¡A jugar!" },
+  { title: "Aprender jugando", sub: "Suma, resta y cuenta con animalitos, frutas y estrellas", bg: "linear-gradient(180deg, #EEF0FF 0%, #EAF0FF 100%)", cta: "Siguiente" },
+  { title: "Gana recompensas", sub: `Colecciona gemas, medallas y accesorios para ${brand.mascotName}`, bg: "linear-gradient(180deg, #EAF0FF 0%, #FFF5D6 100%)", cta: "¡A jugar!" },
 ];
 
 export default function OnboardingPage({ params }: { params: Promise<{ step: string }> }) {

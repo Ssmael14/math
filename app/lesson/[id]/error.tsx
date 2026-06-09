@@ -24,7 +24,7 @@ export default function LessonError({
         Esta lección se cayó
       </h1>
       <p className="text-ink-soft max-w-sm mb-6">
-        Probá reintentar o volvé al inicio. Tu progreso anterior está guardado.
+        Prueba reintentar o vuelve al inicio. Tu progreso anterior está guardado.
       </p>
       <div className="flex gap-3">
         <button

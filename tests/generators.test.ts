@@ -85,7 +85,7 @@ describe("generateFill", () => {
 });
 
 describe("generateSubtract", () => {
-  it("total - removed = answer; ambos en rango y sin negativos", () => {
+  it("total - removed = answer; ambos en rango y sin negativo", () => {
     const rng = makeRng(13);
     for (let i = 0; i < 50; i++) {
       const ex = generateSubtract(rng, 10);
@@ -110,8 +110,8 @@ describe("concordancia gramatical (género)", () => {
       const p = ex.prompt;
       // Mismatch obvio: "Cuántas peces / cupcakes / pingüinos" (m).
       expect(p).not.toMatch(/Cuántas (peces|cupcakes|pingüinos)/);
-      // Mismatch obvio: "Cuántos estrellas / manzanas / flores / abejas / mariposas / frutillas / tortugas" (f).
-      expect(p).not.toMatch(/Cuántos (estrellas|manzanas|flores|abejas|mariposas|frutillas|tortugas)/);
+      // Mismatch obvio: "Cuántos estrellas / manzanas / flores / abejas / mariposas / fresas / tortugas" (f).
+      expect(p).not.toMatch(/Cuántos (estrellas|manzanas|flores|abejas|mariposas|fresas|tortugas)/);
     }
   });
 
@@ -228,7 +228,7 @@ describe("generateBatch", () => {
     expect(out.every((e) => e.payload.visual === "count")).toBe(true);
   });
 
-  it("con todos los pesos activos, emite los 3 kinds genéricos", () => {
+  it("con todos los peers activos, emite los 3 kinds genéricos", () => {
     const out = generateBatch({ seed: 7, count: 200, max: 10 });
     const kinds = new Set(out.map((e) => e.kind));
     // Tenemos: MULTIPLE_CHOICE (count/subtract/compare/parity), INPUT

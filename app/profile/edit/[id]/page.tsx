@@ -60,7 +60,7 @@ export default function EditChildPage({ params }: { params: Promise<{ id: string
         <div className="w-full max-w-md bg-white rounded-3xl p-6 md:p-10" style={{ boxShadow: "var(--shadow-chunky)" }}>
           <div className="text-center mb-5">
             <div className="text-[10px] font-black text-sky tracking-widest">EDITAR PERFIL</div>
-            <h1 className="font-fredoka text-2xl font-bold text-ink mt-1">Cambiá lo que quieras</h1>
+            <h1 className="font-fredoka text-2xl font-bold text-ink mt-1">Cambia lo que quieras</h1>
           </div>
 
           <label className="text-xs font-black text-ink-soft tracking-wider">NOMBRE</label>

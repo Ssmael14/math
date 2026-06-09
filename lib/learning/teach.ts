@@ -31,7 +31,7 @@ export function stripTeach<T extends TeachStep>(steps: T[]): T[] {
 
 /**
  * Momento Lumi más cercano ANTES de `index` (o null si no hay ninguno).
- * Sostiene el "re-enseñar al trabarse": cuando el niño agota los intentos
+ * Erestiene el "re-enseñar al trabarse": cuando el niño agota los intentos
  * de un ejercicio, le volvemos a mostrar la enseñanza que lo precedía.
  * En unidades procedurales (sin TEACH) devuelve null → comportamiento normal.
  */

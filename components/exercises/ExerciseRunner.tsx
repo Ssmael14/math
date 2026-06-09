@@ -60,7 +60,7 @@ export function ExerciseRunner({
   closeHref = "/home",
   xpPerExercise = 0,
   reviewMode = false,
-  labels = { step: "EJERCICIO", idle: "¡Tú puedes! Elegí tu respuesta." },
+  labels = { step: "EJERCICIO", idle: "¡Tú puedes! Elige tu respuesta." },
   onComplete,
 }: {
   childId: string;
@@ -343,6 +343,7 @@ export function ExerciseRunner({
         mustAdvance={mustAdvance}
         xpPerExercise={xpPerExercise}
         idleMessage={labels.idle}
+        isTrace={ex.kind === "DRAW"}
         traceStars={verdict?.stars}
         onComprobar={comprobar}
         onContinue={onContinue}
@@ -491,7 +492,7 @@ function KindBody({
       );
     }
 
-    // Drag real con canasto. El ExerciseVisual no se monta — los items son
+    // Drag real con canasta. El ExerciseVisual no se monta — los items son
     // el visual.
     const payload = ex.payload as { a?: number; b?: number; item?: string };
     return (
@@ -648,13 +649,14 @@ function KindBody({
 }
 
 function Footer({
-  state, mustAdvance, xpPerExercise, idleMessage, traceStars,
+  state, mustAdvance, xpPerExercise, idleMessage, isTrace, traceStars,
   onComprobar, onContinue, onAcknowledgeSolution,
 }: {
   state: RunnerState;
   mustAdvance: boolean;
   xpPerExercise: number;
   idleMessage: string;
+  isTrace: boolean;
   /** Estrellas (0-3) para feedback granular de TRACE. */
   traceStars?: 0 | 1 | 2 | 3;
   onComprobar: () => void;
@@ -676,10 +678,12 @@ function Footer({
           <>
             <div className="hidden md:flex items-center gap-3 flex-1">
               <Lumi size={48}/>
-              <span className="text-sm font-bold text-ink-soft">{idleMessage}</span>
+              <span className="text-sm font-bold text-ink-soft">
+                {isTrace ? "Traza el número y toca Terminé." : idleMessage}
+              </span>
             </div>
             <button disabled className="w-full md:w-auto md:min-w-[200px] ml-auto py-3 px-6 rounded-full bg-ink-mute/20 text-ink-mute font-black uppercase tracking-wide text-sm">
-              Elegí una respuesta
+              {isTrace ? "Traza y toca Terminé" : "Elige una respuesta"}
             </button>
           </>
         )}
@@ -688,7 +692,7 @@ function Footer({
           <>
             <div className="hidden md:flex items-center gap-3 flex-1">
               <Lumi size={48}/>
-              <span className="text-sm font-bold text-ink-soft">¿Estás seguro? Tocá Comprobar.</span>
+              <span className="text-sm font-bold text-ink-soft">¿Estás seguro? Toca Comprobar.</span>
             </div>
             <button
               onClick={() => { playTap(); onComprobar(); }}
@@ -734,10 +738,10 @@ function Footer({
               <span className="text-3xl md:text-4xl" aria-hidden>{mustAdvance ? "📖" : "💪"}</span>
               <div>
                 <div className="font-fredoka text-base md:text-xl font-bold text-pink">
-                  {mustAdvance ? "Mirá la solución" : "Casi…"}
+                  {mustAdvance ? "Mira la solución" : "Casi…"}
                 </div>
                 <div className="text-xs md:text-sm font-bold text-ink-soft">
-                  {mustAdvance ? "Vamos al siguiente" : "Mirá la pista"}
+                  {mustAdvance ? "Vamos al siguiente" : "Mira la pista"}
                 </div>
               </div>
             </div>
@@ -761,6 +765,9 @@ function genOptions(answer: number): number[] {
   for (const c of candidates) {
     if (!unique.includes(c)) unique.push(c);
     if (unique.length === 4) break;
+  }
+  for (let c = 0; unique.length < 4; c++) {
+    if (!unique.includes(c)) unique.push(c);
   }
   for (let i = unique.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

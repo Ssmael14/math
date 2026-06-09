@@ -169,8 +169,8 @@ export function AdminPremiumClient({
         const error = await response.json().catch(() => null);
         setMessage(
           error?.error === "duration_required"
-            ? "Elegí duración o fecha manual para Premium."
-            : "No se pudo actualizar el plan. Revisá permisos o fecha.",
+            ? "Elige duración o fecha manual para Premium."
+            : "No se pudo actualizar el plan. Revisa permisos o fecha.",
         );
         setActiveUserId(null);
         return;

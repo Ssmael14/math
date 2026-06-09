@@ -1,11 +1,11 @@
 "use client";
 // components/exercises/inputs/DragInput.tsx
 // Drag-and-drop real para sumas. El niño arrastra ítems desde dos pools (a, b)
-// hasta un canasto central; el contador del canasto crece a medida que llegan.
+// hasta una canasta central; el contador de la canasta crece a medida que llegan.
 // Cuando aprieta "Listo", se valida `basket.length` contra `a + b`.
 //
 // Implementado con Pointer Events nativos para cubrir touch + mouse + stylus
-// sin librería externa. Si el niño suelta fuera del canasto, el ítem snapea
+// sin librería externa. Si el niño suelta fuera de la canasta, el ítem snapea
 // de vuelta a su posición original (clearing del transform).
 
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +27,7 @@ export function DragInput({
   b: number;
   item: string;
   disabled?: boolean;
-  /** true al acertar: dispara el conteo celebratorio del canasto en voz. */
+  /** true al acertar: dispara el conteo celebratorio de la canasta en voz. */
   verified?: boolean;
   onSubmit: (count: number) => void;
 }) {
@@ -42,7 +42,7 @@ export function DragInput({
   // -1 = sin contar; 0..n-1 = ítem iluminado; n = total cantado al final.
   const [countLit, setCountLit] = useState(-1);
 
-  // Conteo celebratorio: al acertar, los ítems del canasto se iluminan de a
+  // Conteo celebratorio: al acertar, los ítems de la canasta se iluminan de a
   // uno mientras Lumi cuenta "uno… dos… tres…" y cierra con el total. No
   // bloquea: el footer del runner ya muestra "Continuar" en paralelo.
   useEffect(() => {
@@ -131,13 +131,13 @@ export function DragInput({
         <Pool items={groupB} dragging={dragging} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}/>
       </div>
 
-      <div className="text-[10px] font-black text-ink-mute tracking-widest">ARRASTRÁ AL CANASTO</div>
+      <div className="text-[10px] font-black text-ink-mute tracking-widest">ARRASTRA A LA CANASTA</div>
 
-      {/* Canasto */}
+      {/* Canasta */}
       <div
         ref={basketRef}
         role="region"
-        aria-label={`Canasto: ${basket.length} ítems`}
+        aria-label={`Canasta: ${basket.length} ítems`}
         className="w-full min-h-[120px] rounded-3xl border-4 border-dashed border-mint/60 bg-mint-soft/40 p-3 relative"
       >
         <div className="absolute top-2 right-3 font-fredoka text-2xl font-bold text-mint" aria-hidden>
@@ -155,7 +155,7 @@ export function DragInput({
                   type="button"
                   disabled={disabled}
                   onClick={() => returnFromBasket(it.id)}
-                  aria-label={`${it.emoji} (tocá para devolver)`}
+                  aria-label={`${it.emoji} (toca para devolver)`}
                   className={`text-3xl md:text-4xl drag-pop transition-transform duration-200 ${
                     lit ? "scale-125 drop-shadow" : countLit >= 0 ? "opacity-40" : ""
                   }`}
@@ -182,7 +182,7 @@ export function DragInput({
         style={{ boxShadow: basket.length === 0 ? undefined : "0 4px 0 rgba(0,0,0,0.2)" }}
       >
         {basket.length === 0
-          ? "Movés items al canasto"
+          ? "Mueve ítems a la canasta"
           : allMoved
             ? `¡Listo! Hay ${basket.length}`
             : `Confirmar (${basket.length})`}

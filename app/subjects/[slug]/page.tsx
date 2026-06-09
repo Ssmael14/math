@@ -30,7 +30,7 @@ export async function generateMetadata({
     title: `${subject.name} · ${brand.appName}`,
     description:
       subject.description ??
-      `Explorá ${subject.name} y sus caminos de aprendizaje.`,
+      `Explora ${subject.name} y sus caminos de aprendizaje.`,
   };
 }
 

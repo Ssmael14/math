@@ -36,7 +36,7 @@ export async function generateMetadata({
     title: `${unit.title} · ${unit.learningPath.subject.name} · ${brand.appName}`,
     description:
       unit.description ??
-      `Explorá ${unit.title} dentro de ${unit.learningPath.name}.`,
+      `Explora ${unit.title} dentro de ${unit.learningPath.name}.`,
   };
 }
 

@@ -42,11 +42,11 @@ export const auth = betterAuth({
       await resend.emails.send({
         from: `noreply@${brand.domain}`,
         to: user.email,
-        subject: `Recuperá tu contraseña · ${brand.appName}`,
+        subject: `Recupera tu contraseña · ${brand.appName}`,
         html: `
           <div style="font-family: system-ui, sans-serif; max-width: 480px; margin: 0 auto;">
             <h1 style="font-size: 24px; color: #3D2E4F;">Hola, soy ${brand.mascotName}</h1>
-            <p style="color: #555;">Hacé click acá para elegir una nueva contraseña:</p>
+            <p style="color: #555;">Haz clic aquí para elegir una nueva contraseña:</p>
             <p style="margin: 24px 0;">
               <a href="${url}"
                  style="background: #FFC94A; color: #3D2E4F; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 800;">
@@ -54,7 +54,7 @@ export const auth = betterAuth({
               </a>
             </p>
             <p style="color: #888; font-size: 13px;">
-              Si no fuiste vos, ignorá este mail.
+              Si no fuiste tú, ignora este mail.
             </p>
           </div>
         `,

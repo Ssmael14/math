@@ -1,6 +1,6 @@
 // lib/auth-client.ts
 // Cliente de Better Auth para usar desde "use client" components.
-// Las páginas /auth/* importan los helpers desde acá en lugar de llamar
+// Las páginas /auth/* importan los helpers desde aquí en lugar de llamar
 // directo a /api/auth/*.
 
 import { createAuthClient } from "better-auth/react";

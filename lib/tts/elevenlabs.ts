@@ -3,7 +3,7 @@
 // NUNCA en runtime (sin costo ni latencia para el chico).
 //
 // Genera el mp3 del enunciado con una voz fija y cálida ("Lumi"). El script
-// hashea el texto y solo llama acá si el audio falta o el texto cambió.
+// hashea el texto y solo llama aquí si el audio falta o el texto cambió.
 
 const API = "https://api.elevenlabs.io/v1/text-to-speech";
 

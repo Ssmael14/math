@@ -97,7 +97,7 @@ body {
 }
 
 /* Feedback al fallar: shake horizontal corto. Lo aplicamos al wrapper de la
-   zona de input para que el "no, intentá de nuevo" tenga peso físico. */
+   zona de input para que el "no, intenta de nuevo" tenga peso físico. */
 @keyframes wrong-shake {
   0%,
   100% {
@@ -142,7 +142,7 @@ body {
   }
 }
 
-/* DRAG: cuando un ítem entra al canasto, hace un pop suave (scale-in). */
+/* DRAG: cuando un ítem entra a la canasta, hace un pop suave (scale-in). */
 @keyframes drag-pop-in {
   0% {
     transform: scale(0.4);

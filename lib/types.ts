@@ -1,4 +1,4 @@
-// Tipos compartidos de la app. Importá desde acá en componentes.
+// Tipos compartidos de la app. Importa desde aquí en componentes.
 export type { User, Child, Unit, Lesson, Exercise, Attempt, Progress, ExerciseKind } from "@prisma/client";
 
 // Payloads por tipo de ejercicio

@@ -26,7 +26,7 @@ export function LessonRunner({
         lesson.xpReward / Math.max(1, gradedCount(exercises.map((e) => e.kind))),
       )}
       reviewMode={false}
-      labels={{ step: "EJERCICIO", idle: "¡Tú puedes! Elegí tu respuesta." }}
+      labels={{ step: "EJERCICIO", idle: "¡Tú puedes! Elige tu respuesta." }}
       onComplete={async ({ correctCount }) => {
         const result = await postOrQueue("/api/progress", {
           childId,

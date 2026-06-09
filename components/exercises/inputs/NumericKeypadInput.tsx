@@ -43,7 +43,7 @@ export function NumericKeypadInput({
     if (disabled) return;
     if (text === "") return;
     // El sonido de "correct/wrong" lo dispara el runner cuando evalúa,
-    // así que acá no agregamos un tap extra para evitar doble feedback.
+    // así que aquí no agregamos un tap extra para evitar doble feedback.
     onSubmit(parseInt(text, 10));
   }
 

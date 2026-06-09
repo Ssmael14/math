@@ -10,7 +10,7 @@ import {
 const TEACH_PAYLOAD = {
   teach: {
     beats: [{ emoji: "🍎", text: "Una manzana", repeat: 3 }],
-    tryIt: { emoji: "🍎", count: 3, text: "Tocá", successText: "¡Bien!" },
+    tryIt: { emoji: "🍎", count: 3, text: "Toca", successText: "¡Bien!" },
   },
 };
 
@@ -36,7 +36,7 @@ describe("parseTeach", () => {
     const c = parseTeach({
       teach: {
         beats: [{ emoji: "🍎", text: "Una manzana", repeat: 3 }],
-        tryIt: { emoji: "🍎", count: 3, text: "Tocá", successText: "¡Bien!" },
+        tryIt: { emoji: "🍎", count: 3, text: "Toca", successText: "¡Bien!" },
       },
     });
     expect(c).not.toBeNull();
@@ -72,7 +72,7 @@ describe("parseTeach", () => {
   it("ignora un tryIt mal formado pero conserva los beats", () => {
     const c = parseTeach({
       teach: {
-        beats: [{ emoji: "🍓", text: "Frutilla" }],
+        beats: [{ emoji: "🍓", text: "Fresa" }],
         tryIt: { emoji: "🍓", count: "tres", text: "x", successText: "y" },
       },
     });

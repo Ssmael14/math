@@ -52,7 +52,7 @@ export function PinForm({ mode }: { mode: "create" | "verify" }) {
     <div>
       {mode === "create" && (
         <div className="text-xs font-bold text-ink-soft mb-2">
-          {step === "first" ? "Elegí 4 dígitos" : "Repetilo para confirmar"}
+          {step === "first" ? "Elige 4 dígitos" : "Repítelo para confirmar"}
         </div>
       )}
 
@@ -71,7 +71,7 @@ export function PinForm({ mode }: { mode: "create" | "verify" }) {
         onChange={(e) => setValue(e.target.value.replace(/\D/g, "").slice(0, 4))}
         className="sr-only"/>
       <button onClick={() => inputRef.current?.focus()} className="text-xs font-bold text-sky underline">
-        Tocá para escribir
+        Toca para escribir
       </button>
 
       {err && <div className="mt-3 text-pink text-xs font-bold">{err}</div>}

@@ -21,7 +21,7 @@ export default async function ParentalGatePage() {
         <div className="text-5xl mb-3">{hasPin ? "🔒" : "🔐"}</div>
         <div className="text-[10px] font-black text-sky tracking-widest">ZONA DE PADRES</div>
         <h1 className="font-fredoka text-2xl font-bold text-ink mt-1">
-          {hasPin ? "Ingresá tu PIN" : "Creá un PIN"}
+          {hasPin ? "Ingresa tu PIN" : "Crea un PIN"}
         </h1>
         <p className="text-ink-soft text-sm font-bold mt-1 mb-5">
           {hasPin ? "4 dígitos para entrar" : "Para que los chicos no vean estadísticas ni ajustes"}

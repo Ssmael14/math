@@ -42,7 +42,7 @@ export function PathsClient({
         return;
       }
       if (!r.ok) {
-        setError("No pudimos inscribirte. Probá de nuevo.");
+        setError("No pudimos inscribirte. Prueba de nuevo.");
         return;
       }
       router.push(`/paths/${slug}`);

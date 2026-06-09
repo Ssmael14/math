@@ -7,7 +7,7 @@
 // Formato de `solution.answer` por kind:
 //   MULTIPLE_CHOICE → number | string (la opción correcta)
 //   INPUT           → number | string (lo tipeado, comparado strict)
-//   DRAG_DROP       → number (canasto), { groups } (clasificar) o { parts }
+//   DRAG_DROP       → number (canasta), { groups } (clasificar) o { parts }
 //   SORT            → (number | string)[] (la secuencia esperada)
 //   MATCH           → [number, number][] (pares de índices)
 //   DRAW            → boolean (lo evalúa el recognizer del cliente)
@@ -53,7 +53,7 @@ export function evaluateAttempt(
 
     case "DRAW":
       // El recognizer de trazos evalúa con `matchesDigit` del cliente y manda
-      // un boolean. Acá sólo confirmamos que vino true.
+      // un boolean. Aquí sólo confirmamos que vino true.
       return response === true;
 
     case "SORT": {

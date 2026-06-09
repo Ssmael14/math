@@ -51,7 +51,7 @@ function NothingToReview() {
         Nada por repasar hoy
       </h1>
       <p className="text-ink-soft max-w-sm mb-6">
-        Volvé mañana — {brand.mascotName} te avisa cuándo hay ejercicios para refrescar.
+        Vuelve mañana — {brand.mascotName} te avisa cuándo hay ejercicios para refrescar.
       </p>
       <Link
         href="/home"

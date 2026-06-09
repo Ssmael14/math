@@ -8,9 +8,9 @@ import {
 } from "@/lib/analytics/parent-insights";
 
 const ex: ExerciseLite[] = [
-  { id: "a", prompt: "Sumá 2+3", kind: "DRAG" },
-  { id: "b", prompt: "Contá estrellas", kind: "COUNT" },
-  { id: "c", prompt: "Trazá 5", kind: "TRACE" },
+  { id: "a", prompt: "Suma 2+3", kind: "DRAG" },
+  { id: "b", prompt: "Cuenta estrellas", kind: "COUNT" },
+  { id: "c", prompt: "Traza 5", kind: "TRACE" },
 ];
 
 const at = (id: string, correct: boolean, ms: number, when = new Date()): AttemptRow => ({
@@ -58,7 +58,7 @@ describe("findWeakSpots", () => {
       at("a", false, 1000), at("a", false, 2000), at("a", false, 3000),
     ];
     const [w] = findWeakSpots(attempts, ex, { minAttempts: 3 });
-    expect(w.prompt).toBe("Sumá 2+3");
+    expect(w.prompt).toBe("Suma 2+3");
     expect(w.avgTimeMs).toBe(2000);
   });
 

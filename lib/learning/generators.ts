@@ -54,7 +54,7 @@ const ITEMS: ReadonlyArray<Item> = [
   { emoji: "🧁", sing: "cupcake",   plural: "cupcakes",   gender: "m", removalVerb: "comiste" },
   { emoji: "🐝", sing: "abeja",     plural: "abejas",     gender: "f", removalVerb: "se volaron" },
   { emoji: "🦋", sing: "mariposa",  plural: "mariposas",  gender: "f", removalVerb: "se volaron" },
-  { emoji: "🍓", sing: "frutilla",  plural: "frutillas",  gender: "f", removalVerb: "comiste" },
+  { emoji: "🍓", sing: "fresa",  plural: "fresas",  gender: "f", removalVerb: "comiste" },
   { emoji: "🐢", sing: "tortuga",   plural: "tortugas",   gender: "f", removalVerb: "se escondieron" },
   { emoji: "🐧", sing: "pingüino",  plural: "pingüinos",  gender: "m", removalVerb: "se zambulleron" },
 ];
@@ -75,10 +75,10 @@ export function generateCount(rng: () => number, max: number): GeneratedExercise
     payload: { visual: "count", item: item.emoji, count },
     solution: { answer: count },
     hints: [
-      `Apuntá con el dedo a cada ${item.sing} mientras contás.`,
+      `Apunta con el dedo a cada ${item.sing} mientras cuentas.`,
       count <= 5 ? "Son menos de cinco." : count <= 7 ? "Son más de cinco." : "Son cerca de diez.",
     ],
-    explanation: `Hay ${count} ${count === 1 ? item.sing : item.plural}: contá uno por uno y vas a llegar a ${count}.`,
+    explanation: `Hay ${count} ${count === 1 ? item.sing : item.plural}: cuenta uno por uno y vas a llegar a ${count}.`,
     topic: max <= 5 ? "contar-hasta-5" : "contar-hasta-10",
     difficulty: max <= 5 ? 1 : 2,
   };
@@ -98,7 +98,7 @@ export function generateFill(rng: () => number, max: number): GeneratedExercise 
     solution: { answer: missing },
     hints: [
       `¿Cuánto le falta al ${a} para llegar al ${result}?`,
-      `Contá con los dedos desde el ${a} hasta el ${result}.`,
+      `Cuenta con los dedos desde el ${a} hasta el ${result}.`,
     ],
     explanation: `Falta ${missing}, porque ${a} + ${missing} = ${result}.`,
     topic: max <= 5 ? "sumas-hasta-5" : "sumas-hasta-10",
@@ -123,8 +123,8 @@ export function generateSubtract(rng: () => number, max: number): GeneratedExerc
     payload: { visual: "subtract", total, removed, item: item.emoji },
     solution: { answer: remaining },
     hints: [
-      `Empezá desde ${total} y retrocedé ${removed}.`,
-      "Tachá los que ya no están y contá los que quedan.",
+      `Empieza desde ${total} y retrocedé ${removed}.`,
+      "Tacha los que ya no están y cuenta los que quedan.",
     ],
     explanation: `${total} menos ${removed} son ${remaining} ${remaining === 1 ? item.sing : item.plural}.`,
     topic: max <= 5 ? "restas-hasta-5" : "restas-hasta-10",
@@ -149,8 +149,8 @@ export function generateCompare(rng: () => number, max: number): GeneratedExerci
     payload: { visual: "compare", left, right },
     solution: { answer },
     hints: [
-      "El boquita del cocodrilo apunta al número más grande 🐊.",
-      `Pensá: ¿${left} es más, menos, o igual a ${right}?`,
+      "La boquita del cocodrilo apunta al número más grande 🐊.",
+      `Piensa: ¿${left} es más, menos, o igual a ${right}?`,
     ],
     explanation:
       answer === "=" ? `${left} y ${right} son iguales.`
@@ -173,13 +173,13 @@ export function generateParity(rng: () => number, max: number): GeneratedExercis
     payload: { visual: "parity", value },
     solution: { answer },
     hints: [
-      "Si podés agruparlos de a dos sin que sobre uno, es par.",
+      "Si puedes agruparlos de a dos sin que sobre uno, es par.",
       "Los pares terminan en 0, 2, 4, 6 u 8.",
     ],
     explanation:
       answer === "par"
         ? `${value} es par: se puede repartir en parejas exactas.`
-        : `${value} es impar: si lo repartís en parejas, queda uno sin par.`,
+        : `${value} es impar: si lo repartes en parejas, queda uno sin par.`,
     topic: "par-impar",
     difficulty: 2,
   };
@@ -200,8 +200,8 @@ export function generatePattern(rng: () => number, max: number): GeneratedExerci
     payload: { visual: "pattern", visible, step },
     solution: { answer },
     hints: [
-      `Mirá la diferencia entre los números: van saltando de a ${step}.`,
-      `El último que ves es ${visible[visible.length - 1]} — sumále ${step}.`,
+      `Mira la diferencia entre los números: van saltando de a ${step}.`,
+      `El último que ves es ${visible[visible.length - 1]} — súmale ${step}.`,
     ],
     explanation: `La serie va de a ${step}: ${sequence.join(", ")}.`,
     topic: step === 1 ? "serie-de-1" : "serie-de-2",
@@ -228,9 +228,9 @@ export function generateNeighbor(rng: () => number, max: number): GeneratedExerc
     solution: { answer },
     hints: [
       direction === "before"
-        ? `Contá hacia atrás desde ${value}.`
-        : `Contá uno más después de ${value}.`,
-      "Pensá en la fila de números: cada uno tiene un vecino antes y otro después.",
+        ? `Cuenta hacia atrás desde ${value}.`
+        : `Cuenta uno más después de ${value}.`,
+      "Piensa en la fila de números: cada uno tiene un vecino antes y otro después.",
     ],
     explanation:
       direction === "before"
@@ -242,7 +242,7 @@ export function generateNeighbor(rng: () => number, max: number): GeneratedExerc
 }
 
 // =========================================================================
-// "Sumá arrastrando" — DRAG_DROP
+// "Suma arrastrando" — DRAG_DROP
 // =========================================================================
 export function generateDrag(rng: () => number, max: number): GeneratedExercise {
   const item = pick(rng, ITEMS);
@@ -251,11 +251,11 @@ export function generateDrag(rng: () => number, max: number): GeneratedExercise 
   const total = a + b;
   return {
     kind: "DRAG_DROP",
-    prompt: `Arrastrá los ${item.plural} al canasto y contá: ${a} + ${b}`,
+    prompt: `Arrastra los ${item.plural} a la canasta y cuenta: ${a} + ${b}`,
     payload: { visual: "drag", a, b, item: item.emoji },
     solution: { answer: total },
     hints: [
-      `Movelos a todos al canasto, después contá.`,
+      `Muévelos a todos a la canasta, después cuenta.`,
       `Son ${a} más ${b}.`,
     ],
     explanation: `${a} + ${b} = ${total}.`,

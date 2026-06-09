@@ -12,7 +12,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Cuando enchufemos analytics (PostHog/Sentry), reportar acá.
+    // Cuando enchufemos analytics (PostHog/Sentry), reportar aquí.
     console.error("[GlobalError]", error);
   }, [error]);
 
@@ -23,7 +23,7 @@ export default function GlobalError({
         {brand.mascotName} se tropezó
       </h1>
       <p className="text-ink-soft max-w-sm mb-6">
-        Algo salió mal. Probá de nuevo en un ratito — los datos están a salvo.
+        Algo salió mal. Prueba de nuevo en un ratito — los datos están a salvo.
       </p>
       <button
         onClick={() => reset()}

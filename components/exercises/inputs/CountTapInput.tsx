@@ -105,7 +105,7 @@ export function CountTapInput({
         }`}
         style={{ boxShadow: n === 0 ? undefined : "0 4px 0 rgba(0,0,0,0.2)" }}
       >
-        {n === 0 ? "Tocá los objetos" : `Hay ${n}`}
+        {n === 0 ? "Toca los objetos" : `Hay ${n}`}
       </button>
     </div>
   );

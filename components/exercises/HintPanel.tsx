@@ -24,7 +24,7 @@ export function HintPanel({
   if (level === "none") return null;
 
   if (level === "hint") {
-    const text = hint ?? "Mirá el ejercicio con calma y contá despacio.";
+    const text = hint ?? "Mira el ejercicio con calma y cuenta despacio.";
     return (
       <div
         role="status"
@@ -44,7 +44,7 @@ export function HintPanel({
 
   // level === "solution"
   const title =
-    answer !== null ? `La respuesta es ${answer}` : "Mirá la explicación";
+    answer !== null ? `La respuesta es ${answer}` : "Mira la explicación";
   const body =
     explanation ??
     "No te preocupes — vas a ir mejorando con la práctica. ¡Seguimos!";

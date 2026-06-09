@@ -1,5 +1,5 @@
 // lib/visual-layout.ts
-// Helpers puros para layout visual de ejercicios COUNT — separados acá para
+// Helpers puros para layout visual de ejercicios COUNT — separados aquí para
 // que sean testeables sin parser JSX.
 
 /**

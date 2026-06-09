@@ -12,7 +12,7 @@ export default async function SelectChildPage() {
     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-gradient-to-b from-sky-soft via-white to-cream px-4 py-10">
       <div className="w-full max-w-2xl text-center">
         <div className="text-[10px] font-black text-sky tracking-widest mb-2">¿QUIÉN VA A JUGAR?</div>
-        <h1 className="font-fredoka text-3xl md:text-4xl font-bold text-ink mb-8">Elegí tu perfil</h1>
+        <h1 className="font-fredoka text-3xl md:text-4xl font-bold text-ink mb-8">Elige tu perfil</h1>
 
         <SelectClient children={user.children}/>
 

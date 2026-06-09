@@ -95,6 +95,35 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
       );
     }
 
+    case "number-card": {
+      const { digit } = ex.payload as { digit: number };
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <div className="rounded-[2rem] border-4 border-white bg-sky-soft px-12 py-8 shadow-[var(--shadow-chunky)]">
+            <span className="font-fredoka text-[130px] md:text-[190px] font-bold leading-none text-sky">
+              {digit}
+            </span>
+          </div>
+          <div className="text-[10px] font-black tracking-widest text-ink-mute">
+            MIRA SU FORMA
+          </div>
+        </div>
+      );
+    }
+
+    case "empty-box": {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex h-36 w-48 items-center justify-center rounded-[2rem] border-4 border-dashed border-ink/15 bg-cream text-6xl shadow-[var(--shadow-chunky-sm)]">
+            📦
+          </div>
+          <div className="font-fredoka text-2xl font-bold text-ink-soft">
+            vacío
+          </div>
+        </div>
+      );
+    }
+
     case "pattern": {
       const { visible, step } = ex.payload as { visible: number[]; step: number };
       return (
@@ -137,7 +166,7 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
     }
 
     case "drag": {
-      // El visual real lo dibuja DragInput. Acá no mostramos nada extra.
+      // El visual real lo dibuja DragInput. Aquí no mostramos nada extra.
       return null;
     }
 
@@ -224,7 +253,7 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
               <span key={i} className="text-4xl md:text-6xl leading-none">{item}</span>
             ))}
           </div>
-          <div className="text-[10px] font-black text-ink-mute tracking-widest">MIRÁ EL GRUPO COMPLETO</div>
+          <div className="text-[10px] font-black text-ink-mute tracking-widest">MIRA EL GRUPO COMPLETO</div>
         </div>
       );
     }

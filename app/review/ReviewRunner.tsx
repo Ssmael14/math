@@ -34,7 +34,7 @@ export function ReviewRunner({
       hearts={hearts}
       exercises={exercises}
       reviewMode
-      labels={{ step: "REPASO", idle: "Refrescá lo que ya viste — sin presión." }}
+      labels={{ step: "REPASO", idle: "Refresca lo que ya viste — sin presión." }}
       onComplete={async (result) => {
         setDone(result);
       }}

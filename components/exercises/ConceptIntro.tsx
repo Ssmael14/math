@@ -2,7 +2,7 @@
 // components/exercises/ConceptIntro.tsx
 // "Momento Lumi" — enseñanza interactiva ANTES de practicar (paso TEACH).
 // Pensado para chicos 4-6 que NO leen: cada escena se narra sola (TTS),
-// Lumi acompaña, y termina con un "probá vos" imposible de fallar.
+// Lumi acompaña, y termina con un "prueba tú" imposible de fallar.
 //
 // No se califica, no descuenta corazones, no suma estrellas. Solo enseña.
 
@@ -146,7 +146,7 @@ export function ConceptIntro({
                     type="button"
                     onClick={onTap}
                     disabled={tryDone}
-                    aria-label={`Tocá el ${tryIt.emoji}`}
+                    aria-label={`Toca el ${tryIt.emoji}`}
                     className={`text-6xl md:text-7xl transition-transform active:scale-90 ${
                       lit ? "scale-110" : "opacity-60 hover:opacity-100"
                     }`}
@@ -174,10 +174,10 @@ export function ConceptIntro({
             <Lumi size={48} mood={tryDone ? "celebrate" : "happy"} />
             <span className="text-sm font-bold text-ink-soft">
               {phase === "beats"
-                ? `Mirá y escuchá a ${brand.mascotName}`
+                ? `Mira y escucha a ${brand.mascotName}`
                 : tryDone
                 ? "¡Lo lograste!"
-                : `Tocá los ${tryIt?.emoji}`}
+                : `Toca los ${tryIt?.emoji}`}
             </span>
           </div>
 

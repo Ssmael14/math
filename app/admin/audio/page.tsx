@@ -1,6 +1,6 @@
 // app/admin/audio/page.tsx
 // Panel admin mínimo (Fase C): regenerar el audio TTS de los enunciados.
-// Gate por email (ADMIN_EMAILS). Si no sos admin → 404 (no se revela).
+// Gate por email (ADMIN_EMAILS). Si no eres admin → 404 (no se revela).
 import { notFound } from "next/navigation";
 import { requireUser, isAdminEmail } from "@/lib/auth/server";
 import { genAudioMissingConfig } from "@/lib/tts/generate";

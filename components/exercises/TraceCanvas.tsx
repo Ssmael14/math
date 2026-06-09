@@ -189,7 +189,7 @@ export function TraceCanvas({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        aria-label={showSolution ? `Así se traza el ${digit}` : `Trazá el número ${digit} con el dedo`}
+        aria-label={showSolution ? `Así se traza el ${digit}` : `Traza el número ${digit} con el dedo`}
         className="rounded-3xl border-4 border-white touch-none select-none bg-white"
         style={{ boxShadow: "var(--shadow-chunky)", touchAction: "none" }}
       />

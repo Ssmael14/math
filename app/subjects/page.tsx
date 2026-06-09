@@ -343,7 +343,7 @@ export default async function SubjectsPage() {
               Caminos de aprendizaje
             </h1>
             <p className="mt-2 text-base font-semibold text-slate-500">
-              Avanzá paso a paso con juegos visuales.
+              Avanza paso a paso con juegos visuales.
             </p>
           </header>
 

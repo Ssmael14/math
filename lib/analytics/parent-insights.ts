@@ -1,6 +1,6 @@
 // lib/parent-insights.ts
 // Helpers puros que transforman datos crudos (Attempts, Masteries) en
-// insights útiles para el dashboard de padres. Aislados acá para que sean
+// insights útiles para el dashboard de padres. Aislados aquí para que sean
 // testeables sin DB y reutilizables.
 
 export type AttemptRow = {

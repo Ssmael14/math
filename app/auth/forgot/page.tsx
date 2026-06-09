@@ -21,7 +21,7 @@ export default function ForgotPage() {
     });
     setLoading(false);
     if (error) {
-      setError(error.message ?? "No pudimos enviar el mail. Probá de nuevo.");
+      setError(error.message ?? "No pudimos enviar el mail. Prueba de nuevo.");
       return;
     }
     setSent(true);
@@ -46,7 +46,7 @@ export default function ForgotPage() {
           </h1>
           <p className="text-ink-soft text-sm font-bold mt-1">
             {sent
-              ? "Revisá tu email para el link ✨"
+              ? "Revisa tu email para el link ✨"
               : "Te mandamos un link al email para elegir una nueva"}
           </p>
         </div>

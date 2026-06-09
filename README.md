@@ -37,7 +37,7 @@ npm run db:seed:content
 4. Confirmar que no queden textos visibles con `Lumi`:
 
 ```bash
-rg "Aventura con Lumi|Tienda de Lumi|Aprendamos con Lumi|Mirá y escuchá a Lumi|Lumi te|Lumi quiere|Lumi se|Lumi está|🦙" app components lib prisma public
+rg "Aventura con Lumi|Tienda de Lumi|Aprendamos con Lumi|Mira y escucha a Lumi|Lumi te|Lumi quiere|Lumi se|Lumi está|🦙" app components lib prisma public
 ```
 
 ## Assets pendientes

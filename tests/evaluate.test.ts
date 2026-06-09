@@ -30,9 +30,9 @@ describe("evaluateAttempt · DRAG_DROP", () => {
   });
 
   it("compara grupos de clasificación sin depender del orden", () => {
-    const solution = { groups: { red: ["apple", "cherry"], yellow: ["banana"] } };
-    expect(evaluateAttempt("DRAG_DROP", solution, { groups: { red: ["cherry", "apple"], yellow: ["banana"] } })).toBe(true);
-    expect(evaluateAttempt("DRAG_DROP", solution, { groups: { red: ["apple"], yellow: ["banana", "cherry"] } })).toBe(false);
+    const solution = { groups: { red: ["apple", "cherry"], yellow: ["plátano"] } };
+    expect(evaluateAttempt("DRAG_DROP", solution, { groups: { red: ["cherry", "apple"], yellow: ["plátano"] } })).toBe(true);
+    expect(evaluateAttempt("DRAG_DROP", solution, { groups: { red: ["apple"], yellow: ["plátano", "cherry"] } })).toBe(false);
   });
 
   it("compara partes como multiset", () => {

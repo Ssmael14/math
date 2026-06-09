@@ -64,7 +64,7 @@ function ResetForm() {
             {done ? "¡Lista!" : "Nueva contraseña"}
           </h1>
           <p className="text-ink-soft text-sm font-bold mt-1">
-            {done ? "Ya podés volver a entrar..." : "Elegí algo que te acuerdes 🔐"}
+            {done ? "Ya puedes volver a entrar..." : "Elige algo que te acuerdes 🔐"}
           </p>
         </div>
 

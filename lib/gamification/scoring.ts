@@ -26,7 +26,7 @@ export function computeStars(correct: number, total: number): number {
 
 /**
  * Lunes 00:00 UTC de la semana de `d`. Se usa como key para WeeklyXP/liga.
- * Lo movimos acá para que /api/progress y lib/queries usen la misma función.
+ * Lo movimos aquí para que /api/progress y lib/queries usen la misma función.
  */
 export function mondayOfWeek(d: Date = new Date()): Date {
   const day = d.getUTCDay();
