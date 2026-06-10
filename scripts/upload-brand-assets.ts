@@ -76,6 +76,13 @@ const cloudinaryAssets = [
     tags: ["paths", "math", "initial", "tracing"],
   },
   {
+    key: "pathMathPrimary1",
+    file: "public/brand/path-math-primary-1-icon.png",
+    folder: "paskalito/paths",
+    publicId: "path-math-primary-1-icon",
+    tags: ["paths", "math", "primary", "grade-1"],
+  },
+  {
     key: "pathReadingInitial",
     file: "public/brand/path-reading-initial-icon.png",
     folder: "paskalito/paths",

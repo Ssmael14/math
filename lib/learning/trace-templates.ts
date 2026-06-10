@@ -12,6 +12,7 @@
 export type TPoint = { x: number; y: number };
 export type Polyline = TPoint[];
 export type DigitTemplate = Polyline[];
+export type TraceTemplate = Polyline[];
 
 function p(pairs: number[][]): Polyline {
   return pairs.map(([x, y]) => ({ x, y }));
@@ -89,4 +90,38 @@ export const DIGIT_TEMPLATES: Record<number, DigitTemplate> = {
 /** Devuelve la plantilla o null si el dígito no existe (0-9). */
 export function digitTemplate(digit: number): DigitTemplate | null {
   return DIGIT_TEMPLATES[digit] ?? null;
+}
+
+export const UPPERCASE_LETTER_TEMPLATES: Record<string, TraceTemplate> = {
+  A: [
+    p([[0.18, 0.90], [0.50, 0.10], [0.82, 0.90]]),
+    p([[0.32, 0.58], [0.68, 0.58]]),
+  ],
+  E: [
+    p([[0.74, 0.12], [0.26, 0.12], [0.26, 0.90], [0.76, 0.90]]),
+    p([[0.26, 0.50], [0.66, 0.50]]),
+  ],
+  I: [
+    p([[0.28, 0.12], [0.72, 0.12]]),
+    p([[0.50, 0.12], [0.50, 0.90]]),
+    p([[0.28, 0.90], [0.72, 0.90]]),
+  ],
+  O: [
+    p([
+      [0.50, 0.08], [0.30, 0.14], [0.16, 0.32], [0.12, 0.50],
+      [0.16, 0.70], [0.30, 0.86], [0.50, 0.92], [0.70, 0.86],
+      [0.84, 0.70], [0.88, 0.50], [0.84, 0.32], [0.70, 0.14], [0.50, 0.08],
+    ]),
+  ],
+  U: [
+    p([
+      [0.22, 0.12], [0.22, 0.62], [0.28, 0.80], [0.42, 0.90],
+      [0.58, 0.90], [0.72, 0.80], [0.78, 0.62], [0.78, 0.12],
+    ]),
+  ],
+};
+
+/** Devuelve la plantilla o null si la letra todavía no existe. */
+export function uppercaseLetterTemplate(letter: string): TraceTemplate | null {
+  return UPPERCASE_LETTER_TEMPLATES[letter.toUpperCase()] ?? null;
 }

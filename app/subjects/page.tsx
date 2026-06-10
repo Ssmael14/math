@@ -146,6 +146,19 @@ function CatalogIcon({
     );
   }
 
+  if (entry.path.slug === "math-primary-1") {
+    return (
+      <Image
+        src={brand.assets.pathMathPrimary1}
+        alt=""
+        width={180}
+        height={180}
+        className={`${className} object-contain`}
+        aria-hidden
+      />
+    );
+  }
+
   if (entry.path.level === "INITIAL" && entry.subject.slug === "reading") {
     return (
       <Image

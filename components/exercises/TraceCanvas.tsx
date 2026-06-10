@@ -12,7 +12,11 @@
 //   - Botones grandes "Terminé" / "Borrar".
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { digitTemplate, type DigitTemplate } from "@/lib/learning/trace-templates";
+import {
+  digitTemplate,
+  uppercaseLetterTemplate,
+  type TraceTemplate,
+} from "@/lib/learning/trace-templates";
 import { scoreTrace } from "@/lib/learning/trace-scoring";
 
 type Pt = { x: number; y: number };
@@ -26,12 +30,14 @@ export type TraceResult = { correct: boolean; stars: 0 | 1 | 2 | 3; score: numbe
 
 export function TraceCanvas({
   digit,
+  letter,
   onResult,
   disabled = false,
   showSolution = false,
   size = 280,
 }: {
-  digit: number;
+  digit?: number;
+  letter?: string;
   /** Se invoca SÓLO cuando el niño toca "Terminé". */
   onResult: (r: TraceResult) => void;
   disabled?: boolean;
@@ -47,7 +53,11 @@ export function TraceCanvas({
   const animRef = useRef<number | null>(null);
   const [hasInk, setHasInk] = useState(false);
 
-  const tpl = useMemo(() => digitTemplate(digit), [digit]);
+  const target = letter?.toUpperCase() ?? String(digit ?? 0);
+  const tpl = useMemo(
+    () => (letter ? uppercaseLetterTemplate(letter) : digitTemplate(digit ?? 0)),
+    [digit, letter],
+  );
 
   // --- Máscara offscreen (zona válida) — se recalcula al cambiar el dígito.
   const mask = useMemo(() => buildMask(tpl), [tpl]);
@@ -61,7 +71,7 @@ export function TraceCanvas({
     const g = ctx();
     if (!g) return;
     g.clearRect(0, 0, size, size);
-    drawGuide(g, size, digit, tpl);
+    drawGuide(g, size, target, tpl);
     // Re-dibujar toda la tinta acumulada (multi-trazo).
     g.save();
     g.strokeStyle = "#102042";
@@ -101,7 +111,7 @@ export function TraceCanvas({
     setHasInk(false);
     repaint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [digit, size]);
+  }, [digit, letter, size]);
 
   // Animación de la solución.
   useEffect(() => {
@@ -115,7 +125,7 @@ export function TraceCanvas({
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
     if (reduce) {
-      drawSolution(g, size, digit, tpl, 1);
+      drawSolution(g, size, target, tpl, 1);
       return;
     }
     const start = performance.now();
@@ -123,7 +133,7 @@ export function TraceCanvas({
     const tick = (now: number) => {
       if (!running) return;
       const t = Math.min(1, (now - start) / 1600);
-      drawSolution(g, size, digit, tpl, t);
+      drawSolution(g, size, target, tpl, t);
       if (t < 1) animRef.current = requestAnimationFrame(tick);
     };
     animRef.current = requestAnimationFrame(tick);
@@ -133,7 +143,7 @@ export function TraceCanvas({
       animRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showSolution, digit, size]);
+  }, [showSolution, digit, letter, size, target]);
 
   function getPoint(e: React.PointerEvent<HTMLCanvasElement>): Pt {
     const r = canvasRef.current!.getBoundingClientRect();
@@ -189,7 +199,7 @@ export function TraceCanvas({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        aria-label={showSolution ? `Así se traza el ${digit}` : `Traza el número ${digit} con el dedo`}
+        aria-label={showSolution ? `Así se traza ${target}` : `Traza ${target} con el dedo`}
         className="rounded-3xl border-4 border-white touch-none select-none bg-white"
         style={{ boxShadow: "var(--shadow-chunky)", touchAction: "none" }}
       />
@@ -227,8 +237,8 @@ export function TraceCanvas({
 function drawGuide(
   g: CanvasRenderingContext2D,
   size: number,
-  digit: number,
-  tpl: DigitTemplate | null,
+  target: string,
+  tpl: TraceTemplate | null,
 ) {
   if (!tpl) {
     g.save();
@@ -236,7 +246,7 @@ function drawGuide(
     g.font = `bold ${Math.floor(size * 0.82)}px system-ui, sans-serif`;
     g.textAlign = "center";
     g.textBaseline = "middle";
-    g.fillText(String(digit), size / 2, size / 2 + size * 0.03);
+    g.fillText(target, size / 2, size / 2 + size * 0.03);
     g.restore();
     return;
   }
@@ -269,12 +279,12 @@ function drawGuide(
 function drawSolution(
   g: CanvasRenderingContext2D,
   size: number,
-  digit: number,
-  tpl: DigitTemplate,
+  target: string,
+  tpl: TraceTemplate,
   t: number,
 ) {
   g.clearRect(0, 0, size, size);
-  drawGuide(g, size, digit, tpl);
+  drawGuide(g, size, target, tpl);
   g.save();
   g.strokeStyle = "#4867F5";
   g.lineWidth = size * STROKE_FRAC * 0.55;
@@ -301,7 +311,7 @@ function drawSolution(
 function drawTemplate(
   g: CanvasRenderingContext2D,
   size: number,
-  tpl: DigitTemplate,
+  tpl: TraceTemplate,
 ) {
   for (const poly of tpl) {
     if (poly.length < 2) continue;
@@ -315,7 +325,7 @@ function drawTemplate(
 function drawStartDots(
   g: CanvasRenderingContext2D,
   size: number,
-  tpl: DigitTemplate,
+  tpl: TraceTemplate,
 ) {
   g.save();
   for (const poly of tpl) {
@@ -338,7 +348,7 @@ function drawStartDots(
 
 type Mask = { data: Uint8Array; res: number; count: number };
 
-function buildMask(tpl: DigitTemplate | null): Mask | null {
+function buildMask(tpl: TraceTemplate | null): Mask | null {
   if (!tpl || typeof document === "undefined") return null;
   const res = MASK_RES;
   const c = document.createElement("canvas");

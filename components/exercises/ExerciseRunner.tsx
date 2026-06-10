@@ -386,12 +386,14 @@ function KindBody({
   // decide payload.visual y lo dibuja <ExerciseVisual>.
   if (ex.kind === "DRAW") {
     // Para DRAW el "visual" y el "input" son el mismo canvas.
-    const digit = typeof ex.payload.digit === "number" ? (ex.payload.digit as number) : 0;
+    const digit = typeof ex.payload.digit === "number" ? (ex.payload.digit as number) : undefined;
+    const letter = typeof ex.payload.letter === "string" ? (ex.payload.letter as string) : undefined;
     return (
       <div className="w-full flex justify-center mb-4 md:mb-8">
         <TraceCanvas
           key={resetSignal}
           digit={digit}
+          letter={letter}
           onResult={onTraceResult}
           disabled={disabled}
           showSolution={showSolution}

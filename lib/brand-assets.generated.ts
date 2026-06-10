@@ -10,6 +10,7 @@ export const brandAssets = {
   "subjectReading": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020188/paskalito/subjects/subject-reading-icon.png",
   "pathMathInitial": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020189/paskalito/paths/path-math-initial-icon.png",
   "pathNumberTracing": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020689/paskalito/paths/path-number-tracing-icon.png",
+  "pathMathPrimary1": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781125289/paskalito/paths/path-math-primary-1-icon.png",
   "pathReadingInitial": "https://res.cloudinary.com/dv8bwjkvd/image/upload/v1781020190/paskalito/paths/path-reading-initial-icon.png"
 } as const;
 

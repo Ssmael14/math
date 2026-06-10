@@ -86,6 +86,16 @@ const paths = [
     isPremium: true,
     order: 1,
   },
+  {
+    subjectSlug: "reading",
+    slug: "reading-letter-tracing",
+    name: "Trazos de letras",
+    description: "Reconoce y traza vocales en imprenta mayúscula con el dedo.",
+    level: EducationLevel.INITIAL,
+    difficulty: 1,
+    isPremium: false,
+    order: 2,
+  },
 ];
 
 const units = [
@@ -264,6 +274,15 @@ const units = [
     color: "lilac",
     icon: "📚",
   },
+  {
+    pathSlug: "reading-letter-tracing",
+    slug: "vocales-mayusculas",
+    title: "Vocales mayúsculas",
+    description: "Trazar A, E, I, O y U en imprenta mayúscula.",
+    order: 1,
+    color: "mint",
+    icon: "✏️",
+  },
 ];
 
 const lessons = [
@@ -371,6 +390,11 @@ const lessons = [
   ["letras-sonidos", "reconocer-vocales", "Vocales", 1, 20, 5],
   ["letras-sonidos", "contar-letras", "Contar letras", 2, 25, 6],
   ["primeras-palabras", "imagen-palabra", "¿Qué dice la imagen?", 1, 25, 6],
+  ["vocales-mayusculas", "trazar-a", "Trazar A", 1, 24, 6],
+  ["vocales-mayusculas", "trazar-e", "Trazar E", 2, 24, 6],
+  ["vocales-mayusculas", "trazar-i", "Trazar I", 3, 24, 6],
+  ["vocales-mayusculas", "trazar-o", "Trazar O", 4, 24, 6],
+  ["vocales-mayusculas", "trazar-u", "Trazar U", 5, 24, 6],
 ] as const;
 
 const shopItems = [

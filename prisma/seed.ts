@@ -119,6 +119,34 @@ function trace(digit: number): Omit<Ex, "lessonId" | "order"> {
   };
 }
 
+function traceLetter(letter: string): Omit<Ex, "lessonId" | "order"> {
+  const upper = letter.toUpperCase();
+  return {
+    kind: ExerciseKind.DRAW,
+    prompt: `Traza la letra ${upper} con el dedo`,
+    payload: { letter: upper },
+    solution: { answer: upper },
+    hints: ["Sigue la guía despacito.", "Puedes levantar el dedo si la letra tiene más de un trazo."],
+    explanation: `Así se escribe la ${upper} en imprenta mayúscula.`,
+    difficulty: 1,
+    xpReward: 6,
+  };
+}
+
+function letterCard(letter: string, options: string[]): Omit<Ex, "lessonId" | "order"> {
+  const upper = letter.toUpperCase();
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt: `Toca la letra ${upper}.`,
+    payload: { visual: "letter", letter: upper, options },
+    solution: { answer: upper },
+    hints: [`Busca la tarjeta que tiene la ${upper}.`, "Mira su forma antes de tocar."],
+    explanation: `Esa es la letra ${upper}. Primero la reconocemos, después la trazamos.`,
+    difficulty: 1,
+    xpReward: 5,
+  };
+}
+
 function numberCard(digit: number): Omit<Ex, "lessonId" | "order"> {
   return {
     kind: ExerciseKind.MULTIPLE_CHOICE,
@@ -618,6 +646,58 @@ async function traceDigitLesson(unitId: string, digit: number, order: number) {
         ? emptyGroup()
         : count(item, digit, `Cuenta ${digit} ${digit === 1 ? "objeto" : "objetos"} antes de trazar.`),
       trace(digit),
+    ],
+  );
+}
+
+const vowelWords: Record<string, { emoji: string; word: string; options: string[] }> = {
+  A: { emoji: "🐝", word: "abeja", options: ["A", "E", "I", "O"] },
+  E: { emoji: "🐘", word: "elefante", options: ["E", "A", "I", "U"] },
+  I: { emoji: "🏝️", word: "isla", options: ["I", "A", "O", "E"] },
+  O: { emoji: "🐻", word: "oso", options: ["O", "A", "U", "I"] },
+  U: { emoji: "🍇", word: "uva", options: ["U", "O", "A", "E"] },
+};
+
+async function traceLetterLesson(unitId: string, letter: string, order: number) {
+  const upper = letter.toUpperCase();
+  const data = vowelWords[upper] ?? { emoji: "⭐", word: upper, options: ["A", "E", "I", "O"] };
+  await lesson(
+    unitId,
+    {
+      slug: `trazar-${upper.toLowerCase()}`,
+      title: `Trazar ${upper}`,
+      order,
+      xpReward: 24,
+      minutes: 6,
+    },
+    [
+      lumi(
+        [
+          {
+            emoji: upper,
+            repeat: 1,
+            text: `Esta es la letra ${upper}. Primero la miramos, luego la trazamos con el dedo.`,
+          },
+        ],
+        {
+          emoji: data.emoji,
+          count: 1,
+          text: `${data.word} empieza con ${upper}. Toca la imagen.`,
+          successText: `¡${upper} de ${data.word}!`,
+        },
+      ),
+      letterCard(upper, data.options),
+      {
+        kind: ExerciseKind.MULTIPLE_CHOICE,
+        prompt: `¿Con qué letra empieza ${data.word}?`,
+        payload: { visual: "emoji-word", emoji: data.emoji, label: data.word, options: data.options },
+        solution: { answer: upper },
+        hints: [`Di la palabra despacio: ${data.word}.`, `Escucha el primer sonido: ${upper}.`],
+        explanation: `${data.word} empieza con ${upper}.`,
+        difficulty: 1,
+        xpReward: 5,
+      },
+      traceLetter(upper),
     ],
   );
 }
@@ -1424,6 +1504,39 @@ async function main() {
       },
     ] as Prisma.ExerciseCreateManyInput[],
   });
+
+  // ============================================================
+  // READING · Trazos de letras (imprenta mayúscula, vocales)
+  // ============================================================
+  const readingLetterTracing = await prisma.learningPath.create({
+    data: {
+      subjectId: readingSubject.id,
+      slug: "reading-letter-tracing",
+      name: "Trazos de letras",
+      description: "Reconoce y traza vocales en imprenta mayúscula con el dedo.",
+      level: EducationLevel.INITIAL,
+      difficulty: 1,
+      isPremium: false,
+      order: 2,
+    },
+  });
+
+  const rtu1 = await prisma.unit.create({
+    data: {
+      learningPathId: readingLetterTracing.id,
+      slug: "vocales-mayusculas",
+      title: "Vocales mayúsculas",
+      description: "Trazar A, E, I, O y U en imprenta mayúscula.",
+      order: 1,
+      color: "mint",
+      icon: "✏️",
+    },
+  });
+  await traceLetterLesson(rtu1.id, "A", 1);
+  await traceLetterLesson(rtu1.id, "E", 2);
+  await traceLetterLesson(rtu1.id, "I", 3);
+  await traceLetterLesson(rtu1.id, "O", 4);
+  await traceLetterLesson(rtu1.id, "U", 5);
 
   // ============================================================
   // SHOP + ACHIEVEMENTS (sin cambios)
