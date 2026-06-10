@@ -286,6 +286,168 @@ export function ExerciseVisual({ ex }: { ex: ExerciseDTO }) {
       return <EmojiStrip items={Array.from({ length: total }, () => item)} />;
     }
 
+    case "place-value": {
+      const { tens = 0, ones = 0, value } = ex.payload as {
+        tens?: number;
+        ones?: number;
+        value?: number;
+      };
+      return (
+        <div className="flex flex-col items-center gap-4">
+          {typeof value === "number" && (
+            <div className="font-fredoka text-4xl font-bold text-sky">{value}</div>
+          )}
+          <div className="flex flex-wrap justify-center gap-5">
+            <div className="flex flex-col items-center gap-2">
+              <div className="text-[10px] font-black tracking-widest text-ink-mute">DECENAS</div>
+              <div className="flex flex-wrap justify-center gap-2 max-w-48">
+                {Array.from({ length: tens }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-2 gap-0.5 rounded-xl bg-sky-soft p-1.5 shadow-[var(--shadow-chunky-sm)]">
+                    {Array.from({ length: 10 }).map((_, j) => (
+                      <span key={j} className="h-2.5 w-2.5 rounded-full bg-sky" />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="text-[10px] font-black tracking-widest text-ink-mute">UNIDADES</div>
+              <div className="flex flex-wrap justify-center gap-1.5 max-w-36">
+                {Array.from({ length: ones }).map((_, i) => (
+                  <span key={i} className="h-5 w-5 rounded-full bg-sun shadow-[var(--shadow-chunky-sm)]" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    case "number-line": {
+      const { sequence = [] } = ex.payload as { sequence?: Array<number | null> };
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {sequence.map((n, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <NumberCard n={typeof n === "number" ? n : undefined} placeholder={n === null} />
+                {i < sequence.length - 1 && (
+                  <span className="font-fredoka text-xl font-bold text-ink-mute" aria-hidden>→</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "ordinal-line": {
+      const { items = [], targetIndex } = ex.payload as {
+        items?: string[];
+        targetIndex?: number;
+      };
+      return (
+        <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+          {items.map((item, i) => (
+            <div
+              key={i}
+              className={`flex h-16 w-16 flex-col items-center justify-center rounded-2xl border-4 bg-white font-black shadow-[var(--shadow-chunky-sm)] ${
+                i === targetIndex ? "border-sky text-sky" : "border-cream text-ink-soft"
+              }`}
+            >
+              <span className="text-2xl leading-none">{item}</span>
+              <span className="text-[10px]">{i + 1}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "money": {
+      const { coins = [] } = ex.payload as { coins?: number[] };
+      return (
+        <div className="flex flex-wrap justify-center gap-3">
+          {coins.map((coin, i) => (
+            <div
+              key={i}
+              className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-sun-soft font-fredoka text-lg font-bold text-ink shadow-[var(--shadow-chunky-sm)]"
+            >
+              S/{coin}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "length-bars": {
+      const { bars = [] } = ex.payload as {
+        bars?: { id: string; label: string; length: number; color?: string }[];
+      };
+      return (
+        <div className="flex w-full max-w-md flex-col gap-3">
+          {bars.map((bar) => (
+            <div key={bar.id} className="flex items-center gap-3">
+              <div className="w-20 text-right text-sm font-black text-ink-soft">{bar.label}</div>
+              <div
+                className={`h-8 rounded-full ${bar.color ?? "bg-sky"}`}
+                style={{ width: `${Math.max(20, bar.length * 10)}px` }}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "clock": {
+      const { time } = ex.payload as { time?: string };
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex h-40 w-40 items-center justify-center rounded-full border-8 border-sky-soft bg-white shadow-[var(--shadow-chunky)]">
+            <div className="font-fredoka text-4xl font-bold text-sky">{time}</div>
+          </div>
+          <div className="text-[10px] font-black tracking-widest text-ink-mute">LEE LA HORA</div>
+        </div>
+      );
+    }
+
+    case "shapes": {
+      const { shapes = [] } = ex.payload as {
+        shapes?: { symbol: string; label?: string; color?: string }[];
+      };
+      return (
+        <div className="flex flex-wrap justify-center gap-3">
+          {shapes.map((shape, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <div className={`flex h-20 w-20 items-center justify-center rounded-2xl bg-cream text-5xl ${shape.color ?? "text-sky"}`}>
+                {shape.symbol}
+              </div>
+              {shape.label && <span className="text-[10px] font-black text-ink-soft">{shape.label}</span>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "picture-graph": {
+      const { rows = [] } = ex.payload as {
+        rows?: { label: string; icon: string; count: number }[];
+      };
+      return (
+        <div className="flex w-full max-w-md flex-col gap-3">
+          {rows.map((row) => (
+            <div key={row.label} className="grid grid-cols-[90px_1fr] items-center gap-3">
+              <div className="text-right text-sm font-black text-ink-soft">{row.label}</div>
+              <div className="flex flex-wrap gap-1">
+                {Array.from({ length: row.count }).map((_, i) => (
+                  <span key={i} className="text-2xl leading-none">{row.icon}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     // -----------------------------------------------------------------
     // READING visuals
     // -----------------------------------------------------------------

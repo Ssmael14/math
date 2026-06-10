@@ -17,13 +17,15 @@ export function ChoiceButtonsInput<V extends string>({
   selected?: V | null;
   onPick: (value: V) => void;
 }) {
+  const columns = choices.length <= 3 ? choices.length : 2;
   return (
     <div
       className="w-full max-w-xl grid gap-3"
-      style={{ gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {choices.map((c) => {
         const isSel = selected === c.value;
+        const compact = choices.length > 3 || c.label.length > 8;
         return (
           <button
             key={c.value}
@@ -39,7 +41,11 @@ export function ChoiceButtonsInput<V extends string>({
             }`}
             style={{ boxShadow: "var(--shadow-chunky)" }}
           >
-            <div className="font-fredoka text-3xl md:text-5xl font-bold text-ink leading-none">
+            <div
+              className={`font-fredoka font-bold text-ink leading-tight ${
+                compact ? "text-lg md:text-2xl" : "text-3xl md:text-5xl"
+              }`}
+            >
               {c.label}
             </div>
             {c.sub && (

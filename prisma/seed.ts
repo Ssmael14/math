@@ -336,6 +336,227 @@ function partWhole(total: number, item: string, parts: number[]): Omit<Ex, "less
   };
 }
 
+function choiceNumber(
+  prompt: string,
+  visual: string,
+  payload: Record<string, Prisma.InputJsonValue>,
+  answer: number,
+  hints: string[],
+  explanation: string,
+  difficulty = 2,
+  xpReward = 7,
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt,
+    payload: { visual, ...payload } as Prisma.InputJsonValue,
+    solution: { answer },
+    hints,
+    explanation,
+    difficulty,
+    xpReward,
+  };
+}
+
+function choiceText(
+  prompt: string,
+  visual: string,
+  payload: Record<string, Prisma.InputJsonValue>,
+  options: string[],
+  answer: string,
+  hints: string[],
+  explanation: string,
+  difficulty = 2,
+  xpReward = 7,
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    prompt,
+    payload: { visual, ...payload, options } as Prisma.InputJsonValue,
+    solution: { answer },
+    hints,
+    explanation,
+    difficulty,
+    xpReward,
+  };
+}
+
+function placeValue(
+  value: number,
+  tens: number,
+  ones: number,
+  prompt = `Forma ${value} con decenas y unidades.`,
+): Omit<Ex, "lessonId" | "order"> {
+  return {
+    kind: ExerciseKind.DRAG_DROP,
+    prompt,
+    payload: { visual: "base-ten-build", target: value, tens, ones } as Prisma.InputJsonValue,
+    solution: { answer: value },
+    hints: ["Toca + 1 decena para agregar grupos de diez.", "Toca + 1 unidad para agregar unidades sueltas."],
+    explanation: `${tens} decena${tens === 1 ? "" : "s"} y ${ones} unidad${ones === 1 ? "" : "es"} forman ${value}.`,
+    difficulty: 2,
+    xpReward: 8,
+  };
+}
+
+function numberLine(
+  sequence: Array<number | null>,
+  answer: number,
+  step = 1,
+): Omit<Ex, "lessonId" | "order"> {
+  const distractors = [answer - step, answer + step, answer + step * 2]
+    .filter((value) => value > 0);
+  const choices = [...new Set([answer, ...distractors])].slice(0, 4).sort((a, b) => a - b);
+  return {
+    kind: ExerciseKind.DRAG_DROP,
+    prompt: "Pon el número que falta en la recta.",
+    payload: { visual: "number-line-input", sequence, choices, step } as Prisma.InputJsonValue,
+    solution: { answer },
+    hints: [`La secuencia avanza de ${step} en ${step}.`, "Mira el número anterior y el siguiente."],
+    explanation: `Falta ${answer}. La secuencia mantiene el mismo salto.`,
+    difficulty: Math.max(...sequence.filter((n): n is number => typeof n === "number")) <= 20 ? 1 : 2,
+    xpReward: 8,
+  };
+}
+
+function ordinal(
+  items: string[],
+  targetIndex: number,
+  answer: string,
+): Omit<Ex, "lessonId" | "order"> {
+  return choiceText(
+    "¿Qué lugar ocupa el marcado?",
+    "ordinal-line",
+    { items, targetIndex },
+    ["primero", "segundo", "tercero", "cuarto", "quinto"],
+    answer,
+    ["Cuenta los lugares desde la izquierda.", "El lugar no dice cuántos hay, dice posición."],
+    `El marcado está en el lugar ${answer}.`,
+    2,
+    7,
+  );
+}
+
+function equalGroups(
+  groups: number,
+  size: number,
+  item: string,
+): Omit<Ex, "lessonId" | "order"> {
+  const total = groups * size;
+  return choiceNumber(
+    `Hay ${groups} grupos de ${size}. ¿Cuántos hay en total?`,
+    "picture-graph",
+    {
+      rows: Array.from({ length: groups }).map((_, i) => ({
+        label: `Grupo ${i + 1}`,
+        icon: item,
+        count: size,
+      })) as Prisma.InputJsonValue,
+    },
+    total,
+    ["Cuenta por grupos iguales.", "También puedes contar todos uno por uno para comprobar."],
+    `${groups} grupos de ${size} forman ${total}. Esa es la idea de multiplicar.`,
+    2,
+    8,
+  );
+}
+
+function shareEqually(total: number, groups: number, item: string): Omit<Ex, "lessonId" | "order"> {
+  const each = total / groups;
+  return choiceNumber(
+    `Reparte ${total} en ${groups} grupos iguales. ¿Cuántos van en cada grupo?`,
+    "picture-graph",
+    { rows: [{ label: "Todo", icon: item, count: total }] as Prisma.InputJsonValue },
+    each,
+    ["Reparte uno por uno en cada grupo.", "Todos los grupos deben quedar iguales."],
+    `${total} repartidos en ${groups} grupos iguales da ${each} en cada grupo.`,
+    2,
+    8,
+  );
+}
+
+function money(coins: number[], answer: number): Omit<Ex, "lessonId" | "order"> {
+  const coinOptions = [...new Set([...coins, 1, 2, 5])].sort((a, b) => a - b);
+  return {
+    kind: ExerciseKind.DRAG_DROP,
+    prompt: `Arma S/${answer} con monedas.`,
+    payload: { visual: "money-build", target: answer, coinOptions } as Prisma.InputJsonValue,
+    solution: { answer },
+    hints: ["Toca monedas para agregarlas al monedero.", "Puedes tocar una moneda del monedero para quitarla."],
+    explanation: `Una forma de armar S/${answer} es usar ${coins.map((coin) => `S/${coin}`).join(" + ")}.`,
+    difficulty: 2,
+    xpReward: 8,
+  };
+}
+
+function lengthBars(
+  bars: { id: string; label: string; length: number; color?: string }[],
+  answer: string,
+  prompt = "¿Cuál es más largo?",
+): Omit<Ex, "lessonId" | "order"> {
+  return choiceText(
+    prompt,
+    "length-bars",
+    { bars: bars as Prisma.InputJsonValue },
+    bars.map((bar) => bar.label),
+    answer,
+    ["Compara desde el mismo inicio.", "Mira cuál barra llega más lejos."],
+    `${answer} es la respuesta correcta al comparar las longitudes.`,
+    2,
+    7,
+  );
+}
+
+function clock(time: string, answer: string, options: string[]): Omit<Ex, "lessonId" | "order"> {
+  return choiceText(
+    "¿Qué hora muestra el reloj?",
+    "clock",
+    { time },
+    options,
+    answer,
+    ["Mira la hora y los minutos.", "Cuando termina en :30 decimos y media."],
+    `El reloj muestra ${answer}.`,
+    2,
+    7,
+  );
+}
+
+function shapeChoice(
+  prompt: string,
+  shapes: { symbol: string; label?: string; color?: string }[],
+  options: string[],
+  answer: string,
+): Omit<Ex, "lessonId" | "order"> {
+  return choiceText(
+    prompt,
+    "shapes",
+    { shapes: shapes as Prisma.InputJsonValue },
+    options,
+    answer,
+    ["Mira los lados y las esquinas.", "Nombra la forma antes de elegir."],
+    `La respuesta es ${answer}.`,
+    2,
+    7,
+  );
+}
+
+function pictureGraph(
+  prompt: string,
+  rows: { label: string; icon: string; count: number }[],
+  answer: number,
+): Omit<Ex, "lessonId" | "order"> {
+  return choiceNumber(
+    prompt,
+    "picture-graph",
+    { rows: rows as Prisma.InputJsonValue },
+    answer,
+    ["Cuenta los dibujos de la fila que te preguntan.", "Cada dibujo vale uno."],
+    `La respuesta es ${answer}.`,
+    2,
+    7,
+  );
+}
+
 async function lesson(
   unitId: string,
   data: { slug: string; title: string; order: number; xpReward: number; minutes: number },
@@ -399,6 +620,271 @@ async function traceDigitLesson(unitId: string, digit: number, order: number) {
       trace(digit),
     ],
   );
+}
+
+async function seedPrimaryOnePath(subjectId: string) {
+  const path = await prisma.learningPath.create({
+    data: {
+      subjectId,
+      slug: "math-primary-1",
+      name: "1.º grado · Matemática con Paskalito",
+      description:
+        "Números hasta 100, valor posicional, sumar, restar, medir, leer datos y resolver problemas.",
+      level: EducationLevel.PRIMARY,
+      grade: 1,
+      difficulty: 2,
+      isPremium: false,
+      order: 3,
+    },
+  });
+
+  const n20 = await prisma.unit.create({
+    data: {
+      learningPathId: path.id,
+      slug: "p1-numeros-hasta-20",
+      title: "Números hasta 20",
+      description: "Contar, leer, comparar, ordenar y ubicar números hasta 20.",
+      order: 1,
+      color: "sky",
+      icon: "🔢",
+    },
+  });
+
+  await lesson(n20.id, { slug: "contar-hasta-20", title: "Contar hasta 20", order: 1, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "🔢", repeat: 1, text: "En primero seguimos contando más allá de diez, sin apurarnos." }], { emoji: "⭐", count: 5, text: "Toca cinco estrellas para empezar.", successText: "¡Listo para contar!" }),
+    count("⭐", 12, "Cuenta primero diez y después dos más."),
+    count("🍎", 15, "Puedes contar en dos filas para no perderte."),
+    numberLine([10, 11, null, 13, 14], 12),
+    order([16, 12, 18, 14, 20]),
+  ]);
+
+  await lesson(n20.id, { slug: "leer-numeros-20", title: "Leer números hasta 20", order: 2, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "👀", repeat: 1, text: "Leer un número es reconocer su forma y decir cómo se llama." }], { emoji: "1️⃣", count: 1, text: "Toca la tarjeta para mirar el número.", successText: "¡Ojos atentos!" }),
+    numberCard(14),
+    choiceText("¿Cómo se lee 16?", "number-card", { digit: 16 }, ["dieciséis", "seis", "sesenta", "diez"], "dieciséis", ["Mira el 1 y el 6 juntos.", "Está entre quince y diecisiete."], "16 se lee dieciséis.", 2, 7),
+    choiceText("¿Cómo se lee 20?", "number-card", { digit: 20 }, ["doce", "veinte", "dos", "diez"], "veinte", ["Tiene un 2 y un 0.", "Viene después de diecinueve."], "20 se lee veinte.", 2, 7),
+    numberLine([16, 17, 18, null, 20], 19),
+  ]);
+
+  await lesson(n20.id, { slug: "comparar-hasta-20", title: "Comparar hasta 20", order: 3, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "⚖️", repeat: 1, text: "Comparar es mirar qué número o grupo es mayor, menor o igual." }], { emoji: "🍎", count: 4, text: "Mira los dos lados antes de elegir.", successText: "¡Comparaste!" }),
+    compareGroups({ item: "🍎", count: 9 }, { item: "🍎", count: 12 }),
+    compare(18, 13),
+    compare(15, 15),
+    order([19, 11, 17, 13, 15]),
+  ]);
+
+  await lesson(n20.id, { slug: "ordinales-primero-decimo", title: "Primero a décimo", order: 4, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "🏁", repeat: 1, text: "Los ordinales dicen el lugar: primero, segundo, tercero..." }], { emoji: "🚗", count: 3, text: "Toca tres autos en la carrera.", successText: "¡Carrera lista!" }),
+    ordinal(["🚗", "🚕", "🚙", "🚌", "🚓"], 0, "primero"),
+    ordinal(["🚗", "🚕", "🚙", "🚌", "🚓"], 2, "tercero"),
+    ordinal(["🚗", "🚕", "🚙", "🚌", "🚓"], 4, "quinto"),
+    choiceText("Si estás después del tercero, ¿qué lugar eres?", "number-line", { sequence: [1, 2, 3, null, 5] }, ["segundo", "cuarto", "quinto", "primero"], "cuarto", ["Cuenta los lugares en orden.", "Después del tercero viene el cuarto."], "Después del tercero viene el cuarto.", 2, 7),
+  ]);
+
+  const pv100 = await prisma.unit.create({
+    data: {
+      learningPathId: path.id,
+      slug: "p1-decenas-unidades",
+      title: "Decenas y unidades",
+      description: "Formar números hasta 100 con grupos de diez y unidades.",
+      order: 2,
+      color: "mint",
+      icon: "🧱",
+    },
+  });
+
+  await lesson(pv100.id, { slug: "hacer-una-decena", title: "Hacer una decena", order: 1, xpReward: 30, minutes: 7 }, [
+    lumi([{ emoji: "🧱", repeat: 1, text: "Una decena es un grupo de diez unidades." }], { emoji: "●", count: 10, text: "Toca diez puntos para armar una decena.", successText: "¡Una decena!" }),
+    count("●", 10, "Diez unidades forman una decena."),
+    placeValue(10, 1, 0),
+    placeValue(13, 1, 3),
+    placeValue(18, 1, 8),
+  ]);
+
+  await lesson(pv100.id, { slug: "valor-posicional", title: "Valor posicional", order: 2, xpReward: 32, minutes: 8 }, [
+    lumi([{ emoji: "🏠", repeat: 1, text: "Cada dígito tiene una casa: decenas y unidades." }], { emoji: "🧱", count: 2, text: "Toca dos bloques de decena.", successText: "¡Dos decenas!" }),
+    placeValue(24, 2, 4),
+    placeValue(36, 3, 6),
+    choiceNumber("Hay 4 decenas y 2 unidades. ¿Qué número es?", "place-value", { tens: 4, ones: 2 }, 42, ["Cuatro decenas son 40.", "40 y 2 forman 42."], "4 decenas y 2 unidades forman 42.", 2, 7),
+    choiceNumber("Hay 5 decenas y 0 unidades. ¿Qué número es?", "place-value", { tens: 5, ones: 0 }, 50, ["Cinco decenas son cinco grupos de diez.", "No hay unidades sueltas."], "5 decenas forman 50.", 2, 7),
+  ]);
+
+  await lesson(pv100.id, { slug: "ordenar-hasta-100", title: "Ordenar hasta 100", order: 3, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🪜", repeat: 1, text: "Para ordenar números grandes miramos primero las decenas." }], { emoji: "🪜", count: 1, text: "Toca la escalera.", successText: "¡Subimos!" }),
+    order([21, 12, 31, 41]),
+    order([55, 25, 45, 35]),
+    numberLine([60, 70, null, 90, 100], 80, 10),
+    compare(76, 67),
+  ]);
+
+  await lesson(pv100.id, { slug: "patrones-numericos", title: "Patrones numéricos", order: 4, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🔁", repeat: 1, text: "Algunos patrones saltan de 2 en 2, de 5 en 5 o de 10 en 10." }], { emoji: "👣", count: 2, text: "Toca dos pasos.", successText: "¡Saltamos!" }),
+    numberLine([2, 4, 6, null, 10], 8, 2),
+    numberLine([5, 10, 15, null, 25], 20, 5),
+    numberLine([10, 20, 30, null, 50], 40, 10),
+    patternNext(["10", "20", "30", "10", "20", "30"], ["10", "20", "30"], "10", 2),
+  ]);
+
+  const addSub = await prisma.unit.create({
+    data: {
+      learningPathId: path.id,
+      slug: "p1-sumas-restas",
+      title: "Sumar y restar",
+      description: "Juntar, sacar y ver la relación entre suma y resta.",
+      order: 3,
+      color: "sun",
+      icon: "➕",
+    },
+  });
+
+  await lesson(addSub.id, { slug: "sumar-hasta-20", title: "Sumar hasta 20", order: 1, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🧺", repeat: 1, text: "Sumar sigue siendo juntar grupos, ahora con números más grandes." }], { emoji: "🍎", count: 5, text: "Toca el grupo que vamos a juntar.", successText: "¡A juntar!" }),
+    add(6, 4, "🍎"),
+    add(8, 5, "⭐"),
+    choiceNumber("Junta 9 y 6. ¿Cuántos hay en total?", "picture-graph", { rows: [{ label: "Grupo 1", icon: "●", count: 9 }, { label: "Grupo 2", icon: "●", count: 6 }] }, 15, ["Primero puedes hacer 10.", "9 necesita 1 para llegar a 10; quedan 5 más."], "9 + 6 = 15.", 2, 8),
+    numberLine([12, 13, 14, null, 16], 15),
+  ]);
+
+  await lesson(addSub.id, { slug: "restar-hasta-20", title: "Restar hasta 20", order: 2, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "✋", repeat: 1, text: "Restar es sacar o encontrar cuánto queda." }], { emoji: "⭐", count: 5, text: "Toca los que quedan.", successText: "¡Quedaron!" }),
+    sub(12, 2, "🍎"),
+    sub(15, 5, "⭐"),
+    sub(18, 6, "●"),
+    choiceNumber("Tenías 17 y sacaste 7. ¿Cuántos quedan?", "subtract", { total: 17, removed: 7, item: "●" }, 10, ["Saca siete.", "Cuenta los que quedan."], "17 − 7 = 10.", 2, 8),
+  ]);
+
+  await lesson(addSub.id, { slug: "sumar-restar-hasta-100", title: "Sumar y restar decenas", order: 3, xpReward: 36, minutes: 8 }, [
+    lumi([{ emoji: "🧱", repeat: 1, text: "Con decenas podemos sumar y restar más rápido." }], { emoji: "🧱", count: 3, text: "Toca tres decenas.", successText: "¡Treinta!" }),
+    choiceNumber("20 y 30 juntos. ¿Cuánto es?", "place-value", { tens: 5, ones: 0 }, 50, ["Dos decenas y tres decenas son cinco decenas.", "Cinco decenas son 50."], "20 + 30 = 50.", 2, 8),
+    choiceNumber("46 + 3. ¿Cuánto es?", "place-value", { tens: 4, ones: 9 }, 49, ["Las decenas quedan igual.", "6 unidades y 3 unidades son 9."], "46 + 3 = 49.", 2, 8),
+    choiceNumber("58 − 5. ¿Cuánto queda?", "place-value", { tens: 5, ones: 3 }, 53, ["Las decenas quedan igual.", "8 unidades menos 5 son 3."], "58 − 5 = 53.", 2, 8),
+    numberLine([70, null, 90, 100], 80, 10),
+  ]);
+
+  await lesson(addSub.id, { slug: "familias-de-hechos", title: "Familias de suma y resta", order: 4, xpReward: 36, minutes: 8 }, [
+    lumi([{ emoji: "🔄", repeat: 1, text: "La suma y la resta son operaciones conectadas." }], { emoji: "🔄", count: 1, text: "Toca la flecha para ver la conexión.", successText: "¡Conectadas!" }),
+    partWhole(8, "⭐", [3, 5]),
+    choiceNumber("Si 3 + 5 = 8, entonces 8 − 5 = ¿?", "part-whole", { total: 8, item: "⭐", parts: [3, 5] }, 3, ["Mira las partes.", "Si sacas una parte, queda la otra."], "8 − 5 = 3.", 2, 8),
+    partWhole(10, "🍎", [4, 6]),
+    choiceNumber("Si 4 + 6 = 10, entonces 10 − 4 = ¿?", "part-whole", { total: 10, item: "🍎", parts: [4, 6] }, 6, ["Usa la misma familia.", "10 se separa en 4 y 6."], "10 − 4 = 6.", 2, 8),
+  ]);
+
+  const multDiv = await prisma.unit.create({
+    data: {
+      learningPathId: path.id,
+      slug: "p1-grupos-iguales",
+      title: "Grupos iguales",
+      description: "Primeras ideas de multiplicar y dividir con objetos.",
+      order: 4,
+      color: "peach",
+      icon: "🧺",
+    },
+  });
+
+  await lesson(multDiv.id, { slug: "contar-grupos-iguales", title: "Contar grupos iguales", order: 1, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🧺", repeat: 1, text: "Cuando los grupos tienen la misma cantidad, podemos contar por grupos." }], { emoji: "🍪", count: 2, text: "Toca dos galletas en cada plato.", successText: "¡Grupos iguales!" }),
+    equalGroups(2, 3, "🍪"),
+    equalGroups(3, 4, "⭐"),
+    equalGroups(4, 2, "🍎"),
+    numberLine([4, 8, null, 16], 12, 4),
+  ]);
+
+  await lesson(multDiv.id, { slug: "arreglos-y-filas", title: "Filas y columnas", order: 2, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🔲", repeat: 1, text: "Un arreglo ordena objetos en filas y columnas." }], { emoji: "●", count: 4, text: "Toca una fila de puntos.", successText: "¡Fila lista!" }),
+    equalGroups(2, 5, "●"),
+    equalGroups(5, 2, "●"),
+    choiceNumber("3 filas con 3 puntos en cada fila. ¿Cuántos puntos hay?", "picture-graph", { rows: [{ label: "Fila 1", icon: "●", count: 3 }, { label: "Fila 2", icon: "●", count: 3 }, { label: "Fila 3", icon: "●", count: 3 }] }, 9, ["Cuenta 3, 6, 9.", "Todas las filas tienen la misma cantidad."], "3 filas de 3 forman 9.", 2, 8),
+    compareGroups({ item: "●", count: 10 }, { item: "●", count: 9 }),
+  ]);
+
+  await lesson(multDiv.id, { slug: "repartir-en-partes-iguales", title: "Repartir en partes iguales", order: 3, xpReward: 36, minutes: 8 }, [
+    lumi([{ emoji: "🤝", repeat: 1, text: "Dividir empieza repartiendo para que todos reciban igual." }], { emoji: "🍪", count: 4, text: "Toca las galletas para repartir.", successText: "¡A repartir!" }),
+    shareEqually(6, 2, "🍪"),
+    shareEqually(8, 4, "⭐"),
+    shareEqually(10, 2, "🍎"),
+    partWhole(12, "●", [6, 6]),
+  ]);
+
+  const measure = await prisma.unit.create({
+    data: {
+      learningPathId: path.id,
+      slug: "p1-medicion-tiempo-dinero",
+      title: "Medir, tiempo y dinero",
+      description: "Comparar longitudes, leer horas y contar monedas.",
+      order: 5,
+      color: "lilac",
+      icon: "📏",
+    },
+  });
+
+  await lesson(measure.id, { slug: "contar-dinero", title: "Contar dinero", order: 1, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "🪙", repeat: 1, text: "El dinero también se cuenta. Cada moneda tiene un valor." }], { emoji: "🪙", count: 3, text: "Toca tres monedas.", successText: "¡Monedas listas!" }),
+    money([1, 1, 1], 3),
+    money([2, 2, 1], 5),
+    money([5, 2, 1], 8),
+    compare(10, 7),
+  ]);
+
+  await lesson(measure.id, { slug: "comparar-longitudes", title: "Comparar longitudes", order: 2, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "📏", repeat: 1, text: "Para comparar longitudes, las barras empiezan en el mismo lugar." }], { emoji: "✏️", count: 2, text: "Toca dos lápices.", successText: "¡Comparamos!" }),
+    lengthBars([{ id: "rojo", label: "rojo", length: 8, color: "bg-pink" }, { id: "azul", label: "azul", length: 12, color: "bg-sky" }], "azul"),
+    lengthBars([{ id: "corto", label: "corto", length: 6, color: "bg-mint" }, { id: "largo", label: "largo", length: 14, color: "bg-sun" }], "largo"),
+    orderObjects("length", [{ id: "s", emoji: "✏️", label: "A", size: 1 }, { id: "l", emoji: "✏️", label: "C", size: 3 }, { id: "m", emoji: "✏️", label: "B", size: 2 }], ["s", "m", "l"], 2),
+    choiceNumber("Una línea mide 7 cm. Otra mide 4 cm. ¿Cuántos cm más mide la larga?", "length-bars", { bars: [{ id: "larga", label: "7 cm", length: 7 }, { id: "corta", label: "4 cm", length: 4 }] }, 3, ["Compara 7 con 4.", "Cuenta de 4 a 7."], "7 cm es 3 cm más que 4 cm.", 2, 8),
+  ]);
+
+  await lesson(measure.id, { slug: "leer-horas", title: "Leer horas", order: 3, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "🕒", repeat: 1, text: "El reloj nos ayuda a saber cuándo pasan las cosas." }], { emoji: "🕒", count: 1, text: "Toca el reloj.", successText: "¡Hora de aprender!" }),
+    clock("3:00", "3:00", ["2:00", "3:00", "3:30", "4:00"]),
+    clock("7:30", "7:30", ["7:00", "7:30", "8:00", "8:30"]),
+    clock("9:15", "9:15", ["9:05", "9:15", "9:30", "10:15"]),
+    choiceText("Media hora después de 2:00 es...", "clock", { time: "2:00" }, ["2:05", "2:30", "3:00", "1:30"], "2:30", ["Media hora son 30 minutos.", "Después de 2:00 viene 2:30."], "Media hora después de 2:00 es 2:30.", 2, 8),
+  ]);
+
+  const shapesData = await prisma.unit.create({
+    data: {
+      learningPathId: path.id,
+      slug: "p1-formas-y-datos",
+      title: "Formas y datos",
+      description: "Reconocer figuras, construir dibujos y leer pictogramas.",
+      order: 6,
+      color: "rose",
+      icon: "🔷",
+    },
+  });
+
+  await lesson(shapesData.id, { slug: "formas-2d", title: "Figuras 2D", order: 1, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "🔷", repeat: 1, text: "Las figuras tienen nombres, lados y esquinas." }], { emoji: "🔺", count: 1, text: "Toca el triángulo.", successText: "¡Triángulo!" }),
+    shapeChoice("¿Cuál figura es un círculo?", [{ symbol: "●", label: "A" }, { symbol: "■", label: "B" }, { symbol: "▲", label: "C" }], ["A", "B", "C"], "A"),
+    shapeChoice("¿Cuál figura tiene tres lados?", [{ symbol: "▲", label: "A" }, { symbol: "●", label: "B" }, { symbol: "■", label: "C" }], ["A", "B", "C"], "A"),
+    sortByAttribute("shape", [{ id: "circle1", emoji: "🔵", category: "circle" }, { id: "square1", emoji: "🟩", category: "square" }, { id: "triangle1", emoji: "🔺", category: "triangle" }, { id: "circle2", emoji: "🟡", category: "circle" }], [{ id: "circle", label: "Círculos" }, { id: "square", label: "Cuadrados" }, { id: "triangle", label: "Triángulos" }], "Clasifica las figuras.", 2),
+    sameMatch("Une cada figura con otra igual.", [{ id: "circle", emoji: "🔵" }, { id: "square", emoji: "🟩" }, { id: "triangle", emoji: "🔺" }], [{ id: "triangle", emoji: "🔺" }, { id: "circle", emoji: "🔵" }, { id: "square", emoji: "🟩" }], "Cada figura encontró su pareja."),
+  ]);
+
+  await lesson(shapesData.id, { slug: "crear-figuras", title: "Crear figuras", order: 2, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "🧩", repeat: 1, text: "Podemos formar dibujos juntando figuras." }], { emoji: "🧩", count: 3, text: "Toca tres piezas.", successText: "¡A construir!" }),
+    shapeChoice("¿Qué figuras forman una casa simple?", [{ symbol: "▲", label: "techo" }, { symbol: "■", label: "pared" }], ["triángulo y cuadrado", "dos círculos", "solo triángulos", "dos líneas"], "triángulo y cuadrado"),
+    shapeChoice("¿Qué figura ves en la rueda?", [{ symbol: "●", label: "rueda" }, { symbol: "■", label: "ventana" }, { symbol: "▲", label: "techo" }], ["círculo", "cuadrado", "triángulo", "rectángulo"], "círculo"),
+    orderObjects("size", [{ id: "small", emoji: "🔵", size: 1 }, { id: "big", emoji: "🔵", size: 3 }, { id: "medium", emoji: "🔵", size: 2 }], ["small", "medium", "big"], 2),
+    patternNext(["🔵", "🟩", "🔺", "🔵", "🟩", "🔺"], ["🔵", "🟩", "🔺"], "🔵", 2),
+  ]);
+
+  await lesson(shapesData.id, { slug: "leer-pictogramas", title: "Leer pictogramas", order: 3, xpReward: 34, minutes: 8 }, [
+    lumi([{ emoji: "📊", repeat: 1, text: "Un pictograma usa dibujos para mostrar datos." }], { emoji: "🍎", count: 4, text: "Toca los dibujos de una fila.", successText: "¡Datos listos!" }),
+    pictureGraph("¿Cuántas manzanas hay?", [{ label: "Manzanas", icon: "🍎", count: 5 }, { label: "Plátanos", icon: "🍌", count: 3 }], 5),
+    pictureGraph("¿Cuántos plátanos hay?", [{ label: "Manzanas", icon: "🍎", count: 5 }, { label: "Plátanos", icon: "🍌", count: 3 }], 3),
+    choiceText("¿Qué fila tiene más?", "picture-graph", { rows: [{ label: "Gatos", icon: "🐱", count: 4 }, { label: "Perros", icon: "🐶", count: 6 }] }, ["Gatos", "Perros", "Igual"], "Perros", ["Compara las dos filas.", "La fila con más dibujos gana."], "Hay más perros.", 2, 8),
+    choiceNumber("¿Cuántos animales hay en total?", "picture-graph", { rows: [{ label: "Gatos", icon: "🐱", count: 4 }, { label: "Perros", icon: "🐶", count: 6 }] }, 10, ["Suma las dos filas.", "4 y 6 forman 10."], "Hay 10 animales en total.", 2, 8),
+  ]);
+
+  await lesson(shapesData.id, { slug: "repaso-primer-grado-1", title: "Repaso de 1.º grado", order: 4, xpReward: 38, minutes: 9 }, [
+    lumi([{ emoji: "🎒", repeat: 1, text: "Repasamos números, operaciones, medidas, formas y datos." }], { emoji: "⭐", count: 5, text: "Toca cinco estrellas para comenzar.", successText: "¡Repaso listo!" }),
+    placeValue(47, 4, 7),
+    choiceNumber("18 − 8. ¿Cuánto queda?", "subtract", { total: 18, removed: 8, item: "●" }, 10, ["Saca ocho.", "Cuenta los que quedan."], "18 − 8 = 10.", 2, 8),
+    money([5, 5, 2], 12),
+    pictureGraph("¿Cuántas flores hay?", [{ label: "Flores", icon: "🌼", count: 7 }, { label: "Hojas", icon: "🍃", count: 4 }], 7),
+  ]);
 }
 
 async function main() {
@@ -796,6 +1282,11 @@ async function main() {
   });
   await traceDigitLesson(tu4.id, 8, 1);
   await traceDigitLesson(tu4.id, 9, 2);
+
+  // ============================================================
+  // MATH · 1.º grado · Matemática con Paskalito
+  // ============================================================
+  await seedPrimaryOnePath(mathSubject.id);
 
   // ============================================================
   // READING · Inicial (premium en dev para validar el bloqueo de paths)

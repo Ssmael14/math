@@ -31,6 +31,9 @@ import { ObjectOrderInput } from "@/components/exercises/inputs/ObjectOrderInput
 import { PartWholeInput } from "@/components/exercises/inputs/PartWholeInput";
 import { SameMatchInput } from "@/components/exercises/inputs/SameMatchInput";
 import { SortAttributeInput } from "@/components/exercises/inputs/SortAttributeInput";
+import { BaseTenInput } from "@/components/exercises/inputs/BaseTenInput";
+import { NumberLineInput } from "@/components/exercises/inputs/NumberLineInput";
+import { MoneyInput } from "@/components/exercises/inputs/MoneyInput";
 import type { ExerciseDTO, TeachContent } from "@/components/exercises/types";
 import { nextHintLevel, shouldAdvanceAfterWrong, pickHint } from "@/lib/learning/hints";
 import { postOrQueue } from "@/lib/offline-queue";
@@ -463,6 +466,53 @@ function KindBody({
   }
 
   if (ex.kind === "DRAG_DROP") {
+    if (visual === "base-ten-build") {
+      const payload = ex.payload as { target?: number };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <BaseTenInput
+            key={resetSignal}
+            target={payload.target ?? 0}
+            disabled={disabled}
+            onSubmit={onSelectNumeric}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "number-line-input") {
+      const payload = ex.payload as {
+        sequence?: Array<number | null>;
+        choices?: number[];
+      };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <NumberLineInput
+            key={resetSignal}
+            sequence={Array.isArray(payload.sequence) ? payload.sequence : []}
+            choices={Array.isArray(payload.choices) ? payload.choices : []}
+            disabled={disabled}
+            onSubmit={onSelectNumeric}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "money-build") {
+      const payload = ex.payload as { target?: number; coinOptions?: number[] };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <MoneyInput
+            key={resetSignal}
+            target={payload.target ?? 0}
+            coinOptions={Array.isArray(payload.coinOptions) ? payload.coinOptions : [1, 2, 5]}
+            disabled={disabled}
+            onSubmit={onSelectNumeric}
+          />
+        </div>
+      );
+    }
+
     if (visual === "sort-attribute") {
       const payload = ex.payload as {
         items?: { id: string; emoji: string; label?: string }[];
