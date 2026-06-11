@@ -32,6 +32,7 @@ import { PartWholeInput } from "@/components/exercises/inputs/PartWholeInput";
 import { SameMatchInput } from "@/components/exercises/inputs/SameMatchInput";
 import { SortAttributeInput } from "@/components/exercises/inputs/SortAttributeInput";
 import { CompareAttributeInput } from "@/components/exercises/inputs/CompareAttributeInput";
+import { PatternNextInput } from "@/components/exercises/inputs/PatternNextInput";
 import { BaseTenInput } from "@/components/exercises/inputs/BaseTenInput";
 import { NumberLineInput } from "@/components/exercises/inputs/NumberLineInput";
 import { MoneyInput } from "@/components/exercises/inputs/MoneyInput";
@@ -651,6 +652,25 @@ function KindBody({
             left={p.left ?? { emoji: "⭐" }}
             right={p.right ?? { emoji: "⭐" }}
             selected={stringPicked as "izquierda" | "derecha" | "igual" | null}
+            onPick={onSelectString}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "pattern-next") {
+      const p = ex.payload as {
+        options?: string[];
+        sequence?: string[];
+      };
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <PatternNextInput
+            answer={typeof ex.solution.answer === "string" ? ex.solution.answer : ""}
+            disabled={disabled}
+            options={Array.isArray(p.options) ? p.options : []}
+            selected={stringPicked}
+            sequence={Array.isArray(p.sequence) ? p.sequence : []}
             onPick={onSelectString}
           />
         </div>
