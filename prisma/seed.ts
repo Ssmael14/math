@@ -250,21 +250,74 @@ function compareObjects(
   right: Card,
   answer: "izquierda" | "derecha" | "igual",
 ): Omit<Ex, "lessonId" | "order"> {
+  const prompt = compareObjectPrompt(attribute, left, right, answer);
   return {
     kind: ExerciseKind.MULTIPLE_CHOICE,
-    prompt: attribute === "same" ? "¿Son iguales?" : "Toca el que corresponde.",
-    payload: { visual: "compare-attribute", attribute, left, right, options: ["izquierda", "derecha", "igual"] },
+    prompt,
+    payload: {
+      visual: "compare-attribute",
+      attribute,
+      left,
+      right,
+      options: answer === "igual" ? ["izquierda", "derecha", "igual"] : ["izquierda", "derecha"],
+    },
     solution: { answer },
-    hints: ["Míralos despacio.", "Compara solo lo que Paskalito pidió."],
+    hints: compareObjectHints(attribute),
     explanation:
       answer === "igual"
         ? "Son iguales en esta comparación."
         : answer === "izquierda"
-          ? "El de la izquierda cumple la pista."
-          : "El de la derecha cumple la pista.",
+          ? `El de la izquierda ${compareObjectExplanation(attribute, left)}.`
+          : `El de la derecha ${compareObjectExplanation(attribute, right)}.`,
     difficulty: 1,
     xpReward: 6,
   };
+}
+
+function compareObjectPrompt(
+  attribute: string,
+  left: Card,
+  right: Card,
+  answer: "izquierda" | "derecha" | "igual",
+) {
+  if (answer === "igual") return "Toca Iguales si son del mismo tamaño.";
+
+  const target = answer === "izquierda" ? left : right;
+  const marker = `${target.id} ${target.label ?? ""}`.toLowerCase();
+
+  if (attribute === "size") {
+    if (/(small|pequeñ|chic|mini)/.test(marker)) return "Toca el más pequeño.";
+    if (/(big|grande|large)/.test(marker)) return "Toca el más grande.";
+    if (typeof left.size === "number" && typeof right.size === "number") {
+      const targetIsBigger =
+        answer === "izquierda" ? left.size > right.size : right.size > left.size;
+      return targetIsBigger ? "Toca el más grande." : "Toca el más pequeño.";
+    }
+  }
+
+  if (attribute === "height") return "Toca el más alto.";
+  if (attribute === "length") return "Toca el más largo.";
+  return "Toca el objeto correcto.";
+}
+
+function compareObjectHints(attribute: string) {
+  if (attribute === "size") {
+    return ["Mira cuál ocupa más espacio.", "El grande se ve más alto y ancho."];
+  }
+  if (attribute === "height") return ["Mira cuál llega más arriba.", "El más alto sobresale."];
+  if (attribute === "length") return ["Mira cuál es más largo.", "Compara de punta a punta."];
+  return ["Míralos despacio.", "Compara solo lo que Paskalito pidió."];
+}
+
+function compareObjectExplanation(attribute: string, card: Card) {
+  const marker = `${card.id} ${card.label ?? ""}`.toLowerCase();
+  if (attribute === "size") {
+    if (/(small|pequeñ|chic|mini)/.test(marker)) return "es más pequeño";
+    if (/(big|grande|large)/.test(marker)) return "es más grande";
+  }
+  if (attribute === "height") return "es más alto";
+  if (attribute === "length") return "es más largo";
+  return "cumple la pista";
 }
 
 function orderObjects(
@@ -275,7 +328,7 @@ function orderObjects(
 ): Omit<Ex, "lessonId" | "order"> {
   return {
     kind: ExerciseKind.SORT,
-    prompt: "Ordena las tarjetas.",
+    prompt: orderObjectsPrompt(attribute),
     payload: { visual: "order-objects", attribute, objects },
     solution: { sequence },
     hints: ["Empieza por el más pequeño o corto.", "Después busca el que sigue."],
@@ -283,6 +336,13 @@ function orderObjects(
     difficulty,
     xpReward: difficulty === 1 ? 7 : 8,
   };
+}
+
+function orderObjectsPrompt(attribute: string) {
+  if (attribute === "size") return "Pon cada círculo en el casillero que encaja.";
+  if (attribute === "height") return "Pon cada palito en el casillero que encaja.";
+  if (attribute === "length") return "Pon cada barra en el casillero que encaja.";
+  return "Ordena las tarjetas.";
 }
 
 function patternNext(
@@ -1050,16 +1110,16 @@ async function main() {
 
   await lesson(u1.id, { slug: "clasificar-por-tamano-forma", title: "Pequeños, grandes y formas", order: 3, xpReward: 24, minutes: 6 }, [
     lumi([{ emoji: "🔍", repeat: 1, text: "Miramos una característica a la vez: tamaño, forma o color." }], { emoji: "⭐", count: 1, text: "Toca la estrella para mirar mejor.", successText: "¡Detective listo!" }),
-    sortByAttribute("size", [{ id: "small-star", emoji: "⭐", label: "pequeña", category: "small" }, { id: "big-star", emoji: "🌟", label: "grande", category: "big" }, { id: "small-flower", emoji: "🌸", label: "pequeña", category: "small" }, { id: "big-flower", emoji: "🌺", label: "grande", category: "big" }], [{ id: "small", label: "Pequeños" }, { id: "big", label: "Grandes" }]),
+    sortByAttribute("size", [{ id: "small-star", emoji: "⭐", label: "pequeña", category: "small", size: 0.82 }, { id: "big-star", emoji: "🌟", label: "grande", category: "big", size: 1.32 }, { id: "small-flower", emoji: "🌸", label: "pequeña", category: "small", size: 0.82 }, { id: "big-flower", emoji: "🌺", label: "grande", category: "big", size: 1.32 }], [{ id: "small", label: "Pequeños" }, { id: "big", label: "Grandes" }]),
     sortByAttribute("shape", [{ id: "circle", emoji: "🔵", category: "circle" }, { id: "triangle", emoji: "🔺", category: "triangle" }, { id: "square", emoji: "🟩", category: "square" }, { id: "circle2", emoji: "🟡", category: "circle" }], [{ id: "circle", label: "Círculos" }, { id: "triangle", label: "Triángulos" }, { id: "square", label: "Cuadrados" }], "Pon cada forma con su familia."),
     compareObjects("size", { id: "small", emoji: "🧸", label: "pequeño", size: 1 }, { id: "big", emoji: "🧸", label: "grande", size: 2 }, "derecha"),
   ]);
 
   await lesson(u1.id, { slug: "ordenar-objetos", title: "El tren de los tamaños", order: 4, xpReward: 26, minutes: 6 }, [
     lumi([{ emoji: "🚂", repeat: 1, text: "El tren sale si los vagones están ordenados." }], { emoji: "🚃", count: 3, text: "Toca los vagones del tren.", successText: "¡A ordenar!" }),
-    orderObjects("size", [{ id: "small", emoji: "🚃", size: 1 }, { id: "big", emoji: "🚃", size: 3 }, { id: "medium", emoji: "🚃", size: 2 }], ["small", "medium", "big"]),
-    orderObjects("height", [{ id: "one", emoji: "🌱", size: 1 }, { id: "four", emoji: "🌳", size: 4 }, { id: "two", emoji: "🌿", size: 2 }, { id: "three", emoji: "🌲", size: 3 }], ["one", "two", "three", "four"], 2),
-    orderObjects("length", [{ id: "s", emoji: "✏️", size: 1 }, { id: "xl", emoji: "✏️", size: 5 }, { id: "m", emoji: "✏️", size: 3 }, { id: "l", emoji: "✏️", size: 4 }, { id: "xs", emoji: "✏️", size: 2 }], ["s", "xs", "m", "l", "xl"], 2),
+    orderObjects("size", [{ id: "small", emoji: "●", label: "pequeño", size: 1 }, { id: "big", emoji: "●", label: "grande", size: 3 }, { id: "medium", emoji: "●", label: "mediano", size: 2 }], ["small", "medium", "big"]),
+    orderObjects("height", [{ id: "low", emoji: "I", label: "bajo", size: 1 }, { id: "high", emoji: "I", label: "alto", size: 3 }, { id: "middle", emoji: "I", label: "medio", size: 2 }], ["low", "middle", "high"], 2),
+    orderObjects("length", [{ id: "short", emoji: "-", label: "corto", size: 1 }, { id: "long", emoji: "-", label: "largo", size: 3 }, { id: "middle", emoji: "-", label: "medio", size: 2 }], ["short", "middle", "long"], 2),
   ]);
 
   await lesson(u1.id, { slug: "detectives-de-patrones", title: "Detectives de patrones", order: 5, xpReward: 28, minutes: 7 }, [

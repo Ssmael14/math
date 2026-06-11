@@ -7,7 +7,7 @@
 // Cuando todos los grupos están emparejados, llama onComplete con los
 // pares en formato [[groupIdx, optionIdx], …].
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   INITIAL_MATCH,
   tapGroup,
@@ -15,6 +15,7 @@ import {
   isComplete,
   toPairsArray,
 } from "@/lib/learning/match-state";
+import { MATCH_PALETTE, MatchPairLines } from "./MatchPairLines";
 
 type Group = { item: string; count: number };
 
@@ -30,6 +31,9 @@ export function MatchInput({
   onComplete: (pairs: number[][]) => void;
 }) {
   const [state, setState] = useState(INITIAL_MATCH);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const groupRefs = useRef<Array<HTMLElement | null>>([]);
+  const optionRefs = useRef<Array<HTMLElement | null>>([]);
 
   function handleGroup(i: number) {
     if (disabled) return;
@@ -44,13 +48,10 @@ export function MatchInput({
     if (isComplete(next, groups.length)) onComplete(toPairsArray(next));
   }
 
-  // Asignamos un color por par en orden de creación, así el feedback visual
-  // es claro sin tener que dibujar líneas.
-  const COLORS = ["bg-mint", "bg-sky", "bg-pink", "bg-sun", "bg-lilac"];
   const colorFor = (groupIdx: number): string | null => {
     if (!(groupIdx in state.pairs)) return null;
     const idx = Object.keys(state.pairs).map(Number).sort().indexOf(groupIdx);
-    return COLORS[idx % COLORS.length];
+    return MATCH_PALETTE[idx % MATCH_PALETTE.length].bg;
   };
   const colorForOption = (optionIdx: number): string | null => {
     const entry = Object.entries(state.pairs).find(([, v]) => v === optionIdx);
@@ -59,14 +60,24 @@ export function MatchInput({
   };
 
   return (
-    <div className="w-full max-w-md grid grid-cols-2 gap-4">
-      <div className="flex flex-col gap-3">
+    <div ref={containerRef} className="relative grid w-full max-w-md grid-cols-2 gap-4">
+      <MatchPairLines
+        containerRef={containerRef}
+        leftRefs={groupRefs}
+        pairs={state.pairs}
+        rightRefs={optionRefs}
+      />
+
+      <div className="relative z-10 flex flex-col gap-3">
         {groups.map((g, i) => {
           const c = colorFor(i);
           const selected = state.selectedGroup === i;
           return (
             <button
               key={i}
+              ref={(node) => {
+                groupRefs.current[i] = node;
+              }}
               type="button"
               disabled={disabled}
               onClick={() => handleGroup(i)}
@@ -89,13 +100,16 @@ export function MatchInput({
         })}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="relative z-10 flex flex-col gap-3">
         {options.map((n, i) => {
           const c = colorForOption(i);
           const selected = state.selectedOption === i;
           return (
             <button
               key={i}
+              ref={(node) => {
+                optionRefs.current[i] = node;
+              }}
               type="button"
               disabled={disabled}
               onClick={() => handleOption(i)}

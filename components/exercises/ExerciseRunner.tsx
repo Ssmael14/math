@@ -31,6 +31,7 @@ import { ObjectOrderInput } from "@/components/exercises/inputs/ObjectOrderInput
 import { PartWholeInput } from "@/components/exercises/inputs/PartWholeInput";
 import { SameMatchInput } from "@/components/exercises/inputs/SameMatchInput";
 import { SortAttributeInput } from "@/components/exercises/inputs/SortAttributeInput";
+import { CompareAttributeInput } from "@/components/exercises/inputs/CompareAttributeInput";
 import { BaseTenInput } from "@/components/exercises/inputs/BaseTenInput";
 import { NumberLineInput } from "@/components/exercises/inputs/NumberLineInput";
 import { MoneyInput } from "@/components/exercises/inputs/MoneyInput";
@@ -440,11 +441,15 @@ function KindBody({
 
   if (ex.kind === "SORT") {
     if (visual === "order-objects") {
-      const payload = ex.payload as { objects?: { id: string; emoji: string; label?: string; size?: number }[] };
+      const payload = ex.payload as {
+        attribute?: string;
+        objects?: { id: string; emoji: string; label?: string; size?: number }[];
+      };
       return (
         <div className="w-full flex justify-center mb-4 md:mb-8">
           <ObjectOrderInput
             key={resetSignal}
+            attribute={typeof payload.attribute === "string" ? payload.attribute : undefined}
             objects={Array.isArray(payload.objects) ? payload.objects : []}
             disabled={disabled}
             onComplete={onOrderComplete}
@@ -619,6 +624,34 @@ function KindBody({
             disabled={disabled}
             verified={state === "correct"}
             onSubmit={onSelectNumeric}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "compare-attribute") {
+      const p = ex.payload as {
+        left?: { emoji: string; label?: string; size?: number };
+        options?: string[];
+        right?: { emoji: string; label?: string; size?: number };
+      };
+      const compareOptions = Array.isArray(p.options)
+        ? p.options.filter(
+            (option): option is "izquierda" | "derecha" | "igual" =>
+              option === "izquierda" ||
+              option === "derecha" ||
+              option === "igual",
+          )
+        : [];
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <CompareAttributeInput
+            choices={compareOptions.length ? compareOptions : ["izquierda", "derecha"]}
+            disabled={disabled}
+            left={p.left ?? { emoji: "⭐" }}
+            right={p.right ?? { emoji: "⭐" }}
+            selected={stringPicked as "izquierda" | "derecha" | "igual" | null}
+            onPick={onSelectString}
           />
         </div>
       );

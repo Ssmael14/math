@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   INITIAL_MATCH,
   isComplete,
@@ -8,6 +8,7 @@ import {
   tapOption,
   toPairsArray,
 } from "@/lib/learning/match-state";
+import { MATCH_PALETTE, MatchPairLines } from "./MatchPairLines";
 
 type Card = { id: string; emoji: string; label?: string };
 
@@ -23,7 +24,9 @@ export function SameMatchInput({
   onComplete: (pairs: number[][]) => void;
 }) {
   const [state, setState] = useState(INITIAL_MATCH);
-  const colors = ["bg-mint", "bg-sky", "bg-pink", "bg-sun", "bg-lilac"];
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const leftRefs = useRef<Array<HTMLElement | null>>([]);
+  const rightRefs = useRef<Array<HTMLElement | null>>([]);
 
   function handleLeft(i: number) {
     if (disabled) return;
@@ -42,7 +45,7 @@ export function SameMatchInput({
   function colorForLeft(index: number): string | null {
     if (!(index in state.pairs)) return null;
     const order = Object.keys(state.pairs).map(Number).sort().indexOf(index);
-    return colors[order % colors.length];
+    return MATCH_PALETTE[order % MATCH_PALETTE.length].bg;
   }
 
   function colorForRight(index: number): string | null {
@@ -51,12 +54,22 @@ export function SameMatchInput({
   }
 
   return (
-    <div className="w-full max-w-md grid grid-cols-2 gap-4">
-      <div className="flex flex-col gap-3">
+    <div ref={containerRef} className="relative grid w-full max-w-md grid-cols-2 gap-4">
+      <MatchPairLines
+        containerRef={containerRef}
+        leftRefs={leftRefs}
+        pairs={state.pairs}
+        rightRefs={rightRefs}
+      />
+
+      <div className="relative z-10 flex flex-col gap-3">
         {left.map((card, i) => (
           <MatchCard
             key={card.id}
             card={card}
+            elementRef={(node) => {
+              leftRefs.current[i] = node;
+            }}
             selected={state.selectedGroup === i}
             color={colorForLeft(i)}
             disabled={disabled}
@@ -64,11 +77,14 @@ export function SameMatchInput({
           />
         ))}
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="relative z-10 flex flex-col gap-3">
         {right.map((card, i) => (
           <MatchCard
             key={card.id}
             card={card}
+            elementRef={(node) => {
+              rightRefs.current[i] = node;
+            }}
             selected={state.selectedOption === i}
             color={colorForRight(i)}
             disabled={disabled}
@@ -82,12 +98,14 @@ export function SameMatchInput({
 
 function MatchCard({
   card,
+  elementRef,
   selected,
   color,
   disabled,
   onClick,
 }: {
   card: Card;
+  elementRef: (node: HTMLButtonElement | null) => void;
   selected: boolean;
   color: string | null;
   disabled: boolean;
@@ -95,6 +113,7 @@ function MatchCard({
 }) {
   return (
     <button
+      ref={elementRef}
       type="button"
       disabled={disabled}
       onClick={onClick}
