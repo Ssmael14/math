@@ -3,32 +3,45 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Crown,
   Heart,
+  Map,
   Shield,
-  Star,
   Zap,
 } from "lucide-react";
 
-type NodeStatus = "done" | "current" | "available" | "locked";
-
-type LessonNode = {
-  id: string;
-  label: string;
-  status: NodeStatus;
-  stars: number;
+type ActiveSubject = {
+  name: string;
+  slug: string;
+  icon: string | null;
 };
 
-type UnitSlide = {
+type CourseUnitPreview = {
   slug: string;
   title: string;
   order: number;
   icon: string | null;
-  description: string | null;
   progressPct: number;
-  lessons: LessonNode[];
+};
+
+type CourseSlide = {
+  slug: string;
+  name: string;
+  description: string | null;
+  href: string;
+  subject: ActiveSubject;
+  progressPct: number;
+  unitsTotal: number;
+  unitsDone: number;
+  lessonsTotal: number;
+  lessonsDone: number;
+  currentUnitTitle: string | null;
+  currentUnitIcon: string | null;
+  currentLessonId: string | null;
+  units: CourseUnitPreview[];
 };
 
 type HomeStats = {
@@ -55,64 +68,52 @@ type LeaderboardRow = {
   isMe: boolean;
 };
 
-function pickStartLesson(unit: UnitSlide) {
-  return (
-    unit.lessons.find((node) => node.status === "current") ??
-    unit.lessons.find((node) => node.status === "available") ??
-    unit.lessons.find((node) => node.status === "done") ??
-    null
-  );
-}
-
-function lessonStateLabel(node: LessonNode) {
-  if (node.status === "done") return `${node.stars}/3 estrellas`;
-  if (node.status === "current") return "Lista para jugar";
-  if (node.status === "available") return "Disponible";
-  return "Bloqueada";
-}
-
 function formatLeagueName(league: string) {
   const normalized = league.toLowerCase();
   return `${normalized.charAt(0).toUpperCase()}${normalized.slice(1)} League`;
 }
 
+function courseCtaLabel(course: CourseSlide) {
+  if (course.lessonsTotal > 0 && course.lessonsDone >= course.lessonsTotal) {
+    return "Repasar curso";
+  }
+  return "Continuar curso";
+}
+
 export function HomeClient({
-  pathName,
-  pathHref,
-  units,
-  initialUnitSlug,
+  courses,
+  initialCourseSlug,
   reviewsDue,
   stats,
   leaderboardRows,
 }: {
-  pathName: string;
-  pathHref: string;
-  units: UnitSlide[];
-  initialUnitSlug: string | null;
+  courses: CourseSlide[];
+  initialCourseSlug: string | null;
   reviewsDue: number;
   stats: HomeStats;
   leaderboardRows: LeaderboardRow[];
 }) {
   const initialIndex = Math.max(
     0,
-    units.findIndex((unit) => unit.slug === initialUnitSlug),
+    courses.findIndex((course) => course.slug === initialCourseSlug),
   );
   const [activeIndex, setActiveIndex] = useState(initialIndex);
-  const activeUnit = units[activeIndex] ?? units[0] ?? null;
-  const currentLesson = activeUnit ? pickStartLesson(activeUnit) : null;
-  const startHref = currentLesson ? `/lesson/${currentLesson.id}` : pathHref;
-  const doneCount =
-    activeUnit?.lessons.filter((node) => node.status === "done").length ?? 0;
+  const activeCourse = courses[activeIndex] ?? courses[0] ?? null;
+  const startHref = activeCourse?.currentLessonId
+    ? `/lesson/${activeCourse.currentLessonId}`
+    : (activeCourse?.href ?? "/subjects");
   const weekDays = ["L", "M", "X", "J", "V"];
 
-  const previewLessons = useMemo(
-    () => activeUnit?.lessons.slice(0, 2) ?? [],
-    [activeUnit],
+  const previewUnits = useMemo(
+    () => activeCourse?.units.slice(0, 2) ?? [],
+    [activeCourse],
   );
 
   function goTo(delta: number) {
-    if (units.length <= 1) return;
-    setActiveIndex((current) => (current + delta + units.length) % units.length);
+    if (courses.length <= 1) return;
+    setActiveIndex(
+      (current) => (current + delta + courses.length) % courses.length,
+    );
   }
 
   return (
@@ -131,7 +132,7 @@ export function HomeClient({
                 <p className="mt-3 text-lg font-semibold text-slate-800">
                   {stats.streak > 0
                     ? `${stats.childName} mantiene su racha`
-                    : "Resolvé 3 problemas para iniciar una racha"}
+                    : "Resuelve 3 problemas para iniciar una racha"}
                 </p>
                 <div className="mt-2 flex gap-3 text-xs font-black text-slate-400">
                   <span>⭐ {stats.xp} XP</span>
@@ -194,10 +195,10 @@ export function HomeClient({
                   {stats.isPremium
                     ? stats.premiumUntilLabel
                       ? `Acceso hasta ${stats.premiumUntilLabel}.`
-                      : "Tu cuenta ya tiene acceso a caminos premium."
+                      : "Tu cuenta ya tiene acceso a cursos premium."
                     : stats.premiumStatus === "expired"
-                      ? "Renueva para volver a entrar a caminos premium."
-                      : "Más caminos, repasos y retos para avanzar mejor."}
+                      ? "Renueva para volver a entrar a cursos premium."
+                      : "Más cursos, repasos y retos para avanzar mejor."}
                 </div>
               </div>
             </div>
@@ -274,7 +275,7 @@ export function HomeClient({
         </aside>
 
         <section className="order-1 min-w-0 md:order-2">
-          {activeUnit && (
+          {activeCourse && (
             <div className="relative flex min-h-[500px] flex-col rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_2px_0_rgba(15,23,42,0.06)] md:min-h-[620px] md:p-8">
               <div className="absolute -left-4 top-7 hidden h-[82%] w-4 rounded-l-3xl border-y border-l border-slate-200 bg-white md:block" />
               <div className="absolute -left-7 top-12 hidden h-[73%] w-4 rounded-l-3xl border-y border-l border-slate-200 bg-white md:block" />
@@ -284,136 +285,105 @@ export function HomeClient({
                   type="button"
                   onClick={() => goTo(-1)}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-[#4867f5] md:h-10 md:w-10"
-                  aria-label="Unidad anterior"
+                  aria-label="Curso anterior"
                 >
                   <ChevronLeft className="h-5 w-5" aria-hidden />
                 </button>
                 <div className="min-w-0 flex-1 text-center">
                   <div className="inline-flex rounded-full bg-[#dfe6ff] px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-[#4867f5] md:px-3 md:text-xs">
-                    Recomendado
+                    Curso actual
                   </div>
                   <h1 className="mt-2 line-clamp-2 font-fredoka text-2xl font-bold leading-tight text-slate-950 md:text-4xl">
-                    {activeUnit.title}
+                    {activeCourse.name}
                   </h1>
                   <div className="mt-1 text-xs font-black uppercase text-[#4867f5] md:mt-2 md:text-sm">
-                    {pathName} · Unidad {activeUnit.order}
+                    {activeCourse.subject.name}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => goTo(1)}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-[#4867f5] md:h-10 md:w-10"
-                  aria-label="Unidad siguiente"
+                  aria-label="Curso siguiente"
                 >
                   <ChevronRight className="h-5 w-5" aria-hidden />
                 </button>
               </div>
 
-              {activeUnit.description && (
+              {activeCourse.description && (
                 <p className="mx-auto mt-3 hidden max-w-md text-center text-sm font-semibold leading-6 text-slate-500 md:block">
-                  {activeUnit.description}
+                  {activeCourse.description}
                 </p>
               )}
 
               <div className="mx-auto mt-6 grid h-20 w-28 place-items-center rounded-[1.5rem] bg-[#eef3ff] text-5xl shadow-inner md:mt-9 md:h-28 md:w-36 md:rounded-[2rem] md:text-6xl">
-                {activeUnit.icon ?? "🧩"}
+                {activeCourse.subject.icon ?? "📚"}
               </div>
 
               <div className="mx-auto mt-5 h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-100 md:mt-6 md:max-w-sm">
                 <div
                   className="h-full rounded-full bg-[#4867f5]"
-                  style={{ width: `${activeUnit.progressPct * 100}%` }}
+                  style={{ width: `${activeCourse.progressPct * 100}%` }}
                 />
               </div>
-              <div className="mt-2 hidden text-center text-xs font-black uppercase tracking-wide text-slate-400 md:block">
-                {doneCount}/{activeUnit.lessons.length} lecciones completas
+              <div className="mt-2 text-center text-xs font-black uppercase tracking-wide text-slate-400">
+                {activeCourse.lessonsDone}/{activeCourse.lessonsTotal} lecciones
+                · {activeCourse.unitsDone}/{activeCourse.unitsTotal} unidades
               </div>
 
               <div className="mt-6 space-y-3 md:mt-9 md:space-y-4">
-                {previewLessons.map((node) => {
-                  const isCurrent = node.status === "current";
-                  const isDone = node.status === "done";
-                  const isLocked = node.status === "locked";
-                  return (
-                    <div
-                      key={node.id}
-                      className={`flex items-center gap-3 rounded-2xl px-2.5 py-2 md:gap-4 md:px-3 ${
-                        isCurrent ? "bg-[#f7f9ff]" : ""
-                      }`}
-                    >
-                      <div
-                        className={`grid h-10 w-14 shrink-0 place-items-center rounded-full border-[5px] md:h-12 md:w-16 md:border-[6px] ${
-                          isLocked
-                            ? "border-slate-100 bg-slate-200 text-slate-400"
-                            : isDone
-                              ? "border-[#dce4ff] bg-[#4867f5] text-white"
-                              : "border-[#dce4ff] bg-white text-[#4867f5]"
-                        }`}
-                      >
-                        {isDone ? (
-                          "✓"
-                        ) : isLocked ? (
-                          "•"
-                        ) : (
-                          <Star className="h-5 w-5" aria-hidden />
-                        )}
+                <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wide text-slate-400 md:text-xs">
+                  <BookOpen className="h-4 w-4" aria-hidden />
+                  Unidades del curso
+                </div>
+                {previewUnits.map((unit) => (
+                  <Link
+                    key={unit.slug}
+                    href={`${activeCourse.href}?unit=${unit.slug}`}
+                    className="flex items-center gap-3 rounded-2xl bg-[#f7f9ff] px-2.5 py-2 ring-1 ring-slate-100 transition hover:ring-[#b9c6ff] md:gap-4 md:px-3"
+                  >
+                    <div className="grid h-10 w-14 shrink-0 place-items-center rounded-full border-[5px] border-[#dce4ff] bg-white text-2xl text-[#4867f5] md:h-12 md:w-16 md:border-[6px]">
+                      {unit.icon ?? "🧩"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="line-clamp-1 font-fredoka text-base font-bold text-slate-950 md:text-lg">
+                        {unit.title}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div
-                          className={`line-clamp-1 font-fredoka text-base font-bold md:text-lg ${
-                            isLocked ? "text-slate-400" : "text-slate-950"
-                          }`}
-                        >
-                          {node.label}
-                        </div>
-                        <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 md:text-xs">
-                          {lessonStateLabel(node)}
-                        </div>
+                      <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 md:text-xs">
+                        Unidad {unit.order} · {Math.round(unit.progressPct * 100)}%
                       </div>
+                    </div>
+                    <div className="hidden h-2 w-20 overflow-hidden rounded-full bg-slate-100 md:block">
                       <div
-                        className={`hidden h-5 w-5 rounded-full md:block ${
-                          isCurrent ? "bg-slate-300" : "bg-slate-200"
-                        }`}
-                        aria-hidden
+                        className="h-full rounded-full bg-[#4867f5]"
+                        style={{ width: `${unit.progressPct * 100}%` }}
                       />
                     </div>
-                  );
-                })}
+                  </Link>
+                ))}
               </div>
 
-              <div className="mt-auto pt-5 md:pt-6">
+              <div className="mt-auto grid gap-3 pt-5 sm:grid-cols-[1fr_auto] md:pt-6">
                 <Link
                   href={startHref}
-                  className="btn-chunky block w-full rounded-2xl bg-[#4867f5] px-5 py-3.5 text-center text-sm font-black text-white shadow-[0_5px_0_#2445d8] hover:bg-[#3d5df0] md:px-6 md:py-4 md:text-base"
+                  className="btn-chunky block rounded-2xl bg-[#4867f5] px-5 py-3.5 text-center text-sm font-black text-white shadow-[0_5px_0_#2445d8] hover:bg-[#3d5df0] md:px-6 md:py-4 md:text-base"
                 >
-                  {currentLesson?.status === "done" ? "Repasar" : "Start"}
+                  {courseCtaLabel(activeCourse)}
+                </Link>
+                <Link
+                  href={activeCourse.href}
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-center text-sm font-black text-[#4867f5] shadow-[0_3px_0_rgba(15,23,42,0.08)] hover:border-[#b9c6ff] md:px-6 md:py-4"
+                >
+                  <Map className="h-4 w-4" aria-hidden />
+                  Ver mapa
                 </Link>
               </div>
             </div>
           )}
 
-          <div className="mt-5 hidden flex-wrap justify-center gap-3 md:flex">
-            {units.map((unit, index) => (
-              <button
-                key={unit.slug}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                aria-current={index === activeIndex ? "page" : undefined}
-                className={`grid h-16 w-20 place-items-center rounded-xl border-2 bg-white text-3xl shadow-[0_2px_0_rgba(15,23,42,0.06)] ${
-                  index === activeIndex
-                    ? "border-[#6d86ff]"
-                    : "border-slate-200 hover:border-[#b9c6ff]"
-                }`}
-                title={unit.title}
-              >
-                {unit.icon ?? "🧩"}
-              </button>
-            ))}
-          </div>
-
           <div className="mt-5 hidden justify-center gap-4 text-sm font-bold md:flex">
-            <Link href={pathHref} className="text-[#4867f5]">
-              Ver camino completo
+            <Link href="/subjects" className="text-[#4867f5]">
+              Explorar materias
             </Link>
             <Link href="/review" className="text-slate-500">
               Repaso {reviewsDue > 0 ? `(${reviewsDue})` : ""}
