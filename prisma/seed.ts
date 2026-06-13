@@ -1147,10 +1147,10 @@ async function main() {
   ]);
 
   await lesson(u2.id, { slug: "orden-estable", title: "La canción de los números", order: 2, xpReward: 22, minutes: 5 }, [
-    lumi([{ emoji: "🎵", repeat: 1, text: "La canción siempre va igual: uno, dos, tres, cuatro, cinco." }], { emoji: "🎵", count: 1, text: "Toca la nota para cantar.", successText: "¡Cantamos en orden!" }),
+    lumi([{ emoji: "🎵", repeat: 1, text: "La canción siempre va igual: uno, dos, tres." }], { emoji: "🎵", count: 1, text: "Toca la nota para cantar.", successText: "¡Cantamos en orden!" }),
     order([2, 1, 3]),
-    order([3, 1, 4, 2]),
-    order([4, 2, 5, 1, 3]),
+    order([4, 2, 3]),
+    order([5, 3, 4]),
   ]);
 
   await lesson(u2.id, { slug: "cardinalidad", title: "El último dice cuántos", order: 3, xpReward: 24, minutes: 6 }, [
@@ -1171,7 +1171,7 @@ async function main() {
     lumi([{ emoji: "🖐️", repeat: 1, text: "Repasamos hasta cinco con ojos, dedos y toques." }], { emoji: "⭐", count: 5, text: "Toca cinco estrellas.", successText: "¡Llegaste a cinco!" }),
     count("🍎", 5, "Toca uno por uno."),
     match([{ item: "🍎", count: 1 }, { item: "🐟", count: 3 }, { item: "⭐", count: 5 }], [5, 1, 3]),
-    order([3, 1, 5, 2, 4]),
+    order([5, 1, 3]),
     compareGroups({ item: "🍎", count: 2 }, { item: "🍎", count: 4 }),
   ]);
 
@@ -1201,8 +1201,8 @@ async function main() {
   await lesson(u3.id, { slug: "ordenar-hasta-10", title: "Ordenar hasta 10", order: 3, xpReward: 28, minutes: 7 }, [
     lumi([{ emoji: "🪜", repeat: 1, text: "Los números suben como una escalera." }], { emoji: "🪜", count: 1, text: "Toca la escalera.", successText: "¡Subimos!" }),
     order([6, 7, 5]),
-    order([8, 6, 7, 9]),
-    order([10, 6, 8, 7, 9]),
+    order([8, 6, 7]),
+    order([10, 8, 9]),
   ]);
 
   await lesson(u3.id, { slug: "tarjetas-de-puntos", title: "Tarjetas de puntos", order: 4, xpReward: 30, minutes: 7 }, [
@@ -1216,7 +1216,7 @@ async function main() {
     lumi([{ emoji: "🎒", repeat: 1, text: "Guardamos todo lo aprendido hasta diez." }], { emoji: "⭐", count: 10, text: "Toca diez estrellas.", successText: "¡Diez!" }),
     count("🍓", 8, "Cuenta sin saltarte ninguna."),
     compareGroups({ item: "🍎", count: 6 }, { item: "🍎", count: 9 }),
-    order([7, 10, 6, 8, 9]),
+    order([7, 10, 9]),
     match([{ item: "🐟", count: 6 }, { item: "⭐", count: 8 }, { item: "🍎", count: 10 }], [8, 10, 6]),
   ]);
 

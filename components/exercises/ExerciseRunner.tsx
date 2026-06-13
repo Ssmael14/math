@@ -32,6 +32,8 @@ import { PartWholeInput } from "@/components/exercises/inputs/PartWholeInput";
 import { SameMatchInput } from "@/components/exercises/inputs/SameMatchInput";
 import { SortAttributeInput } from "@/components/exercises/inputs/SortAttributeInput";
 import { CompareAttributeInput } from "@/components/exercises/inputs/CompareAttributeInput";
+import { CompareGroupsInput } from "@/components/exercises/inputs/CompareGroupsInput";
+import { ConservationInput } from "@/components/exercises/inputs/ConservationInput";
 import { PatternNextInput } from "@/components/exercises/inputs/PatternNextInput";
 import { BaseTenInput } from "@/components/exercises/inputs/BaseTenInput";
 import { NumberLineInput } from "@/components/exercises/inputs/NumberLineInput";
@@ -671,6 +673,70 @@ function KindBody({
             options={Array.isArray(p.options) ? p.options : []}
             selected={stringPicked}
             sequence={Array.isArray(p.sequence) ? p.sequence : []}
+            onPick={onSelectString}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "conservation") {
+      const p = ex.payload as {
+        afterLayout?: string;
+        beforeLayout?: string;
+        count?: number;
+        item?: string;
+        options?: string[];
+      };
+      const conservationOptions = Array.isArray(p.options)
+        ? p.options.filter(
+            (option): option is "más" | "menos" | "igual" =>
+              option === "más" || option === "menos" || option === "igual",
+          )
+        : [];
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <ConservationInput
+            afterLayout={p.afterLayout}
+            beforeLayout={p.beforeLayout}
+            choices={conservationOptions.length ? conservationOptions : ["más", "menos", "igual"]}
+            count={p.count ?? 0}
+            disabled={disabled}
+            item={p.item ?? "⭐"}
+            selected={stringPicked as "más" | "menos" | "igual" | null}
+            onPick={onSelectString}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "compare-groups") {
+      const p = ex.payload as {
+        left?: { count?: number; item?: string };
+        options?: string[];
+        right?: { count?: number; item?: string };
+      };
+      const compareOptions = Array.isArray(p.options)
+        ? p.options.filter(
+            (option): option is "izquierda" | "derecha" | "igual" =>
+              option === "izquierda" ||
+              option === "derecha" ||
+              option === "igual",
+          )
+        : [];
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <CompareGroupsInput
+            choices={compareOptions.length ? compareOptions : ["izquierda", "derecha", "igual"]}
+            disabled={disabled}
+            left={{
+              count: p.left?.count ?? 0,
+              item: p.left?.item ?? "●",
+            }}
+            right={{
+              count: p.right?.count ?? 0,
+              item: p.right?.item ?? "●",
+            }}
+            selected={stringPicked as "izquierda" | "derecha" | "igual" | null}
             onPick={onSelectString}
           />
         </div>
