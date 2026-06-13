@@ -35,6 +35,7 @@ import { CompareAttributeInput } from "@/components/exercises/inputs/CompareAttr
 import { CompareGroupsInput } from "@/components/exercises/inputs/CompareGroupsInput";
 import { ConservationInput } from "@/components/exercises/inputs/ConservationInput";
 import { PatternNextInput } from "@/components/exercises/inputs/PatternNextInput";
+import { SubitiseInput } from "@/components/exercises/inputs/SubitiseInput";
 import { BaseTenInput } from "@/components/exercises/inputs/BaseTenInput";
 import { NumberLineInput } from "@/components/exercises/inputs/NumberLineInput";
 import { MoneyInput } from "@/components/exercises/inputs/MoneyInput";
@@ -542,13 +543,14 @@ function KindBody({
     }
 
     if (visual === "part-whole") {
-      const payload = ex.payload as { total?: number; item?: string };
+      const payload = ex.payload as { total?: number; item?: string; parts?: number[] };
       return (
         <div className="w-full flex justify-center mb-4 md:mb-6">
           <PartWholeInput
             key={resetSignal}
             total={payload.total ?? 0}
             item={payload.item ?? "⭐"}
+            parts={Array.isArray(payload.parts) ? payload.parts : []}
             disabled={disabled}
             onComplete={onSelectStructured}
           />
@@ -655,6 +657,33 @@ function KindBody({
             right={p.right ?? { emoji: "⭐" }}
             selected={stringPicked as "izquierda" | "derecha" | "igual" | null}
             onPick={onSelectString}
+          />
+        </div>
+      );
+    }
+
+    if (visual === "flash-quantity") {
+      const p = ex.payload as {
+        arrangement?: string;
+        count?: number;
+        durationMs?: number;
+        item?: string;
+        options?: number[];
+      };
+      const visualOptions = Array.isArray(p.options)
+        ? p.options.filter((option): option is number => typeof option === "number")
+        : options;
+      return (
+        <div className="w-full flex justify-center mb-4 md:mb-6">
+          <SubitiseInput
+            arrangement={p.arrangement}
+            count={p.count ?? (typeof ex.solution.answer === "number" ? ex.solution.answer : 0)}
+            disabled={disabled}
+            durationMs={typeof p.durationMs === "number" ? p.durationMs : 1200}
+            item={p.item ?? "●"}
+            options={visualOptions}
+            selected={numericPicked}
+            onPick={onSelectNumeric}
           />
         </div>
       );
