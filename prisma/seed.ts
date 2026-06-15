@@ -773,7 +773,7 @@ async function seedPrimaryOnePath(subjectId: string) {
       level: EducationLevel.PRIMARY,
       grade: 1,
       difficulty: 2,
-      isPremium: false,
+      isPremium: true,
       order: 3,
     },
   });
@@ -790,12 +790,12 @@ async function seedPrimaryOnePath(subjectId: string) {
     },
   });
 
-  await lesson(n20.id, { slug: "contar-hasta-20", title: "Contar hasta 20", order: 1, xpReward: 30, minutes: 7 }, [
-    lumi([{ emoji: "🔢", repeat: 1, text: "En primero seguimos contando más allá de diez, sin apurarnos." }], { emoji: "⭐", count: 5, text: "Toca cinco estrellas para empezar.", successText: "¡Listo para contar!" }),
+  await lesson(n20.id, { slug: "contar-hasta-20", title: "Prueba gratis: contar hasta 20", order: 1, xpReward: 32, minutes: 7 }, [
+    lumi([{ emoji: "🔢", repeat: 1, text: "Esta prueba muestra cómo Paskalito ayuda a contar, comparar y ordenar en 1.º grado." }], { emoji: "⭐", count: 5, text: "Toca cinco estrellas para empezar.", successText: "¡Listo para contar!" }),
     count("⭐", 12, "Cuenta primero diez y después dos más."),
-    count("🍎", 15, "Puedes contar en dos filas para no perderte."),
     numberLine([10, 11, null, 13, 14], 12),
-    order([16, 12, 18, 14, 20]),
+    compareGroups({ item: "🍎", count: 9 }, { item: "🍎", count: 12 }),
+    order([12, 11, 13]),
   ]);
 
   await lesson(n20.id, { slug: "leer-numeros-20", title: "Leer números hasta 20", order: 2, xpReward: 30, minutes: 7 }, [
@@ -1080,7 +1080,7 @@ async function main() {
       description: "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Paskalito.",
       level: EducationLevel.INITIAL,
       difficulty: 1,
-      isPremium: false,
+      isPremium: true,
       order: 1,
     },
   });
@@ -1094,11 +1094,12 @@ async function main() {
     },
   });
 
-  await lesson(u1.id, { slug: "emparejar-iguales", title: "Emparejar iguales", order: 1, xpReward: 22, minutes: 5 }, [
-    lumi([{ emoji: "🍎", repeat: 2, text: "En el mercado de los monitos, las cosas iguales pueden ir juntas." }], { emoji: "🍌", count: 2, text: "Toca los dos plátanos iguales.", successText: "¡Son pareja!" }),
-    sameMatch("Une cada fruta con su pareja.", [{ id: "apple", emoji: "🍎" }, { id: "plátano", emoji: "🍌" }, { id: "grape", emoji: "🍇" }], [{ id: "plátano", emoji: "🍌" }, { id: "grape", emoji: "🍇" }, { id: "apple", emoji: "🍎" }], "Cada fruta encontró otra igual."),
-    sameMatch("Une cada animal con su pareja.", [{ id: "cat", emoji: "🐱" }, { id: "dog", emoji: "🐶" }, { id: "fish", emoji: "🐟" }], [{ id: "fish", emoji: "🐟" }, { id: "cat", emoji: "🐱" }, { id: "dog", emoji: "🐶" }], "Emparejar es buscar lo que es igual."),
-    sortByAttribute("type", [{ id: "apple", emoji: "🍎", category: "fruits" }, { id: "cat", emoji: "🐱", category: "animals" }, { id: "plátano", emoji: "🍌", category: "fruits" }, { id: "dog", emoji: "🐶", category: "animals" }], [{ id: "fruits", label: "Frutas", emoji: "🍎" }, { id: "animals", label: "Animales", emoji: "🐱" }], "Pon frutas con frutas y animales con animales."),
+  await lesson(u1.id, { slug: "emparejar-iguales", title: "Prueba gratis con Paskalito", order: 1, xpReward: 26, minutes: 6 }, [
+    lumi([{ emoji: "🧩", repeat: 1, text: "Esta es una prueba gratis. Juega un poquito de la aventura con Paskalito." }], { emoji: "⭐", count: 2, text: "Toca las estrellas para empezar.", successText: "¡Vamos a jugar!" }),
+    sameMatch("Une cada fruta con su pareja.", [{ id: "apple", emoji: "🍎" }, { id: "banana", emoji: "🍌" }, { id: "grape", emoji: "🍇" }], [{ id: "banana", emoji: "🍌" }, { id: "grape", emoji: "🍇" }, { id: "apple", emoji: "🍎" }], "Cada fruta encontró otra igual."),
+    sortByAttribute("type", [{ id: "apple", emoji: "🍎", category: "fruits" }, { id: "cat", emoji: "🐱", category: "animals" }, { id: "banana", emoji: "🍌", category: "fruits" }, { id: "dog", emoji: "🐶", category: "animals" }], [{ id: "fruits", label: "Frutas", emoji: "🍎" }, { id: "animals", label: "Animales", emoji: "🐱" }], "Pon frutas con frutas y animales con animales."),
+    patternNext(["🍎", "🍌", "🍎", "🍌"], ["🍎", "🍌", "🍇"], "🍎"),
+    orderObjects("size", [{ id: "small", emoji: "●", label: "pequeño", size: 1 }, { id: "big", emoji: "●", label: "grande", size: 3 }, { id: "medium", emoji: "●", label: "mediano", size: 2 }], ["small", "medium", "big"]),
   ]);
 
   await lesson(u1.id, { slug: "clasificar-por-color", title: "Canastas de colores", order: 2, xpReward: 24, minutes: 6 }, [
@@ -1348,7 +1349,7 @@ async function main() {
       description: "Practica escribir los números del 0 al 9 con el dedo.",
       level: EducationLevel.INITIAL,
       difficulty: 1,
-      isPremium: false,
+      isPremium: true,
       order: 2,
     },
   });
@@ -1452,40 +1453,22 @@ async function main() {
       order: 1, color: "mint", icon: "🔤",
     },
   });
-  const rl1 = await prisma.lesson.create({
-    data: { unitId: ru1.id, slug: "reconocer-vocales", title: "Vocales", order: 1, xpReward: 20, estimatedMinutes: 5 },
-  });
-  await prisma.exercise.createMany({
-    data: [
-      {
-        lessonId: rl1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 1,
-        prompt: "¿Qué letra es?",
-        payload: { visual: "letter", letter: "A", options: ["A", "E", "I", "O"] },
-        solution: { answer: "A" },
-        hints: ["Es la primera del abecedario.", "Suena 'aaa', como en 'mamá'."],
-        explanation: "Es la letra A, la primera vocal.",
-        difficulty: 1, xpReward: 5,
-      },
-      {
-        lessonId: rl1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 2,
-        prompt: "¿Qué letra es?",
-        payload: { visual: "letter", letter: "E", options: ["U", "I", "E", "O"] },
-        solution: { answer: "E" },
-        hints: ["Suena 'eee', como en 'elefante'."],
-        explanation: "Es la letra E.",
-        difficulty: 1, xpReward: 5,
-      },
-      {
-        lessonId: rl1.id, kind: ExerciseKind.MULTIPLE_CHOICE, order: 3,
-        prompt: "¿Con qué letra empieza ☀️?",
-        payload: { visual: "emoji-word", emoji: "☀️", label: "sol", options: ["S", "L", "M", "R"] },
-        solution: { answer: "S" },
-        hints: ["Di la palabra: SSSSol.", "El sonido es como una serpiente."],
-        explanation: "SOL empieza con la letra S.",
-        difficulty: 1, xpReward: 6,
-      },
-    ] as Prisma.ExerciseCreateManyInput[],
-  });
+  await lesson(ru1.id, { slug: "reconocer-vocales", title: "Prueba gratis: vocales", order: 1, xpReward: 26, minutes: 6 }, [
+    lumi([{ emoji: "🔤", repeat: 1, text: "Esta prueba muestra cómo Paskalito ayuda a reconocer letras, sonidos y trazos." }], { emoji: "A", count: 1, text: "Toca la A para empezar.", successText: "¡Vamos con las vocales!" }),
+    sameMatch("Une cada vocal con su pareja.", [{ id: "A", emoji: "A" }, { id: "E", emoji: "E" }, { id: "I", emoji: "I" }], [{ id: "E", emoji: "E" }, { id: "I", emoji: "I" }, { id: "A", emoji: "A" }], "Cada vocal encontró otra igual."),
+    letterCard("A", ["A", "E", "I", "O"]),
+    {
+      kind: ExerciseKind.MULTIPLE_CHOICE,
+      prompt: "¿Con qué letra empieza abeja?",
+      payload: { visual: "emoji-word", emoji: "🐝", label: "abeja", options: ["A", "E", "I", "O"] },
+      solution: { answer: "A" },
+      hints: ["Di la palabra despacio: abeja.", "Escucha el primer sonido: A."],
+      explanation: "Abeja empieza con A.",
+      difficulty: 1,
+      xpReward: 6,
+    },
+    traceLetter("A"),
+  ]);
 
   const rl2 = await prisma.lesson.create({
     data: { unitId: ru1.id, slug: "contar-letras", title: "Contar letras", order: 2, xpReward: 25, estimatedMinutes: 6 },
@@ -1576,7 +1559,7 @@ async function main() {
       description: "Reconoce y traza vocales en imprenta mayúscula con el dedo.",
       level: EducationLevel.INITIAL,
       difficulty: 1,
-      isPremium: false,
+      isPremium: true,
       order: 2,
     },
   });

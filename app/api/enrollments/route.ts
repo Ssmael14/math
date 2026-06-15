@@ -7,13 +7,12 @@
 //     existente (no falla con 409).
 //   - Setea la cookie `lm_path` con el slug del path, así el flow
 //     siguiente (/home) muestra el path correcto sin parámetros extra.
-//   - Premium: si el path es premium y el user.plan === FREE, devolvemos
-//     402 (Payment Required) — Fase 5 va a manejar el upgrade real.
+//   - Premium preview: la inscripción no cobra. El bloqueo se aplica al abrir
+//     lecciones premium después de la primera lección gratis.
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getCurrentUser, ACTIVE_PATH_COOKIE } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
-import { hasPremiumAccess } from "@/lib/premium";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
@@ -42,10 +41,6 @@ export async function POST(req: Request) {
     include: { subject: true },
   });
   if (!path) return NextResponse.json({ error: "path_not_found" }, { status: 404 });
-
-  if (path.isPremium && !hasPremiumAccess(user)) {
-    return NextResponse.json({ error: "premium_required", subject: path.subject.slug }, { status: 402 });
-  }
 
   // Idempotente: upsert sobre el unique [childId, learningPathId].
   const enrollment = await prisma.enrollment.upsert({

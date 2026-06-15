@@ -89,6 +89,7 @@ export default async function HomePage({
   );
   const currentLeague = weeklyXp?.league ?? "DIAMOND";
   const leaderboard = await getLeaderboard(child.id, currentLeague);
+  const premiumAccess = hasPremiumAccess(user);
   const courses = coursesWithUnits.map(({ enrollment, units }) => {
     const path = enrollment.learningPath;
     const isActivePath = path.id === activePath.id;
@@ -101,6 +102,15 @@ export default async function HomePage({
       activeUnit?.lessons.find((lesson) => lesson.status === "available") ??
       activeUnit?.lessons.find((lesson) => lesson.status === "done") ??
       null;
+    const freePreviewLesson = units[0]?.lessons[0] ?? null;
+    const freePreviewDone = freePreviewLesson?.status === "done";
+    const premiumLocked = path.isPremium && !premiumAccess && freePreviewDone;
+    const playableLesson =
+      path.isPremium && !premiumAccess && !freePreviewDone
+        ? freePreviewLesson
+        : premiumLocked
+          ? null
+          : currentLesson;
     const lessonsTotal = units.reduce(
       (sum, unit) => sum + unit.lessonsTotal,
       0,
@@ -113,6 +123,9 @@ export default async function HomePage({
       name: path.name,
       description: path.description,
       href: `/paths/${path.slug}`,
+      isPremium: path.isPremium,
+      premiumLocked,
+      freePreviewDone,
       subject: {
         name: path.subject.name,
         slug: path.subject.slug,
@@ -125,7 +138,7 @@ export default async function HomePage({
       lessonsDone,
       currentUnitTitle: activeUnit?.title ?? null,
       currentUnitIcon: activeUnit?.icon ?? null,
-      currentLessonId: currentLesson?.id ?? null,
+      currentLessonId: playableLesson?.id ?? null,
       units: units.slice(0, 4).map((unit) => ({
         slug: unit.slug,
         title: unit.title,

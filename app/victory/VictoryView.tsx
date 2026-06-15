@@ -10,12 +10,20 @@ export function VictoryView({
   xp,
   stars,
   continueHref = "/home",
+  continueLabel = "Continuar",
+  secondaryHref,
+  secondaryLabel,
+  message,
 }: {
   xp: number;
   stars: number;
   /** Adónde vuelve el niño al apretar Continuar (típicamente al mapa de la
    *  unidad que estaba jugando). */
   continueHref?: string;
+  continueLabel?: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+  message?: string;
 }) {
   // Anima el XP de 0 al valor real durante ~900ms.
   const animatedXp = useCountUp(xp, 900);
@@ -69,6 +77,12 @@ export function VictoryView({
           ))}
         </div>
 
+        {message && (
+          <p className="rounded-2xl bg-white/90 px-4 py-3 text-center text-sm font-bold leading-6 text-ink/70">
+            {message}
+          </p>
+        )}
+
         <button
           onClick={() => {
             playTap();
@@ -77,8 +91,19 @@ export function VictoryView({
           className="btn-chunky w-full py-4 rounded-2xl bg-sky text-white font-black uppercase tracking-wide"
           style={{ boxShadow: "0 5px 0 #2445D8" }}
         >
-          Continuar
+          {continueLabel}
         </button>
+        {secondaryHref && secondaryLabel && (
+          <button
+            onClick={() => {
+              playTap();
+              window.location.replace(secondaryHref);
+            }}
+            className="rounded-2xl bg-white/95 px-5 py-3 text-sm font-black uppercase tracking-wide text-ink shadow-[0_3px_0_rgba(15,23,42,0.12)]"
+          >
+            {secondaryLabel}
+          </button>
+        )}
       </div>
     </div>
   );

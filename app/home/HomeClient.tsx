@@ -32,6 +32,9 @@ type CourseSlide = {
   name: string;
   description: string | null;
   href: string;
+  isPremium: boolean;
+  premiumLocked: boolean;
+  freePreviewDone: boolean;
   subject: ActiveSubject;
   progressPct: number;
   unitsTotal: number;
@@ -74,6 +77,8 @@ function formatLeagueName(league: string) {
 }
 
 function courseCtaLabel(course: CourseSlide) {
+  if (course.premiumLocked) return "Desbloquear curso";
+  if (course.isPremium && !course.freePreviewDone) return "Probar gratis";
   if (course.lessonsTotal > 0 && course.lessonsDone >= course.lessonsTotal) {
     return "Repasar curso";
   }
@@ -99,9 +104,11 @@ export function HomeClient({
   );
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const activeCourse = courses[activeIndex] ?? courses[0] ?? null;
-  const startHref = activeCourse?.currentLessonId
-    ? `/lesson/${activeCourse.currentLessonId}`
-    : (activeCourse?.href ?? "/subjects");
+  const startHref = activeCourse?.premiumLocked
+    ? "/premium"
+    : activeCourse?.currentLessonId
+      ? `/lesson/${activeCourse.currentLessonId}`
+      : (activeCourse?.href ?? "/subjects");
   const weekDays = ["L", "M", "X", "J", "V"];
 
   const previewUnits = useMemo(
@@ -298,6 +305,7 @@ export function HomeClient({
                   </h1>
                   <div className="mt-1 text-xs font-black uppercase text-[#4867f5] md:mt-2 md:text-sm">
                     {activeCourse.subject.name}
+                    {activeCourse.isPremium ? " · Premium · 1 gratis" : ""}
                   </div>
                 </div>
                 <button
@@ -330,6 +338,12 @@ export function HomeClient({
                 {activeCourse.lessonsDone}/{activeCourse.lessonsTotal} lecciones
                 · {activeCourse.unitsDone}/{activeCourse.unitsTotal} unidades
               </div>
+              {activeCourse.premiumLocked && (
+                <p className="mx-auto mt-4 max-w-md rounded-2xl bg-[#fff3d3] px-4 py-3 text-center text-sm font-bold leading-6 text-[#8a5a00]">
+                  Ya probaste la lección gratis. Activa Premium para seguir con
+                  el curso completo.
+                </p>
+              )}
 
               <div className="mt-6 space-y-3 md:mt-9 md:space-y-4">
                 <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wide text-slate-400 md:text-xs">

@@ -6,6 +6,9 @@ import {
   getLessonsWithState,
   getUnitBySlug,
 } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/auth/server";
+import { hasPremiumAccess } from "@/lib/premium";
+import { getFreePreviewLessonId } from "@/lib/learning/lesson-access";
 import { brand } from "@/lib/brand";
 import { TopNav } from "@/components/TopNav";
 
@@ -47,6 +50,8 @@ export default async function UnitPage({
 }) {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
 
   const { slug } = await params;
   const unit = await getUnitBySlug(slug);
@@ -64,6 +69,8 @@ export default async function UnitPage({
     lessons.find((lesson) => lesson.status === "current") ?? lessons[0] ?? null;
   const doneCount = lessons.filter((lesson) => lesson.status === "done").length;
   const progress = lessons.length ? doneCount / lessons.length : 0;
+  const premiumAccess = hasPremiumAccess(user);
+  const freePreviewLessonId = await getFreePreviewLessonId(unit.learningPathId);
 
   return (
     <div className="min-h-dvh flex flex-col bg-cream md:bg-white">
@@ -146,9 +153,14 @@ export default async function UnitPage({
 
           <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {lessons.map((lesson, index) => {
+              const isFreePreview = lesson.id === freePreviewLessonId;
+              const isPremiumLocked =
+                unit.learningPath.isPremium && !premiumAccess && !isFreePreview;
               const href =
-                lesson.status === "locked" ? "#" : `/lesson/${lesson.id}`;
-              const isLocked = lesson.status === "locked";
+                lesson.status === "locked" || isPremiumLocked
+                  ? "#"
+                  : `/lesson/${lesson.id}`;
+              const isLocked = lesson.status === "locked" || isPremiumLocked;
               const isDone = lesson.status === "done";
               const isAvailable = lesson.status === "available";
               return (
@@ -168,6 +180,10 @@ export default async function UnitPage({
                     <div className="text-[10px] font-extrabold tracking-wider text-ink/70">
                       {lesson.status === "done"
                         ? "HECHA"
+                        : isPremiumLocked
+                          ? "PREMIUM"
+                          : isFreePreview
+                            ? "PRUEBA GRATIS"
                         : lesson.status === "current"
                           ? "LISTA PARA JUGAR"
                           : isAvailable
@@ -186,9 +202,13 @@ export default async function UnitPage({
                       >
                         ✓
                       </div>
+                    ) : isPremiumLocked ? (
+                      <div className="text-[10px] font-black bg-ink-mute text-white px-3 py-1.5 rounded-lg">
+                        🔒
+                      </div>
                     ) : lesson.status === "current" ? (
                       <div className="text-[10px] font-black bg-ink text-white px-3 py-1.5 rounded-lg">
-                        JUGAR
+                        {isFreePreview ? "GRATIS" : "JUGAR"}
                       </div>
                     ) : isAvailable ? (
                       <div className="text-[10px] font-black bg-sky text-white px-3 py-1.5 rounded-lg">

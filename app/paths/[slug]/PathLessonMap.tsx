@@ -23,6 +23,8 @@ type MapLesson = {
   order: number;
   stars: number;
   status: LessonStatus;
+  isFreePreview?: boolean;
+  isPremiumLocked?: boolean;
 };
 
 type MapUnit = {
@@ -63,9 +65,12 @@ function lessonNodeClasses({
   } ${isSelected ? "rounded-3xl bg-[#eef3ff] px-3 py-2 ring-2 ring-[#6d86ff]/25" : ""}`;
 }
 
-function ctaLabel(status: LessonStatus) {
-  if (status === "done") return "Repasar";
-  if (status === "available") return "Empezar";
+function ctaLabel(lesson: SelectableLesson) {
+  if (lesson.isFreePreview) {
+    return lesson.status === "done" ? "Repasar gratis" : "Probar gratis";
+  }
+  if (lesson.status === "done") return "Repasar";
+  if (lesson.status === "available") return "Empezar";
   return "Start";
 }
 
@@ -89,7 +94,9 @@ export function PathLessonMap({
     () =>
       units.flatMap((unit) =>
         unit.lessons
-          .filter((lesson) => lesson.status !== "locked")
+          .filter(
+            (lesson) => lesson.status !== "locked" && !lesson.isPremiumLocked,
+          )
           .map((lesson) => ({
             ...lesson,
             unitTitle: unit.title,
@@ -105,10 +112,23 @@ export function PathLessonMap({
   const selectedLesson =
     selectableLessons.find((lesson) => lesson.id === selectedLessonId) ??
     fallbackLesson;
+  const hasPremiumLockedLessons = units.some((unit) =>
+    unit.lessons.some((lesson) => lesson.isPremiumLocked),
+  );
+  const shouldShowPremiumCta =
+    hasPremiumLockedLessons &&
+    selectableLessons.length === 1 &&
+    selectableLessons[0]?.isFreePreview &&
+    selectableLessons[0]?.status === "done";
 
   function openSelectedLesson() {
     if (!selectedLesson || pending) return;
     setError(null);
+
+    if (shouldShowPremiumCta) {
+      router.push("/premium");
+      return;
+    }
 
     startTransition(async () => {
       if (!enrolled) {
@@ -184,8 +204,10 @@ export function PathLessonMap({
                   const isDone = lesson.status === "done";
                   const isCurrent = lesson.status === "current";
                   const isAvailable = lesson.status === "available";
-                  const isLocked = lesson.status === "locked";
-                  const isPlayable = isDone || isCurrent || isAvailable;
+                  const isPremiumLocked = lesson.isPremiumLocked === true;
+                  const isLocked = lesson.status === "locked" || isPremiumLocked;
+                  const isPlayable =
+                    !isLocked && (isDone || isCurrent || isAvailable);
                   const isSelected = selectedLesson?.id === lesson.id;
                   const position =
                     nodePositions[lessonIndex % nodePositions.length];
@@ -276,6 +298,10 @@ export function PathLessonMap({
                         <span className="block text-xs font-black uppercase tracking-wider text-slate-300">
                           {isDone
                             ? "Completada"
+                            : isPremiumLocked
+                              ? "Premium"
+                              : lesson.isFreePreview
+                                ? "Prueba gratis"
                             : isCurrent
                               ? "Continuar aquí"
                               : isAvailable
@@ -304,7 +330,7 @@ export function PathLessonMap({
             <div className="mb-3 text-center text-sm font-bold text-pink">
               {error === "premium_required" ? (
                 <>
-                  Este camino es Premium.{" "}
+                  Desbloquea Premium para seguir.{" "}
                   <Link href="/premium" className="underline">
                     Ver activación
                   </Link>
@@ -314,17 +340,26 @@ export function PathLessonMap({
               )}
             </div>
           )}
+          {shouldShowPremiumCta && (
+            <div className="mb-3 rounded-2xl bg-[#fff4cc] px-4 py-3 text-center text-sm font-black text-slate-700">
+              Ya probaste la lección gratis. Desbloquea Premium para seguir.
+            </div>
+          )}
           <button
             type="button"
             onClick={openSelectedLesson}
             disabled={pending}
             className="btn-chunky block w-full rounded-2xl bg-[#4867f5] px-6 py-4 text-center text-base font-black text-white shadow-[0_5px_0_#2445d8] hover:bg-[#3d5df0] disabled:opacity-60"
           >
-            {pending
+            {shouldShowPremiumCta
+              ? "Desbloquear curso"
+              : pending
               ? "Cargando..."
               : enrolled
-                ? ctaLabel(selectedLesson.status)
-                : "Empezar este camino"}
+                ? ctaLabel(selectedLesson)
+                : selectedLesson.isFreePreview
+                  ? "Probar gratis"
+                  : "Empezar este camino"}
           </button>
         </div>
       )}

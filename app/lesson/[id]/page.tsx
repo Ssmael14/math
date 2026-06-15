@@ -46,13 +46,17 @@ export default async function LessonPage({
   const lesson = await getLessonById(id);
   if (!lesson) notFound();
 
-  if (lesson.unit.learningPath.isPremium && !hasPremiumAccess(user)) {
-    redirect("/premium");
-  }
-
   const access = await verifyLessonAccess(child.id, id);
   if (!access.ok) {
     redirect(`/paths/${lesson.unit.learningPath.slug}`);
+  }
+
+  if (
+    lesson.unit.learningPath.isPremium &&
+    !hasPremiumAccess(user) &&
+    !access.isFreePreview
+  ) {
+    redirect("/premium");
   }
 
   const rawExercises = await getLessonExercises(id);

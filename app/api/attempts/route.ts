@@ -59,7 +59,11 @@ export async function POST(req: Request) {
           : 403;
     return NextResponse.json({ error: access.reason }, { status });
   }
-  if (access.lesson.unit.learningPath.isPremium && !hasPremiumAccess(user)) {
+  if (
+    access.lesson.unit.learningPath.isPremium &&
+    !hasPremiumAccess(user) &&
+    !access.isFreePreview
+  ) {
     return NextResponse.json({ error: "premium_required" }, { status: 402 });
   }
 

@@ -8,6 +8,8 @@ import {
   getLearningPathBySlug,
   getUnitsWithProgress,
 } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/auth/server";
+import { hasPremiumAccess } from "@/lib/premium";
 import { brand } from "@/lib/brand";
 import { TopNav } from "@/components/TopNav";
 import { EnrollPathButton } from "./EnrollPathButton";
@@ -55,6 +57,8 @@ export default async function LearningPathPage({
 }) {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
 
   const { slug } = await params;
   const path = await getLearningPathBySlug(slug);
@@ -83,6 +87,19 @@ export default async function LearningPathPage({
     (sum, unit) => sum + unit.lessonsDone,
     0,
   );
+  const freePreviewLessonId = units[0]?.lessons[0]?.id ?? null;
+  const premiumAccess = hasPremiumAccess(user);
+  const mapUnits = units.map((unit) => ({
+    ...unit,
+    lessons: unit.lessons.map((lesson) => {
+      const isFreePreview = lesson.id === freePreviewLessonId;
+      return {
+        ...lesson,
+        isFreePreview,
+        isPremiumLocked: path.isPremium && !premiumAccess && !isFreePreview,
+      };
+    }),
+  }));
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
@@ -121,6 +138,11 @@ export default async function LearningPathPage({
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-black text-slate-950 md:mt-8 md:gap-5 md:text-sm">
+                  {path.isPremium && (
+                    <div className="rounded-full bg-[#ffc94a] px-3 py-1 text-xs uppercase text-slate-950">
+                      Premium · 1 gratis
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <Eye className="h-4 w-4" aria-hidden />
                     <span>{units.length} unidades</span>
@@ -151,13 +173,14 @@ export default async function LearningPathPage({
                     childId={child.id}
                     learningPathSlug={path.slug}
                     enrolled={enrolled}
+                    isPremium={path.isPremium}
                   />
                 </div>
               </div>
             </section>
 
             <PathLessonMap
-              units={units}
+              units={mapUnits}
               initialLessonId={currentLesson?.id ?? null}
               childId={child.id}
               learningPathSlug={path.slug}

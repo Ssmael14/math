@@ -20,8 +20,33 @@ export type LessonAccessResult =
           };
         };
       };
+      isFreePreview: boolean;
     }
   | { ok: false; reason: "lesson_not_found" | "not_enrolled" | "locked" };
+
+export async function getFreePreviewLessonId(learningPathId: string) {
+  const firstUnit = await prisma.unit.findFirst({
+    where: { learningPathId },
+    orderBy: { order: "asc" },
+    select: {
+      lessons: {
+        orderBy: { order: "asc" },
+        take: 1,
+        select: { id: true },
+      },
+    },
+  });
+
+  return firstUnit?.lessons[0]?.id ?? null;
+}
+
+export async function isFreePreviewLesson(
+  learningPathId: string,
+  lessonId: string,
+) {
+  const previewLessonId = await getFreePreviewLessonId(learningPathId);
+  return previewLessonId === lessonId;
+}
 
 /**
  * Server-side lesson gate.
@@ -71,14 +96,18 @@ export async function verifyLessonAccess(
 
   if (!enrollment) return { ok: false, reason: "not_enrolled" };
 
+  const isFreePreview = await isFreePreviewLesson(
+    lesson.unit.learningPathId,
+    lesson.id,
+  );
   const alreadyCompleted = lesson.progresses[0]?.completed ?? false;
   if (alreadyCompleted) {
-    return { ok: true, enrolled: true, alreadyCompleted, lesson };
+    return { ok: true, enrolled: true, alreadyCompleted, lesson, isFreePreview };
   }
 
   const level = lesson.unit.learningPath.level;
   if (level === EducationLevel.SECONDARY || level === EducationLevel.PREUNIVERSITY) {
-    return { ok: true, enrolled: true, alreadyCompleted, lesson };
+    return { ok: true, enrolled: true, alreadyCompleted, lesson, isFreePreview };
   }
 
   const units = await prisma.unit.findMany({
@@ -119,5 +148,5 @@ export async function verifyLessonAccess(
     return { ok: false, reason: "locked" };
   }
 
-  return { ok: true, enrolled: true, alreadyCompleted, lesson };
+  return { ok: true, enrolled: true, alreadyCompleted, lesson, isFreePreview };
 }

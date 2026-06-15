@@ -1,4 +1,9 @@
-import { EducationLevel, PrismaClient } from "@prisma/client";
+import {
+  EducationLevel,
+  ExerciseKind,
+  Prisma,
+  PrismaClient,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -51,7 +56,7 @@ const paths = [
       "Clasificar, descubrir patrones, contar, comparar, juntar y sacar — paso a paso con Paskalito.",
     level: EducationLevel.INITIAL,
     difficulty: 1,
-    isPremium: false,
+    isPremium: true,
     order: 1,
   },
   {
@@ -61,7 +66,7 @@ const paths = [
     description: "Practica escribir los números del 0 al 9 con el dedo.",
     level: EducationLevel.INITIAL,
     difficulty: 1,
-    isPremium: false,
+    isPremium: true,
     order: 2,
   },
   {
@@ -73,7 +78,7 @@ const paths = [
     level: EducationLevel.PRIMARY,
     grade: 1,
     difficulty: 2,
-    isPremium: false,
+    isPremium: true,
     order: 3,
   },
   {
@@ -93,7 +98,7 @@ const paths = [
     description: "Reconoce y traza vocales en imprenta mayúscula con el dedo.",
     level: EducationLevel.INITIAL,
     difficulty: 1,
-    isPremium: false,
+    isPremium: true,
     order: 2,
   },
 ];
@@ -286,7 +291,14 @@ const units = [
 ];
 
 const lessons = [
-  ["antes-de-contar", "emparejar-iguales", "Emparejar iguales", 1, 22, 5],
+  [
+    "antes-de-contar",
+    "emparejar-iguales",
+    "Prueba gratis con Paskalito",
+    1,
+    26,
+    6,
+  ],
   ["antes-de-contar", "clasificar-por-color", "Canastas de colores", 2, 24, 6],
   [
     "antes-de-contar",
@@ -365,7 +377,7 @@ const lessons = [
   ["trazos-6-7", "trazar-7", "Trazar 7", 2, 26, 6],
   ["trazos-8-9", "trazar-8", "Trazar 8", 1, 26, 6],
   ["trazos-8-9", "trazar-9", "Trazar 9", 2, 26, 6],
-  ["p1-numeros-hasta-20", "contar-hasta-20", "Contar hasta 20", 1, 30, 7],
+  ["p1-numeros-hasta-20", "contar-hasta-20", "Prueba gratis: contar hasta 20", 1, 32, 7],
   ["p1-numeros-hasta-20", "leer-numeros-20", "Leer números hasta 20", 2, 30, 7],
   ["p1-numeros-hasta-20", "comparar-hasta-20", "Comparar hasta 20", 3, 32, 7],
   ["p1-numeros-hasta-20", "ordinales-primero-decimo", "Primero a décimo", 4, 32, 7],
@@ -387,7 +399,7 @@ const lessons = [
   ["p1-formas-y-datos", "crear-figuras", "Crear figuras", 2, 34, 8],
   ["p1-formas-y-datos", "leer-pictogramas", "Leer pictogramas", 3, 34, 8],
   ["p1-formas-y-datos", "repaso-primer-grado-1", "Repaso de 1.º grado", 4, 38, 9],
-  ["letras-sonidos", "reconocer-vocales", "Vocales", 1, 20, 5],
+  ["letras-sonidos", "reconocer-vocales", "Prueba gratis: vocales", 1, 26, 6],
   ["letras-sonidos", "contar-letras", "Contar letras", 2, 25, 6],
   ["primeras-palabras", "imagen-palabra", "¿Qué dice la imagen?", 1, 25, 6],
   ["vocales-mayusculas", "trazar-a", "Trazar A", 1, 24, 6],
@@ -395,6 +407,438 @@ const lessons = [
   ["vocales-mayusculas", "trazar-i", "Trazar I", 3, 24, 6],
   ["vocales-mayusculas", "trazar-o", "Trazar O", 4, 24, 6],
   ["vocales-mayusculas", "trazar-u", "Trazar U", 5, 24, 6],
+] as const;
+
+type ExerciseSeed = Omit<Prisma.ExerciseCreateManyInput, "lessonId">;
+
+const mathInitialPreviewExercises: ExerciseSeed[] = [
+  {
+    kind: ExerciseKind.TEACH,
+    order: 0,
+    prompt: "",
+    payload: {
+      teach: {
+        beats: [
+          {
+            emoji: "🧩",
+            repeat: 1,
+            text: "Esta es una prueba gratis. Juega un poquito de la aventura con Paskalito.",
+          },
+        ],
+        tryIt: {
+          emoji: "⭐",
+          count: 2,
+          text: "Toca las estrellas para empezar.",
+          successText: "¡Vamos a jugar!",
+        },
+      },
+    } as Prisma.InputJsonValue,
+    solution: {},
+    difficulty: 1,
+    xpReward: 0,
+  },
+  {
+    kind: ExerciseKind.MATCH,
+    order: 1,
+    prompt: "Une cada fruta con su pareja.",
+    payload: {
+      visual: "same-match",
+      left: [
+        { id: "apple", emoji: "🍎" },
+        { id: "banana", emoji: "🍌" },
+        { id: "grape", emoji: "🍇" },
+      ],
+      right: [
+        { id: "banana", emoji: "🍌" },
+        { id: "grape", emoji: "🍇" },
+        { id: "apple", emoji: "🍎" },
+      ],
+    } as Prisma.InputJsonValue,
+    solution: { pairs: [[0, 2], [1, 0], [2, 1]] },
+    hints: ["Busca el mismo dibujo.", "Toca una tarjeta y después su pareja."],
+    explanation: "Cada fruta encontró otra igual.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+  {
+    kind: ExerciseKind.DRAG_DROP,
+    order: 2,
+    prompt: "Pon frutas con frutas y animales con animales.",
+    payload: {
+      visual: "sort-attribute",
+      attribute: "type",
+      items: [
+        { id: "apple", emoji: "🍎", category: "fruits" },
+        { id: "cat", emoji: "🐱", category: "animals" },
+        { id: "banana", emoji: "🍌", category: "fruits" },
+        { id: "dog", emoji: "🐶", category: "animals" },
+      ],
+      categories: [
+        { id: "fruits", label: "Frutas", emoji: "🍎" },
+        { id: "animals", label: "Animales", emoji: "🐱" },
+      ],
+    } as Prisma.InputJsonValue,
+    solution: {
+      groups: {
+        fruits: ["apple", "banana"],
+        animals: ["cat", "dog"],
+      },
+    },
+    hints: ["Mira una característica a la vez.", "Si se parece a la canasta, va ahí."],
+    explanation: "Clasificar es juntar las cosas que comparten una característica.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 3,
+    prompt: "¿Qué sigue en el patrón?",
+    payload: {
+      visual: "pattern-next",
+      sequence: ["🍎", "🍌", "🍎", "🍌"],
+      options: ["🍎", "🍌", "🍇"],
+    } as Prisma.InputJsonValue,
+    solution: { answer: "🍎" },
+    hints: ["Di el patrón en voz baja.", "Busca qué parte se repite."],
+    explanation: "El patrón se repite. Sigue 🍎.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+  {
+    kind: ExerciseKind.SORT,
+    order: 4,
+    prompt: "Pon cada círculo en el casillero que encaja.",
+    payload: {
+      visual: "order-objects",
+      attribute: "size",
+      objects: [
+        { id: "small", emoji: "●", label: "pequeño", size: 1 },
+        { id: "big", emoji: "●", label: "grande", size: 3 },
+        { id: "medium", emoji: "●", label: "mediano", size: 2 },
+      ],
+    } as Prisma.InputJsonValue,
+    solution: { sequence: ["small", "medium", "big"] },
+    hints: ["Empieza por el más pequeño o corto.", "Después busca el que sigue."],
+    explanation: "Ordenar es poner las cosas en una secuencia.",
+    difficulty: 1,
+    xpReward: 7,
+  },
+];
+
+const numberTracingPreviewExercises: ExerciseSeed[] = [
+  {
+    kind: ExerciseKind.TEACH,
+    order: 0,
+    prompt: "",
+    payload: {
+      teach: {
+        beats: [
+          {
+            emoji: "0️⃣",
+            repeat: 1,
+            text: "Esta prueba muestra cómo Paskalito ayuda a mirar, contar y trazar números.",
+          },
+        ],
+        tryIt: {
+          emoji: "0️⃣",
+          count: 1,
+          text: "Toca el cero.",
+          successText: "¡Listo para trazar!",
+        },
+      },
+    } as Prisma.InputJsonValue,
+    solution: {},
+    difficulty: 1,
+    xpReward: 0,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 1,
+    prompt: "Toca el número 0.",
+    payload: { visual: "number-card", digit: 0 } as Prisma.InputJsonValue,
+    solution: { answer: 0 },
+    hints: ["Busca la tarjeta que tiene el 0.", "Mira su forma redonda."],
+    explanation: "Ese es el número 0. Primero lo reconocemos, después lo trazamos.",
+    difficulty: 1,
+    xpReward: 5,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 2,
+    prompt: "La caja está vacía. ¿Cuántas cosas hay?",
+    payload: { visual: "empty-box", item: "⭐" } as Prisma.InputJsonValue,
+    solution: { answer: 0 },
+    hints: ["No hay ninguna estrella.", "Cuando no hay nada, usamos cero."],
+    explanation: "Cero significa que no hay ninguna cosa.",
+    difficulty: 1,
+    xpReward: 5,
+  },
+  {
+    kind: ExerciseKind.DRAW,
+    order: 3,
+    prompt: "Traza el número 0 con el dedo",
+    payload: { digit: 0 } as Prisma.InputJsonValue,
+    solution: { answer: 0 },
+    hints: ["Sigue la guía despacito, sin levantar el dedo si no hace falta."],
+    explanation: "Así se escribe el 0. ¡Cada vez te sale mejor!",
+    difficulty: 2,
+    xpReward: 6,
+  },
+];
+
+const primaryOnePreviewExercises: ExerciseSeed[] = [
+  {
+    kind: ExerciseKind.TEACH,
+    order: 0,
+    prompt: "",
+    payload: {
+      teach: {
+        beats: [
+          {
+            emoji: "🔢",
+            repeat: 1,
+            text: "Esta prueba muestra cómo Paskalito ayuda a contar, comparar y ordenar en 1.º grado.",
+          },
+        ],
+        tryIt: {
+          emoji: "⭐",
+          count: 5,
+          text: "Toca cinco estrellas para empezar.",
+          successText: "¡Listo para contar!",
+        },
+      },
+    } as Prisma.InputJsonValue,
+    solution: {},
+    difficulty: 1,
+    xpReward: 0,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 1,
+    prompt: "Toca cada uno y cuenta. ¿Cuántos hay?",
+    payload: { visual: "count", item: "⭐", count: 12 } as Prisma.InputJsonValue,
+    solution: { answer: 12 },
+    hints: ["Cuenta primero diez y después dos más.", "Toca uno por uno, sin saltarte ninguno."],
+    explanation: "Hay 12. El último número que dices indica cuántos hay.",
+    difficulty: 2,
+    xpReward: 5,
+  },
+  {
+    kind: ExerciseKind.DRAG_DROP,
+    order: 2,
+    prompt: "Pon el número que falta en la recta.",
+    payload: {
+      visual: "number-line-input",
+      sequence: [10, 11, null, 13, 14],
+      choices: [11, 12, 13, 14],
+      step: 1,
+    } as Prisma.InputJsonValue,
+    solution: { answer: 12 },
+    hints: ["La secuencia avanza de 1 en 1.", "Mira el número anterior y el siguiente."],
+    explanation: "Falta 12. La secuencia mantiene el mismo salto.",
+    difficulty: 1,
+    xpReward: 8,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 3,
+    prompt: "¿Dónde hay más?",
+    payload: {
+      visual: "compare-groups",
+      left: { item: "🍎", count: 9 },
+      right: { item: "🍎", count: 12 },
+      options: ["izquierda", "derecha", "igual"],
+    } as Prisma.InputJsonValue,
+    solution: { answer: "derecha" },
+    hints: ["Mira los dos grupos.", "Puedes tocar y contar para comprobar."],
+    explanation: "Hay más en la derecha.",
+    difficulty: 2,
+    xpReward: 7,
+  },
+  {
+    kind: ExerciseKind.SORT,
+    order: 4,
+    prompt: "Ordena de menor a mayor",
+    payload: { numbers: [12, 11, 13] } as Prisma.InputJsonValue,
+    solution: { sequence: [11, 12, 13] },
+    hints: ["Primero el más chiquito.", "Cada número que sigue es uno más."],
+    explanation: "En orden: 11, 12, 13.",
+    difficulty: 1,
+    xpReward: 7,
+  },
+];
+
+const readingInitialPreviewExercises: ExerciseSeed[] = [
+  {
+    kind: ExerciseKind.TEACH,
+    order: 0,
+    prompt: "",
+    payload: {
+      teach: {
+        beats: [
+          {
+            emoji: "🔤",
+            repeat: 1,
+            text: "Esta prueba muestra cómo Paskalito ayuda a reconocer letras, sonidos y trazos.",
+          },
+        ],
+        tryIt: {
+          emoji: "A",
+          count: 1,
+          text: "Toca la A para empezar.",
+          successText: "¡Vamos con las vocales!",
+        },
+      },
+    } as Prisma.InputJsonValue,
+    solution: {},
+    difficulty: 1,
+    xpReward: 0,
+  },
+  {
+    kind: ExerciseKind.MATCH,
+    order: 1,
+    prompt: "Une cada vocal con su pareja.",
+    payload: {
+      visual: "same-match",
+      left: [
+        { id: "A", emoji: "A" },
+        { id: "E", emoji: "E" },
+        { id: "I", emoji: "I" },
+      ],
+      right: [
+        { id: "E", emoji: "E" },
+        { id: "I", emoji: "I" },
+        { id: "A", emoji: "A" },
+      ],
+    } as Prisma.InputJsonValue,
+    solution: { pairs: [[0, 2], [1, 0], [2, 1]] },
+    hints: ["Busca la misma letra.", "Toca una tarjeta y después su pareja."],
+    explanation: "Cada vocal encontró otra igual.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 2,
+    prompt: "Toca la letra A.",
+    payload: { visual: "letter", letter: "A", options: ["A", "E", "I", "O"] } as Prisma.InputJsonValue,
+    solution: { answer: "A" },
+    hints: ["Busca la tarjeta que tiene la A.", "Mira su forma antes de tocar."],
+    explanation: "Esa es la letra A. Primero la reconocemos, después la trazamos.",
+    difficulty: 1,
+    xpReward: 5,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 3,
+    prompt: "¿Con qué letra empieza abeja?",
+    payload: { visual: "emoji-word", emoji: "🐝", label: "abeja", options: ["A", "E", "I", "O"] } as Prisma.InputJsonValue,
+    solution: { answer: "A" },
+    hints: ["Di la palabra despacio: abeja.", "Escucha el primer sonido: A."],
+    explanation: "Abeja empieza con A.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+  {
+    kind: ExerciseKind.DRAW,
+    order: 4,
+    prompt: "Traza la letra A con el dedo",
+    payload: { letter: "A" } as Prisma.InputJsonValue,
+    solution: { answer: "A" },
+    hints: ["Sigue la guía despacito.", "Puedes levantar el dedo si la letra tiene más de un trazo."],
+    explanation: "Así se escribe la A en imprenta mayúscula.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+];
+
+const letterTracingPreviewExercises: ExerciseSeed[] = [
+  {
+    kind: ExerciseKind.TEACH,
+    order: 0,
+    prompt: "",
+    payload: {
+      teach: {
+        beats: [
+          {
+            emoji: "A",
+            repeat: 1,
+            text: "Esta es la letra A. Primero la miramos, luego la trazamos con el dedo.",
+          },
+        ],
+        tryIt: {
+          emoji: "🐝",
+          count: 1,
+          text: "Abeja empieza con A. Toca la imagen.",
+          successText: "¡A de abeja!",
+        },
+      },
+    } as Prisma.InputJsonValue,
+    solution: {},
+    difficulty: 1,
+    xpReward: 0,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 1,
+    prompt: "Toca la letra A.",
+    payload: { visual: "letter", letter: "A", options: ["A", "E", "I", "O"] } as Prisma.InputJsonValue,
+    solution: { answer: "A" },
+    hints: ["Busca la tarjeta que tiene la A.", "Mira su forma antes de tocar."],
+    explanation: "Esa es la letra A. Primero la reconocemos, después la trazamos.",
+    difficulty: 1,
+    xpReward: 5,
+  },
+  {
+    kind: ExerciseKind.MULTIPLE_CHOICE,
+    order: 2,
+    prompt: "¿Con qué letra empieza abeja?",
+    payload: { visual: "emoji-word", emoji: "🐝", label: "abeja", options: ["A", "E", "I", "O"] } as Prisma.InputJsonValue,
+    solution: { answer: "A" },
+    hints: ["Di la palabra despacio: abeja.", "Escucha el primer sonido: A."],
+    explanation: "Abeja empieza con A.",
+    difficulty: 1,
+    xpReward: 5,
+  },
+  {
+    kind: ExerciseKind.DRAW,
+    order: 3,
+    prompt: "Traza la letra A con el dedo",
+    payload: { letter: "A" } as Prisma.InputJsonValue,
+    solution: { answer: "A" },
+    hints: ["Sigue la guía despacito.", "Puedes levantar el dedo si la letra tiene más de un trazo."],
+    explanation: "Así se escribe la A en imprenta mayúscula.",
+    difficulty: 1,
+    xpReward: 6,
+  },
+];
+
+const previewExerciseUpdates = [
+  {
+    unitSlug: "antes-de-contar",
+    lessonSlug: "emparejar-iguales",
+    exercises: mathInitialPreviewExercises,
+  },
+  {
+    unitSlug: "conocer-el-cero",
+    lessonSlug: "trazar-0",
+    exercises: numberTracingPreviewExercises,
+  },
+  {
+    unitSlug: "p1-numeros-hasta-20",
+    lessonSlug: "contar-hasta-20",
+    exercises: primaryOnePreviewExercises,
+  },
+  {
+    unitSlug: "letras-sonidos",
+    lessonSlug: "reconocer-vocales",
+    exercises: readingInitialPreviewExercises,
+  },
+  {
+    unitSlug: "vocales-mayusculas",
+    lessonSlug: "trazar-a",
+    exercises: letterTracingPreviewExercises,
+  },
 ] as const;
 
 const shopItems = [
@@ -476,6 +920,42 @@ async function main() {
       update: { title, order, xpReward, estimatedMinutes },
       create: { unitId: unit.id, slug, title, order, xpReward, estimatedMinutes },
     });
+  }
+
+  for (const preview of previewExerciseUpdates) {
+    const previewUnit = unitBySlug.get(preview.unitSlug);
+    if (!previewUnit) throw new Error(`Missing preview unit ${preview.unitSlug}`);
+    const previewLesson = await prisma.lesson.findUnique({
+      where: {
+        unitId_slug: {
+          unitId: previewUnit.id,
+          slug: preview.lessonSlug,
+        },
+      },
+      select: { id: true },
+    });
+    if (!previewLesson) throw new Error(`Missing preview lesson ${preview.lessonSlug}`);
+
+    const existingPreviewExercises = await prisma.exercise.findMany({
+      where: { lessonId: previewLesson.id },
+      orderBy: { order: "asc" },
+      select: { id: true },
+    });
+
+    for (const [index, exercise] of preview.exercises.entries()) {
+      const data = { ...exercise, order: index };
+      const existing = existingPreviewExercises[index];
+      if (existing) {
+        await prisma.exercise.update({
+          where: { id: existing.id },
+          data,
+        });
+      } else {
+        await prisma.exercise.create({
+          data: { ...data, lessonId: previewLesson.id },
+        });
+      }
+    }
   }
 
   for (const item of shopItems) {

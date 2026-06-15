@@ -213,10 +213,10 @@ function SubjectIcon({
   );
 }
 
-function pathActionLabel(progress: number) {
-  if (progress >= 1) return "Repasar";
-  if (progress > 0) return "Continuar";
-  return "Empezar";
+function pathActionLabel(path: PathCatalog) {
+  if (path.progress >= 1) return "Repasar";
+  if (path.progress > 0) return "Continuar";
+  return path.isPremium ? "Probar gratis" : "Empezar";
 }
 
 function pathProgressText(path: PathCatalog) {
@@ -226,7 +226,7 @@ function pathProgressText(path: PathCatalog) {
 
 function RecommendedPathCard({ entry }: { entry: PathEntry }) {
   const progressPct = Math.round(entry.path.progress * 100);
-  const actionLabel = pathActionLabel(entry.path.progress);
+  const actionLabel = pathActionLabel(entry.path);
 
   return (
     <Link
@@ -258,7 +258,7 @@ function RecommendedPathCard({ entry }: { entry: PathEntry }) {
             <span>{pathProgressText(entry.path)}</span>
             {entry.path.isPremium && (
               <span className="rounded-full bg-[#ffc94a] px-2 py-0.5 text-slate-950">
-                Premium
+                Premium · 1 gratis
               </span>
             )}
           </div>
@@ -285,7 +285,7 @@ function RecommendedPathCard({ entry }: { entry: PathEntry }) {
 
 function PathCourseCard({ entry, isNew }: { entry: PathEntry; isNew: boolean }) {
   const progressPct = Math.round(entry.path.progress * 100);
-  const actionLabel = pathActionLabel(entry.path.progress);
+  const actionLabel = pathActionLabel(entry.path);
 
   return (
     <Link
@@ -302,7 +302,7 @@ function PathCourseCard({ entry, isNew }: { entry: PathEntry; isNew: boolean }) 
           )}
           {entry.path.isPremium && (
             <span className="absolute left-2 top-2 rounded-full bg-[#ffc94a] px-2.5 py-1 text-[10px] font-black uppercase text-slate-950">
-              Premium
+              1 gratis
             </span>
           )}
           <CatalogIcon entry={entry} />
