@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 
 type SubscriptionPlan = "FREE" | "PREMIUM" | "FAMILY";
 type PremiumStatus = "free" | "active" | "expiring_soon" | "expired";
-type DurationOption = "1" | "3" | "6" | "12" | "manual";
+type DurationOption = "1d" | "1" | "3" | "6" | "12" | "manual";
 
 type AdminUser = {
   id: string;
@@ -38,6 +38,7 @@ type Draft = {
 
 const planOptions = ["FREE", "PREMIUM", "FAMILY"] as const;
 const durationOptions: { value: DurationOption; label: string }[] = [
+  { value: "1d", label: "1 día prueba" },
   { value: "1", label: "1 mes" },
   { value: "3", label: "3 meses" },
   { value: "6", label: "6 meses" },
@@ -89,7 +90,7 @@ function clientStatus(plan: SubscriptionPlan, premiumUntil: string | null): Prem
 function initialDraft(user: AdminUser): Draft {
   return {
     plan: user.plan,
-    duration: "1",
+    duration: "1d",
     premiumUntil: user.premiumUntil?.slice(0, 10) ?? "",
     note: user.premiumNote ?? "",
   };
@@ -141,6 +142,7 @@ export function AdminPremiumClient({
     startTransition(async () => {
       const payload: {
         plan: SubscriptionPlan;
+        days?: number;
         months?: number;
         premiumUntil?: string;
         note?: string;
@@ -154,6 +156,8 @@ export function AdminPremiumClient({
           payload.premiumUntil = draft.premiumUntil
             ? new Date(`${draft.premiumUntil}T23:59:59.000Z`).toISOString()
             : undefined;
+        } else if (draft.duration === "1d") {
+          payload.days = 1;
         } else {
           payload.months = Number(draft.duration);
         }

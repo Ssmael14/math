@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { addMonthsUtc, hasPremiumAccess, premiumStatus } from "@/lib/premium";
+import {
+  addDaysUtc,
+  addMonthsUtc,
+  hasPremiumAccess,
+  premiumStatus,
+} from "@/lib/premium";
 
 const now = new Date("2026-06-02T12:00:00.000Z");
 
@@ -51,5 +56,9 @@ describe("premium access", () => {
 
   it("adds months using UTC month arithmetic", () => {
     expect(addMonthsUtc(now, 3).toISOString()).toBe("2026-09-02T12:00:00.000Z");
+  });
+
+  it("adds days using UTC date arithmetic", () => {
+    expect(addDaysUtc(now, 1).toISOString()).toBe("2026-06-03T12:00:00.000Z");
   });
 });

@@ -29,6 +29,12 @@ export function addMonthsUtc(date: Date, months: number) {
   return copy;
 }
 
+export function addDaysUtc(date: Date, days: number) {
+  const copy = new Date(date);
+  copy.setUTCDate(copy.getUTCDate() + days);
+  return copy;
+}
+
 export function formatPremiumDate(date: Date | null | undefined) {
   if (!date) return null;
   return new Intl.DateTimeFormat("es", {

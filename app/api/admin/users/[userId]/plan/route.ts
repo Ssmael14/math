@@ -2,7 +2,7 @@ import { SubscriptionPlan } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
-import { addMonthsUtc } from "@/lib/premium";
+import { addDaysUtc, addMonthsUtc } from "@/lib/premium";
 import { rateLimit } from "@/lib/rate-limit";
 
 const plans = new Set<string>(Object.values(SubscriptionPlan));
@@ -40,6 +40,10 @@ export async function PATCH(
   let premiumUntil: Date | null = null;
 
   if (plan !== SubscriptionPlan.FREE) {
+    const days =
+      data && Number.isInteger(data.days)
+        ? Number(data.days)
+        : null;
     const months =
       data && Number.isInteger(data.months)
         ? Number(data.months)
@@ -55,6 +59,8 @@ export async function PATCH(
 
     if (manualUntil) {
       premiumUntil = manualUntil;
+    } else if (days && [1].includes(days)) {
+      premiumUntil = addDaysUtc(now, days);
     } else if (months && [1, 3, 6, 12].includes(months)) {
       premiumUntil = addMonthsUtc(now, months);
     } else {

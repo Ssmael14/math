@@ -5,6 +5,7 @@ export const brand = {
   mascotName: "Paskalito",
   domain: "paskalito.com",
   supportEmail: "soporte@paskalito.com",
+  whatsappNumber: "51921461462",
   tagline: "Matemáticas gamificadas para niños de 4 a 6 años",
   pwaName: "Paskalito · Aventura matemática",
   assets: brandAssets,
