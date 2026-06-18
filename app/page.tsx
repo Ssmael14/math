@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 import { brand } from "@/lib/brand";
 
 const featuredRoutes = [
@@ -49,9 +50,33 @@ const pillars = [
   "Sacar",
 ];
 
+function landingWhatsappHref() {
+  const text = [
+    "Hola, quiero conocer Paskalito.",
+    "Me interesa información sobre los cursos y Premium.",
+  ].join("\n");
+
+  return `https://wa.me/${brand.whatsappNumber}?text=${encodeURIComponent(text)}`;
+}
+
 export default function Index() {
+  const whatsappHref = landingWhatsappHref();
+
   return (
     <main className="min-h-screen overflow-hidden bg-cream text-ink">
+      <a
+        href={whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Contactar por WhatsApp"
+        className="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] text-white shadow-[0_8px_0_#128c3e,0_18px_40px_rgba(18,140,62,0.28)] transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#b8f5cd] md:h-auto md:w-auto md:gap-2 md:px-5 md:py-4"
+      >
+        <MessageCircle className="h-7 w-7" aria-hidden />
+        <span className="hidden text-sm font-black md:inline">
+          WhatsApp
+        </span>
+      </a>
+
       <div className="absolute inset-x-0 top-0 h-72 bg-linear-to-b from-sky-soft via-white to-transparent" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-10 pt-5 sm:px-10 lg:px-12">
         <header className="flex items-center justify-between gap-4">
