@@ -45,7 +45,8 @@ export default async function AdminPremiumPage() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-500">
           Cambia manualmente el plan de las cuentas. Esto no usa pagos todavía:
-          Premium se determina solo por el campo User.plan.
+          Premium se determina por el plan y su vigencia; si no hay fecha, se
+          considera una activación manual indefinida.
         </p>
       </header>
 

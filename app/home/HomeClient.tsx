@@ -76,9 +76,11 @@ function formatLeagueName(league: string) {
   return `${normalized.charAt(0).toUpperCase()}${normalized.slice(1)} League`;
 }
 
-function courseCtaLabel(course: CourseSlide) {
+function courseCtaLabel(course: CourseSlide, hasPremiumAccess: boolean) {
   if (course.premiumLocked) return "Desbloquear curso";
-  if (course.isPremium && !course.freePreviewDone) return "Probar gratis";
+  if (course.isPremium && !hasPremiumAccess && !course.freePreviewDone) {
+    return "Probar gratis";
+  }
   if (course.lessonsTotal > 0 && course.lessonsDone >= course.lessonsTotal) {
     return "Repasar curso";
   }
@@ -305,7 +307,11 @@ export function HomeClient({
                   </h1>
                   <div className="mt-1 text-xs font-black uppercase text-[#4867f5] md:mt-2 md:text-sm">
                     {activeCourse.subject.name}
-                    {activeCourse.isPremium ? " · Premium · 1 gratis" : ""}
+                    {activeCourse.isPremium
+                      ? stats.isPremium
+                        ? " · Premium"
+                        : " · Premium · 1 gratis"
+                      : ""}
                   </div>
                 </div>
                 <button
@@ -382,7 +388,7 @@ export function HomeClient({
                   href={startHref}
                   className="btn-chunky block rounded-2xl bg-[#4867f5] px-5 py-3.5 text-center text-sm font-black text-white shadow-[0_5px_0_#2445d8] hover:bg-[#3d5df0] md:px-6 md:py-4 md:text-base"
                 >
-                  {courseCtaLabel(activeCourse)}
+                  {courseCtaLabel(activeCourse, stats.isPremium)}
                 </Link>
                 <Link
                   href={activeCourse.href}

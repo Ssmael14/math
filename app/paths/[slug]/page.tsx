@@ -174,6 +174,7 @@ export default async function LearningPathPage({
                     learningPathSlug={path.slug}
                     enrolled={enrolled}
                     isPremium={path.isPremium}
+                    hasPremiumAccess={premiumAccess}
                   />
                 </div>
               </div>
@@ -185,6 +186,7 @@ export default async function LearningPathPage({
               childId={child.id}
               learningPathSlug={path.slug}
               enrolled={enrolled}
+              hasPremiumAccess={premiumAccess}
             />
           </div>
 

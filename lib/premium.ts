@@ -8,12 +8,15 @@ export type PremiumUser = {
 export type PremiumStatus = "free" | "active" | "expiring_soon" | "expired";
 
 export function hasPremiumAccess(user: PremiumUser, now = new Date()) {
-  return user.plan !== "FREE" && Boolean(user.premiumUntil && user.premiumUntil > now);
+  if (user.plan === "FREE") return false;
+  if (!user.premiumUntil) return true;
+  return user.premiumUntil > now;
 }
 
 export function premiumStatus(user: PremiumUser, now = new Date()): PremiumStatus {
   if (user.plan === "FREE") return "free";
-  if (!user.premiumUntil || user.premiumUntil <= now) return "expired";
+  if (!user.premiumUntil) return "active";
+  if (user.premiumUntil <= now) return "expired";
 
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
   if (user.premiumUntil.getTime() - now.getTime() <= sevenDaysMs) {

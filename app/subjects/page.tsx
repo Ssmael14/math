@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import { ArrowRight, Lock, Play } from "lucide-react";
 import { getActiveChild, getSubjectsPathCatalog } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/auth/server";
+import { hasPremiumAccess } from "@/lib/premium";
 import { TopNav } from "@/components/TopNav";
 import { brand } from "@/lib/brand";
 
@@ -213,10 +215,10 @@ function SubjectIcon({
   );
 }
 
-function pathActionLabel(path: PathCatalog) {
+function pathActionLabel(path: PathCatalog, premiumAccess: boolean) {
   if (path.progress >= 1) return "Repasar";
   if (path.progress > 0) return "Continuar";
-  return path.isPremium ? "Probar gratis" : "Empezar";
+  return path.isPremium && !premiumAccess ? "Probar gratis" : "Empezar";
 }
 
 function pathProgressText(path: PathCatalog) {
@@ -224,9 +226,15 @@ function pathProgressText(path: PathCatalog) {
   return `${path.lessonsDone}/${path.lessonsTotal} lecciones`;
 }
 
-function RecommendedPathCard({ entry }: { entry: PathEntry }) {
+function RecommendedPathCard({
+  entry,
+  premiumAccess,
+}: {
+  entry: PathEntry;
+  premiumAccess: boolean;
+}) {
   const progressPct = Math.round(entry.path.progress * 100);
-  const actionLabel = pathActionLabel(entry.path);
+  const actionLabel = pathActionLabel(entry.path, premiumAccess);
 
   return (
     <Link
@@ -258,7 +266,7 @@ function RecommendedPathCard({ entry }: { entry: PathEntry }) {
             <span>{pathProgressText(entry.path)}</span>
             {entry.path.isPremium && (
               <span className="rounded-full bg-[#ffc94a] px-2 py-0.5 text-slate-950">
-                Premium · 1 gratis
+                {premiumAccess ? "Premium" : "Premium · 1 gratis"}
               </span>
             )}
           </div>
@@ -283,9 +291,17 @@ function RecommendedPathCard({ entry }: { entry: PathEntry }) {
   );
 }
 
-function PathCourseCard({ entry, isNew }: { entry: PathEntry; isNew: boolean }) {
+function PathCourseCard({
+  entry,
+  isNew,
+  premiumAccess,
+}: {
+  entry: PathEntry;
+  isNew: boolean;
+  premiumAccess: boolean;
+}) {
   const progressPct = Math.round(entry.path.progress * 100);
-  const actionLabel = pathActionLabel(entry.path);
+  const actionLabel = pathActionLabel(entry.path, premiumAccess);
 
   return (
     <Link
@@ -302,7 +318,7 @@ function PathCourseCard({ entry, isNew }: { entry: PathEntry; isNew: boolean }) 
           )}
           {entry.path.isPremium && (
             <span className="absolute left-2 top-2 rounded-full bg-[#ffc94a] px-2.5 py-1 text-[10px] font-black uppercase text-slate-950">
-              1 gratis
+              {premiumAccess ? "Premium" : "1 gratis"}
             </span>
           )}
           <CatalogIcon entry={entry} />
@@ -339,6 +355,9 @@ function PathCourseCard({ entry, isNew }: { entry: PathEntry; isNew: boolean }) 
 export default async function SubjectsPage() {
   const child = await getActiveChild();
   if (!child) redirect("/profile/create");
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
+  const premiumAccess = hasPremiumAccess(user);
 
   const subjects = await getSubjectsPathCatalog(child.id);
   const visibleSubjects = subjects.filter(
@@ -374,7 +393,12 @@ export default async function SubjectsPage() {
             </p>
           </header>
 
-          {recommendedPath && <RecommendedPathCard entry={recommendedPath} />}
+          {recommendedPath && (
+            <RecommendedPathCard
+              entry={recommendedPath}
+              premiumAccess={premiumAccess}
+            />
+          )}
 
           <div className="space-y-12">
             {visibleSubjects.map((subject) => {
@@ -421,6 +445,7 @@ export default async function SubjectsPage() {
                               key={path.id}
                               entry={entry}
                               isNew={isNew}
+                              premiumAccess={premiumAccess}
                             />
                           );
                         })}

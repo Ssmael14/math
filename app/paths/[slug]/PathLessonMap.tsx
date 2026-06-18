@@ -80,12 +80,14 @@ export function PathLessonMap({
   childId,
   learningPathSlug,
   enrolled,
+  hasPremiumAccess,
 }: {
   units: MapUnit[];
   initialLessonId: string | null;
   childId: string;
   learningPathSlug: string;
   enrolled: boolean;
+  hasPremiumAccess: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -116,6 +118,7 @@ export function PathLessonMap({
     unit.lessons.some((lesson) => lesson.isPremiumLocked),
   );
   const shouldShowPremiumCta =
+    !hasPremiumAccess &&
     hasPremiumLockedLessons &&
     selectableLessons.length === 1 &&
     selectableLessons[0]?.isFreePreview &&

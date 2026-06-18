@@ -30,6 +30,27 @@ describe("premium access", () => {
     ).toBe(true);
   });
 
+  it("allows manually activated premium users without an expiration date", () => {
+    expect(
+      hasPremiumAccess(
+        {
+          plan: "PREMIUM",
+          premiumUntil: null,
+        },
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      premiumStatus(
+        {
+          plan: "PREMIUM",
+          premiumUntil: null,
+        },
+        now,
+      ),
+    ).toBe("active");
+  });
+
   it("treats expired premium as expired", () => {
     expect(
       premiumStatus(
