@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Crown,
   LockKeyhole,
-  MessageCircle,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import {
 } from "@/lib/premium";
 import { TopNav } from "@/components/TopNav";
 import { brand } from "@/lib/brand";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +81,7 @@ export default async function PremiumPage() {
                   rel="noopener noreferrer"
                   className="btn-chunky inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25d366] px-6 py-4 text-center text-sm font-black text-white shadow-[0_5px_0_#128c3e]"
                 >
-                  <MessageCircle className="h-5 w-5" aria-hidden />
+                  <WhatsAppIcon className="h-5 w-5" />
                   {ctaText}
                 </a>
               )}
@@ -186,7 +186,7 @@ export default async function PremiumPage() {
                   rel="noopener noreferrer"
                   className="btn-chunky mt-5 flex items-center justify-center gap-2 rounded-2xl bg-[#25d366] px-6 py-4 text-center text-sm font-black text-white shadow-[0_5px_0_#128c3e]"
                 >
-                  <MessageCircle className="h-5 w-5" aria-hidden />
+                  <WhatsAppIcon className="h-5 w-5" />
                   Escribir por WhatsApp
                 </a>
               )}

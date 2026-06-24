@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
 import { brand } from "@/lib/brand";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const featuredRoutes = [
   {
@@ -71,7 +71,7 @@ export default function Index() {
         aria-label="Contactar por WhatsApp"
         className="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] text-white shadow-[0_8px_0_#128c3e,0_18px_40px_rgba(18,140,62,0.28)] transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#b8f5cd] md:h-auto md:w-auto md:gap-2 md:px-5 md:py-4"
       >
-        <MessageCircle className="h-7 w-7" aria-hidden />
+        <WhatsAppIcon className="h-7 w-7" />
         <span className="hidden text-sm font-black md:inline">
           WhatsApp
         </span>
