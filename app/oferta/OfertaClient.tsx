@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Clock3, Gift, Percent, Smartphone, Sparkles, X } from "lucide-react";
+import {
+  Check,
+  Clock3,
+  Gift,
+  Percent,
+  Smartphone,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { brand } from "@/lib/brand";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
@@ -175,54 +183,54 @@ export function OfertaClient() {
 
   if (step === "intro") {
     return (
-      <main className="min-h-[100dvh] bg-[#fffaf4] px-5 pb-28 pt-10 text-slate-950">
-        <section className="mx-auto flex min-h-[calc(100dvh-9rem)] max-w-2xl flex-col justify-center">
+      <main className="min-h-[100dvh] bg-[#fffaf4] px-4 pb-24 pt-5 text-slate-950 md:px-5 md:pb-28 md:pt-10">
+        <section className="mx-auto flex min-h-[calc(100dvh-7rem)] max-w-2xl flex-col justify-center">
           <div className="text-center">
-            <h1 className="font-fredoka text-5xl font-bold leading-[0.95] tracking-tight md:text-6xl">
+            <h1 className="font-fredoka text-4xl font-bold leading-[0.96] tracking-tight md:text-6xl">
               Aprende matemática y lectura jugando
             </h1>
-            <p className="mx-auto mt-5 max-w-md text-lg font-bold leading-8 text-slate-600">
+            <p className="mx-auto mt-3 max-w-md text-sm font-bold leading-6 text-slate-600 md:mt-5 md:text-lg md:leading-8">
               Para inicial y primeros grados, con actividades cortas de tocar,
               arrastrar y trazar.
             </p>
           </div>
 
-          <div className="mt-10 overflow-hidden rounded-[2rem] border border-[#e7d9ca] bg-white shadow-[0_8px_0_rgba(15,23,42,0.08)]">
+          <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-[#e7d9ca] bg-white shadow-[0_8px_0_rgba(15,23,42,0.08)] md:mt-10 md:rounded-[2rem]">
             <div className="grid grid-cols-2">
-              <div className="relative flex min-h-64 flex-col justify-end overflow-hidden bg-slate-950 p-5 text-white">
+              <div className="relative flex min-h-[210px] flex-col justify-end overflow-hidden bg-slate-950 p-3 text-white md:min-h-64 md:p-5">
                 <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-800" />
-                <div className="absolute right-4 top-5 opacity-20">
-                  <Smartphone className="h-24 w-24" aria-hidden />
+                <div className="absolute right-3 top-4 opacity-20 md:right-4 md:top-5">
+                  <Smartphone className="h-16 w-16 md:h-24 md:w-24" aria-hidden />
                 </div>
                 <div className="relative">
-                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/10 text-white">
-                    <Smartphone className="h-8 w-8" aria-hidden />
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 text-white md:h-14 md:w-14">
+                    <Smartphone className="h-6 w-6 md:h-8 md:w-8" aria-hidden />
                   </div>
-                  <div className="mt-5 font-fredoka text-3xl font-bold leading-tight">
+                  <div className="mt-4 font-fredoka text-2xl font-bold leading-tight md:mt-5 md:text-3xl">
                     Pantalla sin rumbo
                   </div>
-                  <div className="mt-2 text-lg font-bold text-white/65">
+                  <div className="mt-1 text-sm font-bold text-white/65 md:mt-2 md:text-lg">
                     Tiempo perdido
                   </div>
                 </div>
               </div>
 
-              <div className="relative flex min-h-64 flex-col justify-end overflow-hidden bg-[#eef3ff] p-5 text-slate-950">
+              <div className="relative flex min-h-[210px] flex-col justify-end overflow-hidden bg-[#eef3ff] p-3 text-slate-950 md:min-h-64 md:p-5">
                 <div className="absolute inset-0 bg-linear-to-br from-white via-[#eef3ff] to-[#dfe7ff]" />
-                <div className="absolute left-1/2 top-6 h-28 w-28 -translate-x-1/2 rounded-full bg-white/70 blur-xl" />
+                <div className="absolute left-1/2 top-5 h-20 w-20 -translate-x-1/2 rounded-full bg-white/70 blur-xl md:top-6 md:h-28 md:w-28" />
                 <img
                   src={brand.assets.mascotHappy}
                   alt=""
-                  className="absolute left-1/2 top-6 h-32 w-32 -translate-x-1/2 object-contain"
+                  className="absolute left-1/2 top-4 h-24 w-24 -translate-x-1/2 object-contain md:top-6 md:h-32 md:w-32"
                 />
                 <div className="relative">
-                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#4867f5] text-white">
-                    <Sparkles className="h-8 w-8" aria-hidden />
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#4867f5] text-white md:h-14 md:w-14">
+                    <Sparkles className="h-6 w-6 md:h-8 md:w-8" aria-hidden />
                   </div>
-                  <div className="mt-5 font-fredoka text-3xl font-bold leading-tight">
+                  <div className="mt-4 font-fredoka text-2xl font-bold leading-tight md:mt-5 md:text-3xl">
                     Juegos con Paskalito
                   </div>
-                  <div className="mt-2 text-lg font-bold text-slate-500">
+                  <div className="mt-1 text-sm font-bold text-slate-500 md:mt-2 md:text-lg">
                     Hábito ganado
                   </div>
                 </div>
@@ -230,17 +238,17 @@ export function OfertaClient() {
             </div>
           </div>
 
-          <p className="mx-auto mt-8 max-w-sm text-center text-sm font-black uppercase tracking-wide text-[#4867f5]">
+          <p className="mx-auto mt-5 max-w-sm text-center text-xs font-black uppercase tracking-wide text-[#4867f5] md:mt-8 md:text-sm">
             Practica pocos minutos al día
           </p>
         </section>
 
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e7d9ca] bg-white/95 px-4 py-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e7d9ca] bg-white/95 px-4 py-2.5 backdrop-blur md:py-3">
           <div className="mx-auto max-w-2xl">
             <button
               type="button"
               onClick={continueToPlans}
-              className="btn-chunky block w-full rounded-2xl bg-[#4867f5] px-6 py-4 text-center text-base font-black text-white shadow-[0_5px_0_#2445d8]"
+              className="btn-chunky block w-full rounded-2xl bg-[#4867f5] px-6 py-3.5 text-center text-base font-black text-white shadow-[0_5px_0_#2445d8] md:py-4"
             >
               Continuar
             </button>
@@ -275,37 +283,37 @@ export function OfertaClient() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-2xl px-5 pb-28 pt-8 md:px-8 md:pt-12">
+      <section className="mx-auto max-w-2xl px-4 pb-28 pt-6 md:px-8 md:pt-12">
         <div className="text-center">
-          <h1 className="font-fredoka text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+          <h1 className="font-fredoka text-3xl font-bold leading-tight tracking-tight md:text-5xl">
             Consigue tu plan con más descuento
           </h1>
         </div>
 
-        <section className="mt-8 overflow-hidden rounded-[1.5rem] border border-[#bfe8c7] bg-[#ecfff2]">
-          <div className="p-5">
+        <section className="mt-5 overflow-hidden rounded-[1.5rem] border border-[#bfe8c7] bg-[#ecfff2] md:mt-8">
+          <div className="p-4 md:p-5">
             <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#22c55e] text-white">
-                <Percent className="h-7 w-7" aria-hidden />
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#22c55e] text-white md:h-12 md:w-12">
+                <Percent className="h-6 w-6 md:h-7 md:w-7" aria-hidden />
               </div>
-              <div className="font-fredoka text-3xl font-bold">
+              <div className="font-fredoka text-2xl font-bold md:text-3xl">
                 {discountUnlocked
                   ? "¡Promo aplicada!"
                   : "Descuento disponible"}
               </div>
             </div>
 
-            <div className="mt-5 border-t-2 border-dashed border-[#b8e5c3] pt-5">
+            <div className="mt-4 border-t-2 border-dashed border-[#b8e5c3] pt-4 md:mt-5 md:pt-5">
               <div className="grid grid-cols-[1fr_auto] gap-3">
-                <div className="flex min-w-0 items-center gap-3 rounded-2xl bg-white px-4 py-4 text-lg font-bold text-slate-700">
-                  <Check className="h-6 w-6 shrink-0 text-[#22c55e]" aria-hidden />
+                <div className="flex min-w-0 items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700 md:py-4 md:text-lg">
+                  <Check className="h-5 w-5 shrink-0 text-[#22c55e] md:h-6 md:w-6" aria-hidden />
                   <span className="truncate">
                     {discountUnlocked
                       ? "PASKALITO_DESCUENTO"
                       : "Toca el botón morado"}
                   </span>
                 </div>
-                <div className="rounded-2xl bg-[#bff0cc] px-5 py-4 text-center font-fredoka text-2xl font-bold text-[#14532d]">
+                <div className="rounded-2xl bg-[#bff0cc] px-4 py-3 text-center font-fredoka text-xl font-bold text-[#14532d] md:px-5 md:py-4 md:text-2xl">
                   {formatTime(secondsLeft)}
                 </div>
               </div>
@@ -313,8 +321,8 @@ export function OfertaClient() {
           </div>
         </section>
 
-        <section className="mt-8">
-          <div className="mt-6 space-y-4">
+        <section className="mt-5 md:mt-8">
+          <div className="space-y-3 md:mt-6 md:space-y-4">
             {plans.map((plan) => {
               const selected = selectedPlan.id === plan.id;
               const displayPrice = discountUnlocked ? plan.price : plan.regular;
@@ -324,7 +332,7 @@ export function OfertaClient() {
                   key={plan.id}
                   type="button"
                   onClick={() => handlePlanClick(plan)}
-                  className={`relative w-full rounded-[1.5rem] border-2 bg-white p-5 text-left transition ${
+                  className={`relative w-full rounded-[1.5rem] border-2 bg-white p-4 text-left transition md:p-5 ${
                     selected
                       ? "border-[#4867f5] bg-[#eef3ff] shadow-[0_6px_0_#2445d8]"
                       : "border-[#e7d9ca] shadow-[0_4px_0_rgba(15,23,42,0.08)]"
@@ -352,15 +360,15 @@ export function OfertaClient() {
                           ●
                         </span>
                         <div>
-                          <div className="font-fredoka text-2xl font-bold">
+                          <div className="font-fredoka text-xl font-bold md:text-2xl">
                             {plan.label}
                           </div>
                           {discountUnlocked && discountFor(plan) > 0 && (
-                            <div className="mt-2 inline-flex rounded-full bg-[#f2e7ff] px-3 py-1 text-xs font-black uppercase text-[#8b00d8]">
+                            <div className="mt-1.5 inline-flex rounded-full bg-[#f2e7ff] px-3 py-1 text-xs font-black uppercase text-[#8b00d8] md:mt-2">
                               Ahorra {discountFor(plan)}%
                             </div>
                           )}
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-400">
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-400 md:mt-2">
                             {discountUnlocked && (
                               <span className="line-through">
                                 {formatSoles(plan.regular)}
@@ -378,7 +386,7 @@ export function OfertaClient() {
                           </div>
                         </div>
                       </div>
-                      <div className="min-w-[112px] text-right">
+                      <div className="min-w-[96px] text-right md:min-w-[112px]">
                         {discountUnlocked && (
                           <div className="text-sm font-bold text-slate-400 line-through">
                             {formatSolesDecimal(plan.regular / plan.days)}
@@ -389,8 +397,8 @@ export function OfertaClient() {
                           <span
                             className={
                               selected
-                                ? "text-7xl text-slate-950"
-                                : "text-7xl text-slate-400"
+                                ? "text-6xl text-slate-950 md:text-7xl"
+                                : "text-6xl text-slate-400 md:text-7xl"
                             }
                           >
                             {daily.soles}

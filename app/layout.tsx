@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
 import { brand } from "@/lib/brand";
 
@@ -28,6 +29,11 @@ const siteUrl =
   `https://${brand.domain}`;
 const defaultTitle = `${brand.appName} - Aventura con ${brand.mascotName}`;
 const ogImage = "/og-image.png";
+const configuredMetaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const metaPixelId =
+  configuredMetaPixelId && /^\d+$/.test(configuredMetaPixelId)
+    ? configuredMetaPixelId
+    : null;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -97,6 +103,18 @@ export default function RootLayout({
       className={`${fredoka.variable} ${nunito.variable} ${fraunces.variable}`}
     >
       <body className="bg-cream text-ink">
+        {metaPixelId && (
+          <noscript>
+            <img
+              height="1"
+              width="1"
+              style={{ display: "none" }}
+              src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        )}
+        <MetaPixel />
         <PwaProvider />
         {children}
       </body>
